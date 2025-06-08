@@ -1,5 +1,5 @@
 import { program } from 'commander';
-import { invoke } from '@tauri-apps/api/tauri';
+import { invoke } from '@tauri-apps/api/core';
 import path from 'path';
 
 interface CaptionOptions {
@@ -18,20 +18,20 @@ interface GenerateParams {
   outro?: string;
 }
 
-async function generateVideo(params: GenerateParams) {
-  return await invoke('generate_video', params);
+async function generateVideo(params: GenerateParams): Promise<any> {
+  return await invoke('generate_video', params as any);
 }
 
-async function uploadVideo(params: { file: string }) {
-  return await invoke('upload_video', params);
+async function uploadVideo(params: { file: string }): Promise<any> {
+  return await invoke('upload_video', params as any);
 }
 
-async function uploadVideos(params: { files: string[] }) {
-  return await invoke('upload_videos', params);
+async function uploadVideos(params: { files: string[] }): Promise<any> {
+  return await invoke('upload_videos', params as any);
 }
 
-async function transcribeAudio(params: { file: string }) {
-  return await invoke('transcribe_audio', params);
+async function transcribeAudio(params: { file: string }): Promise<any> {
+  return await invoke('transcribe_audio', params as any);
 }
 
 program
@@ -133,8 +133,8 @@ program
   .argument('<files...>', 'video files')
   .action(async (files: string[]) => {
     try {
-      const results = await uploadVideos({ files });
-      results.forEach((res) => console.log(res));
+      const results = await uploadVideos({ files }) as any[];
+      results.forEach((res: any) => console.log(res));
     } catch (err) {
       console.error('Error uploading videos:', err);
       process.exitCode = 1;
