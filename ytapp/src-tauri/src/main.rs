@@ -1,29 +1,65 @@
 use std::process::Command;
 use tauri::command;
+use serde::Deserialize;
+
+#[derive(Deserialize, Default)]
+struct CaptionOptions {
+    font: Option<String>,
+    size: Option<u32>,
+    position: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct GenerateParams {
+    file: String,
+    output: Option<String>,
+    captions: Option<String>,
+    caption_options: Option<CaptionOptions>,
+    intro: Option<String>,
+    outro: Option<String>,
+}
 
 #[command]
-fn generate_video(file: String, output: Option<String>) -> Result<String, String> {
-    let output_path = output.unwrap_or_else(|| "output.mp4".to_string());
+fn generate_video(params: GenerateParams) -> Result<String, String> {
+    let output_path = params.output.unwrap_or_else(|| "output.mp4".to_string());
 
-    let status = Command::new("ffmpeg")
-        .args([
-            "-y",
-            "-f",
-            "lavfi",
-            "-i",
-            "color=c=black:s=1280x720:r=25",
-            "-i",
-            &file,
-            "-shortest",
-            "-pix_fmt",
-            "yuv420p",
-            "-c:v",
-            "libx264",
-            "-c:a",
-            "aac",
-            &output_path,
-        ])
-        .status()
+    let mut cmd = Command::new("ffmpeg");
+    cmd.args([
+        "-y",
+        "-f",
+        "lavfi",
+        "-i",
+        "color=c=black:s=1280x720:r=25",
+        "-i",
+        &params.file,
+        "-shortest",
+        "-pix_fmt",
+        "yuv420p",
+        "-c:v",
+        "libx264",
+        "-c:a",
+        "aac",
+    ]);
+
+    if let Some(caption_file) = params.captions {
+        let opts = params.caption_options.unwrap_or_default();
+        let font = opts.font.unwrap_or_else(|| "Arial".to_string());
+        let size = opts.size.unwrap_or(24);
+        let alignment = match opts.position.unwrap_or_else(|| "bottom".to_string()).as_str() {
+            "top" => "8",
+            "center" => "5",
+            _ => "2",
+        };
+        let filter = format!(
+            "subtitles={}:force_style='FontName={},FontSize={},Alignment={}'",
+            caption_file, font, size, alignment
+        );
+        cmd.args(["-vf", &filter]);
+    }
+
+    cmd.arg(&output_path);
+
+    let status = cmd.status()
         .map_err(|e| format!("failed to start ffmpeg: {}", e))?;
 
     if status.success() {

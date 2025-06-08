@@ -1,7 +1,21 @@
 import { program } from 'commander';
 import { invoke } from '@tauri-apps/api/tauri';
+import path from 'path';
 
-async function generateVideo(params: { file: string; output?: string }) {
+interface CaptionOptions {
+  font?: string;
+  size?: number;
+  position?: string;
+}
+
+interface GenerateParams {
+  file: string;
+  output?: string;
+  captions?: string;
+  captionOptions?: CaptionOptions;
+}
+
+async function generateVideo(params: GenerateParams) {
   return await invoke('generate_video', params);
 }
 
@@ -23,13 +37,60 @@ program
   .description('Generate video from audio')
   .argument('<file>', 'audio file path')
   .option('-o, --output <output>', 'output video path')
-  .action(async (file: string, options: { output?: string }) => {
+  .option('--captions <srt>', 'captions file path')
+  .option('--font <font>', 'caption font')
+  .option('--size <size>', 'caption font size', (v) => parseInt(v, 10))
+  .option('--position <pos>', 'caption position (top|center|bottom)')
+  .action(async (file: string, options: any) => {
     try {
-      const result = await generateVideo({ file, output: options.output });
+      const params: GenerateParams = {
+        file,
+        output: options.output,
+        captions: options.captions,
+        captionOptions: {
+          font: options.font,
+          size: options.size,
+          position: options.position,
+        },
+      };
+      const result = await generateVideo(params);
       console.log(result);
     } catch (err) {
       console.error('Error generating video:', err);
       process.exitCode = 1;
+    }
+  });
+
+program
+  .command('batch')
+  .description('Generate multiple videos')
+  .argument('<files...>', 'list of audio files')
+  .option('-d, --output-dir <dir>', 'output directory', '.')
+  .option('--captions <srt>', 'captions file path')
+  .option('--font <font>', 'caption font')
+  .option('--size <size>', 'caption font size', (v) => parseInt(v, 10))
+  .option('--position <pos>', 'caption position (top|center|bottom)')
+  .action(async (files: string[], options: any) => {
+    for (const file of files) {
+      const output = path.join(
+        options.outputDir,
+        path.basename(file, path.extname(file)) + '.mp4'
+      );
+      try {
+        await generateVideo({
+          file,
+          output,
+          captions: options.captions,
+          captionOptions: {
+            font: options.font,
+            size: options.size,
+            position: options.position,
+          },
+        });
+        console.log('Generated', output);
+      } catch (err) {
+        console.error('Error generating', file, err);
+      }
     }
   });
 
