@@ -100,4 +100,38 @@
   * Linux `.AppImage`
 * Bundle Whisper model downloader on first launch
 
+---
+
+### Setup
+
+Install Tauri's system dependencies (Ubuntu/Debian):
+
+```bash
+sudo apt-get update
+sudo apt-get install -y libgtk-3-dev libglib2.0-dev libsoup2.4-dev \
+    libwebkit2gtk-4.1-dev libjavascriptcoregtk-4.1-dev build-essential \
+    pkg-config libssl-dev
+```
+
+If Cargo cannot locate `javascriptcoregtk-4.0.pc`, set:
+
+```bash
+export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig
+```
+
+Install Node dependencies and run checks:
+
+```bash
+cd ytapp
+npm install
+cargo check          # run inside ytapp/src-tauri
+npx ts-node src/cli.ts --help
+```
+
+Finally, start the Tauri application:
+
+```bash
+npm run start
+```
+
 
