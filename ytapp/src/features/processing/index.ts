@@ -5,6 +5,9 @@ export interface GenerateOptions {
     intro?: string;
     outro?: string;
     captions?: string;
+    captionFont?: string;
+    captionSize?: number;
+    captionPosition?: string;
     output?: string;
 }
 

@@ -9,6 +9,9 @@ struct GenerateParams {
     intro: Option<String>,
     outro: Option<String>,
     captions: Option<String>,
+    caption_font: Option<String>,
+    caption_size: Option<u32>,
+    caption_position: Option<String>,
     output: Option<String>,
 }
 
@@ -34,7 +37,26 @@ fn generate_video(params: GenerateParams) -> Result<String, String> {
     ffmpeg.args(["-i", &params.audio, "-shortest"]);
 
     if let Some(ref srt) = params.captions {
-        ffmpeg.args(["-vf", &format!("subtitles={}", srt)]);
+        let mut filter = format!("subtitles={}", srt.replace('\\', "\\\\"));
+        let mut style_parts: Vec<String> = Vec::new();
+        if let Some(ref font) = params.caption_font {
+            style_parts.push(format!("FontName={}", font));
+        }
+        if let Some(size) = params.caption_size {
+            style_parts.push(format!("FontSize={}", size));
+        }
+        if let Some(ref pos) = params.caption_position {
+            let align = match pos.as_str() {
+                "top" => "8",
+                "center" => "2",
+                _ => "2",
+            };
+            style_parts.push(format!("Alignment={}", align));
+        }
+        if !style_parts.is_empty() {
+            filter = format!("{}:force_style='{}'", filter, style_parts.join(","));
+        }
+        ffmpeg.args(["-vf", &filter]);
     }
 
     ffmpeg.args(["-pix_fmt", "yuv420p", "-c:v", "libx264", "-c:a", "aac", "main_temp.mp4"]);
