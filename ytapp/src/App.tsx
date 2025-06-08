@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { generateVideo } from './features/processing';
+import FilePicker from './components/FilePicker';
 
 const App: React.FC = () => {
     const [file, setFile] = useState('');
@@ -26,6 +27,10 @@ const App: React.FC = () => {
             <h1>Youtube Automation</h1>
             <div>
                 <input type="text" placeholder="Audio file" value={file} onChange={(e) => setFile(e.target.value)} />
+                <FilePicker label="Browse" onSelect={(p) => {
+                    if (typeof p === 'string') setFile(p);
+                    else if (Array.isArray(p) && p.length) setFile(p[0]);
+                }} />
             </div>
             <div>
                 <input type="text" placeholder="Captions file" value={captions} onChange={(e) => setCaptions(e.target.value)} />
