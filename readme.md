@@ -113,7 +113,20 @@ sudo apt-get install -y libgtk-3-dev libglib2.0-dev libsoup2.4-dev \
     pkg-config libssl-dev
 ```
 
-If Cargo cannot locate `javascriptcoregtk-4.0.pc`, set:
+Ubuntu 24.04 only provides the `webkit2gtk-4.1` and `javascriptcoregtk-4.1` packages.
+Create compatibility links so Cargo can find the expected `*-4.0.pc` files:
+
+```bash
+sudo ln -s /usr/lib/x86_64-linux-gnu/pkgconfig/webkit2gtk-4.1.pc \
+    /usr/lib/x86_64-linux-gnu/pkgconfig/webkit2gtk-4.0.pc
+sudo ln -s /usr/lib/x86_64-linux-gnu/pkgconfig/webkit2gtk-web-extension-4.1.pc \
+    /usr/lib/x86_64-linux-gnu/pkgconfig/webkit2gtk-web-extension-4.0.pc
+sudo ln -s /usr/lib/x86_64-linux-gnu/pkgconfig/javascriptcoregtk-4.1.pc \
+    /usr/lib/x86_64-linux-gnu/pkgconfig/javascriptcoregtk-4.0.pc
+```
+
+`PKG_CONFIG_PATH` must include `/usr/lib/x86_64-linux-gnu/pkgconfig` when running
+`cargo check`. For example:
 
 ```bash
 export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig
