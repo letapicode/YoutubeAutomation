@@ -50,6 +50,9 @@
   * `https://www.googleapis.com/auth/youtube.upload`
 * Token storage (encrypted local storage)
 * Upload video via YouTube Data API v3
+  * Implemented in Rust backend using google-youtube3 crate
+  * Requires `client_secret.json` path via `YOUTUBE_CLIENT_SECRET` env variable
+  * Tokens stored in `youtube_tokens.json`
 * Batch upload support
 
 ---
