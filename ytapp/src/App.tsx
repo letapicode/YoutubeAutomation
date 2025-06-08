@@ -4,6 +4,7 @@ import FilePicker from './components/FilePicker';
 
 const App: React.FC = () => {
     const [file, setFile] = useState('');
+    const [background, setBackground] = useState('');
     const [captions, setCaptions] = useState('');
     const [intro, setIntro] = useState('');
     const [outro, setOutro] = useState('');
@@ -17,6 +18,7 @@ const App: React.FC = () => {
             file,
             captions: captions || undefined,
             captionOptions: { font: font || undefined, size, position },
+            background: background || undefined,
             intro: intro || undefined,
             outro: outro || undefined,
         });
@@ -31,6 +33,19 @@ const App: React.FC = () => {
                     if (typeof p === 'string') setFile(p);
                     else if (Array.isArray(p) && p.length) setFile(p[0]);
                 }} />
+            </div>
+            <div>
+                <input type="text" placeholder="Background" value={background} onChange={(e) => setBackground(e.target.value)} />
+                <FilePicker
+                    label="Background"
+                    onSelect={(p) => {
+                        if (typeof p === 'string') setBackground(p);
+                        else if (Array.isArray(p) && p.length) setBackground(p[0]);
+                    }}
+                    filters={[
+                        { name: 'Media', extensions: ['mp4', 'mov', 'mkv', 'png', 'jpg', 'jpeg'] },
+                    ]}
+                />
             </div>
             <div>
                 <input type="text" placeholder="Captions file" value={captions} onChange={(e) => setCaptions(e.target.value)} />
