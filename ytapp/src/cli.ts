@@ -9,6 +9,10 @@ async function uploadVideo(params: { file: string }) {
   return await invoke('upload_video', params);
 }
 
+async function transcribeAudio(params: { file: string }) {
+  return await invoke('transcribe_audio', params);
+}
+
 program
   .name('ytcli')
   .description('CLI for generating and uploading videos')
@@ -39,6 +43,20 @@ program
       console.log(result);
     } catch (err) {
       console.error('Error uploading video:', err);
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command('transcribe')
+  .description('Transcribe audio to SRT')
+  .argument('<file>', 'audio file path')
+  .action(async (file: string) => {
+    try {
+      const result = await transcribeAudio({ file });
+      console.log(result);
+    } catch (err) {
+      console.error('Error transcribing audio:', err);
       process.exitCode = 1;
     }
   });
