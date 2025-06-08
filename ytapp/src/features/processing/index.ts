@@ -11,6 +11,7 @@ export interface GenerateParams {
     output?: string;
     captions?: string;
     captionOptions?: CaptionOptions;
+    background?: string;
     intro?: string;
     outro?: string;
 }

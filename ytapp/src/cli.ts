@@ -13,6 +13,9 @@ interface GenerateParams {
   output?: string;
   captions?: string;
   captionOptions?: CaptionOptions;
+  background?: string;
+  intro?: string;
+  outro?: string;
 }
 
 async function generateVideo(params: GenerateParams) {
@@ -41,6 +44,9 @@ program
   .option('--font <font>', 'caption font')
   .option('--size <size>', 'caption font size', (v) => parseInt(v, 10))
   .option('--position <pos>', 'caption position (top|center|bottom)')
+  .option('-b, --background <file>', 'background image or video')
+  .option('--intro <file>', 'intro video or image')
+  .option('--outro <file>', 'outro video or image')
   .action(async (file: string, options: any) => {
     try {
       const params: GenerateParams = {
@@ -52,6 +58,9 @@ program
           size: options.size,
           position: options.position,
         },
+        background: options.background,
+        intro: options.intro,
+        outro: options.outro,
       };
       const result = await generateVideo(params);
       console.log(result);
@@ -70,6 +79,9 @@ program
   .option('--font <font>', 'caption font')
   .option('--size <size>', 'caption font size', (v) => parseInt(v, 10))
   .option('--position <pos>', 'caption position (top|center|bottom)')
+  .option('-b, --background <file>', 'background image or video')
+  .option('--intro <file>', 'intro video or image')
+  .option('--outro <file>', 'outro video or image')
   .action(async (files: string[], options: any) => {
     for (const file of files) {
       const output = path.join(
@@ -86,6 +98,9 @@ program
             size: options.size,
             position: options.position,
           },
+          background: options.background,
+          intro: options.intro,
+          outro: options.outro,
         });
         console.log('Generated', output);
       } catch (err) {
