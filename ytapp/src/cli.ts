@@ -26,6 +26,10 @@ async function uploadVideo(params: { file: string }) {
   return await invoke('upload_video', params);
 }
 
+async function uploadVideos(params: { files: string[] }) {
+  return await invoke('upload_videos', params);
+}
+
 async function transcribeAudio(params: { file: string }) {
   return await invoke('transcribe_audio', params);
 }
@@ -119,6 +123,20 @@ program
       console.log(result);
     } catch (err) {
       console.error('Error uploading video:', err);
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command('upload-batch')
+  .description('Upload multiple videos to YouTube')
+  .argument('<files...>', 'video files')
+  .action(async (files: string[]) => {
+    try {
+      const results = await uploadVideos({ files });
+      results.forEach((res) => console.log(res));
+    } catch (err) {
+      console.error('Error uploading videos:', err);
       process.exitCode = 1;
     }
   });

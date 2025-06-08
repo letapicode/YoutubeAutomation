@@ -177,8 +177,7 @@ fn generate_video(params: GenerateParams) -> Result<String, String> {
     Ok(output_path)
 }
 
-#[command]
-async fn upload_video(file: String) -> Result<String, String> {
+async fn upload_video_impl(file: String) -> Result<String, String> {
     let secret_path = std::env::var("YOUTUBE_CLIENT_SECRET").unwrap_or_else(|_| "client_secret.json".into());
     let secret = yup_oauth2::read_application_secret(secret_path)
         .await
@@ -215,7 +214,6 @@ async fn upload_video(file: String) -> Result<String, String> {
     };
 
     let f = std::fs::File::open(&file).map_err(|e| format!("Failed to open file: {}", e))?;
-    let size = f.metadata().map_err(|e| e.to_string())?.len();
     let mut reader = std::io::BufReader::new(f);
 
     let response = hub
@@ -228,6 +226,20 @@ async fn upload_video(file: String) -> Result<String, String> {
 
     let id = response.1.id.unwrap_or_default();
     Ok(format!("Uploaded video ID: {}", id))
+}
+
+#[command]
+async fn upload_video(file: String) -> Result<String, String> {
+    upload_video_impl(file).await
+}
+
+#[command]
+async fn upload_videos(files: Vec<String>) -> Result<Vec<String>, String> {
+    let mut results = Vec::new();
+    for file in files {
+        results.push(upload_video_impl(file).await?);
+    }
+    Ok(results)
 }
 
 #[command]
@@ -250,7 +262,7 @@ fn transcribe_audio(file: String) -> Result<String, String> {
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![generate_video, upload_video, transcribe_audio])
+        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
