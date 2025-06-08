@@ -1,6 +1,7 @@
-use std::process::Command;
+use std::{path::PathBuf, process::Command};
 use tauri::command;
 use serde::Deserialize;
+use whisper_cli::{Language, Model, Size, Whisper};
 
 #[derive(Deserialize, Default)]
 struct CaptionOptions {
@@ -77,8 +78,20 @@ fn upload_video(file: String) -> Result<String, String> {
 
 #[command]
 fn transcribe_audio(file: String) -> Result<String, String> {
-    // Placeholder for transcription implementation
-    Ok(format!("Transcription not implemented. Received file: {}", file))
+    let audio_path = PathBuf::from(&file);
+    let srt_path = audio_path.with_extension("srt");
+
+    // run asynchronous whisper in tauri runtime
+    tauri::async_runtime::block_on(async {
+        let mut whisper = Whisper::new(Model::new(Size::Base), Some(Language::Auto)).await;
+        let transcript = whisper
+            .transcribe(&audio_path, false, false)
+            .map_err(|e| e.to_string())?;
+        std::fs::write(&srt_path, transcript.as_srt()).map_err(|e| e.to_string())?;
+        Ok::<_, String>(())
+    })?;
+
+    Ok(srt_path.to_string_lossy().to_string())
 }
 
 fn main() {
