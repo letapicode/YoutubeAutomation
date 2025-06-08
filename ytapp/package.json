@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "start": "vite",
+vofyzk-codex/create-file-structure-for-project
     "build": "vite build",
     "cli": "ts-node src/cli.ts"
   },
@@ -17,5 +18,15 @@
     "vite": "^4.0.0",
     "typescript": "^4.0.0",
     "ts-node": "^10.9.2"
+    "build": "vite build"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "vite": "^4.0.0",
+    "typescript": "^4.0.0"
+main
   }
 }
