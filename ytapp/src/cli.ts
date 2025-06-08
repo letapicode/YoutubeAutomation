@@ -1,7 +1,16 @@
 import { program } from 'commander';
 import { invoke } from '@tauri-apps/api/tauri';
 
-async function generateVideo(params: { file: string; output?: string }) {
+interface GenerateParams {
+  audio: string;
+  output?: string;
+  background?: string;
+  intro?: string;
+  outro?: string;
+  captions?: string;
+}
+
+async function generateVideo(params: GenerateParams) {
   return await invoke('generate_video', params);
 }
 
@@ -23,9 +32,20 @@ program
   .description('Generate video from audio')
   .argument('<file>', 'audio file path')
   .option('-o, --output <output>', 'output video path')
-  .action(async (file: string, options: { output?: string }) => {
+  .option('-b, --background <background>', 'background image or video')
+  .option('--intro <intro>', 'intro video or image')
+  .option('--outro <outro>', 'outro video or image')
+  .option('--captions <srt>', 'captions SRT file to burn')
+  .action(async (file: string, options) => {
     try {
-      const result = await generateVideo({ file, output: options.output });
+      const result = await generateVideo({
+        audio: file,
+        output: options.output,
+        background: options.background,
+        intro: options.intro,
+        outro: options.outro,
+        captions: options.captions,
+      });
       console.log(result);
     } catch (err) {
       console.error('Error generating video:', err);
