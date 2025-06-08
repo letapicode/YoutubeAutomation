@@ -1,4 +1,9 @@
-use std::{path::{Path, PathBuf}, process::Command, io::BufReader};
+use std::{
+    fs::{self, File},
+    io::{BufReader, Write},
+    path::{Path, PathBuf},
+    process::Command,
+};
 use tauri::command;
 use serde::Deserialize;
 use whisper_cli::{Language, Model, Size, Whisper};
@@ -20,34 +25,92 @@ struct GenerateParams {
     output: Option<String>,
     captions: Option<String>,
     caption_options: Option<CaptionOptions>,
+    background: Option<String>,
     intro: Option<String>,
     outro: Option<String>,
 }
 
-#[command]
-fn generate_video(params: GenerateParams) -> Result<String, String> {
-    let output_path = params.output.unwrap_or_else(|| "output.mp4".to_string());
+fn is_image(p: &str) -> bool {
+    matches!(
+        Path::new(p)
+            .extension()
+            .and_then(|s| s.to_str())
+            .map(|s| s.to_lowercase().as_str().to_owned()),
+        Some(ref ext) if ["png", "jpg", "jpeg", "bmp", "gif"].contains(&ext.as_str())
+    )
+}
 
+fn audio_duration(file: &str) -> Result<f64, String> {
+    let output = Command::new("ffprobe")
+        .args([
+            "-v",
+            "error",
+            "-show_entries",
+            "format=duration",
+            "-of",
+            "default=noprint_wrappers=1:nokey=1",
+            file,
+        ])
+        .output()
+        .map_err(|e| format!("failed to run ffprobe: {}", e))?;
+    if !output.status.success() {
+        return Err("ffprobe failed".into());
+    }
+    let s = String::from_utf8_lossy(&output.stdout);
+    s.trim().parse::<f64>().map_err(|e| e.to_string())
+}
+
+fn temp_file(name: &str) -> PathBuf {
+    let ts = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
+    std::env::temp_dir().join(format!("{}_{}.mp4", name, ts))
+}
+
+fn convert_media(path: &str, duration: Option<f64>) -> Result<PathBuf, String> {
+    let out = temp_file("segment");
     let mut cmd = Command::new("ffmpeg");
-    cmd.args([
-        "-y",
-        "-f",
-        "lavfi",
-        "-i",
-        "color=c=black:s=1280x720:r=25",
-        "-i",
-        &params.file,
-        "-shortest",
-        "-pix_fmt",
-        "yuv420p",
-        "-c:v",
-        "libx264",
-        "-c:a",
-        "aac",
-    ]);
+    cmd.arg("-y");
+    if is_image(path) {
+        let dur = duration.unwrap_or(5.0);
+        cmd.args(["-loop", "1", "-t", &dur.to_string(), "-i", path]);
+    } else {
+        cmd.args(["-i", path]);
+    }
+    cmd.args(["-pix_fmt", "yuv420p", "-c:v", "libx264", "-c:a", "aac", out.to_str().unwrap()]);
+    let status = cmd.status().map_err(|e| e.to_string())?;
+    if status.success() { Ok(out) } else { Err("ffmpeg failed".into()) }
+}
 
-    if let Some(caption_file) = params.captions {
-        let opts = params.caption_options.unwrap_or_default();
+fn build_main_section(params: &GenerateParams, duration: f64) -> Result<PathBuf, String> {
+    let out = temp_file("main");
+    let mut cmd = Command::new("ffmpeg");
+    cmd.arg("-y");
+
+    match params.background.as_deref() {
+        Some(bg) if is_image(bg) => {
+            cmd.args(["-loop", "1", "-t", &duration.to_string(), "-i", bg]);
+        }
+        Some(bg) => {
+            cmd.args(["-stream_loop", "-1", "-t", &duration.to_string(), "-i", bg]);
+        }
+        None => {
+            cmd.args([
+                "-f",
+                "lavfi",
+                "-i",
+                "color=c=black:s=1280x720:r=25",
+                "-t",
+                &duration.to_string(),
+            ]);
+        }
+    }
+
+    cmd.args(["-i", &params.file, "-shortest", "-pix_fmt", "yuv420p", "-c:v", "libx264", "-c:a", "aac"]);
+
+    if let Some(ref caption_file) = params.captions {
+        let opts = params.caption_options.clone().unwrap_or_default();
         let font = opts.font.unwrap_or_else(|| "Arial".to_string());
         let size = opts.size.unwrap_or(24);
         let alignment = match opts.position.unwrap_or_else(|| "bottom".to_string()).as_str() {
@@ -62,16 +125,56 @@ fn generate_video(params: GenerateParams) -> Result<String, String> {
         cmd.args(["-vf", &filter]);
     }
 
-    cmd.arg(&output_path);
+    cmd.arg(out.to_str().unwrap());
+    let status = cmd.status().map_err(|e| format!("failed to start ffmpeg: {}", e))?;
+    if status.success() { Ok(out) } else { Err(format!("ffmpeg exited with status {:?}", status.code())) }
+}
 
-    let status = cmd.status()
-        .map_err(|e| format!("failed to start ffmpeg: {}", e))?;
+#[command]
+fn generate_video(params: GenerateParams) -> Result<String, String> {
+    let output_path = params.output.unwrap_or_else(|| "output.mp4".to_string());
 
-    if status.success() {
-        Ok(output_path)
-    } else {
-        Err(format!("ffmpeg exited with status {:?}", status.code()))
+    let duration = audio_duration(&params.file)?;
+    let main = build_main_section(&params, duration)?;
+
+    let mut segments = Vec::new();
+    if let Some(ref intro) = params.intro {
+        segments.push(convert_media(intro, Some(5.0))?);
     }
+    segments.push(main);
+    if let Some(ref outro) = params.outro {
+        segments.push(convert_media(outro, Some(5.0))?);
+    }
+
+    if segments.len() == 1 {
+        fs::rename(&segments[0], &output_path).map_err(|e| e.to_string())?;
+    } else {
+        let list_path = temp_file("list");
+        let mut list = File::create(&list_path).map_err(|e| e.to_string())?;
+        for seg in &segments {
+            writeln!(list, "file '{}'", seg.to_string_lossy()).map_err(|e| e.to_string())?;
+        }
+        let status = Command::new("ffmpeg")
+            .args([
+                "-y",
+                "-f",
+                "concat",
+                "-safe",
+                "0",
+                "-i",
+                list_path.to_str().unwrap(),
+                "-c",
+                "copy",
+                &output_path,
+            ])
+            .status()
+            .map_err(|e| format!("failed to start ffmpeg: {}", e))?;
+        if !status.success() {
+            return Err(format!("ffmpeg exited with status {:?}", status.code()));
+        }
+    }
+
+    Ok(output_path)
 }
 
 #[command]

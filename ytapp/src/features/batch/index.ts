@@ -2,6 +2,7 @@ import { GenerateParams, generateVideo } from '../processing';
 
 export interface BatchOptions extends Omit<GenerateParams, 'file' | 'output'> {
     outputDir?: string;
+    background?: string;
 }
 
 export async function generateBatch(files: string[], options: BatchOptions): Promise<string[]> {
@@ -15,6 +16,7 @@ export async function generateBatch(files: string[], options: BatchOptions): Pro
             output,
             captions: options.captions,
             captionOptions: options.captionOptions,
+            background: options.background,
             intro: options.intro,
             outro: options.outro,
         });
