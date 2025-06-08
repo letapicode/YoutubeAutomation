@@ -1,0 +1,100 @@
+### FINAL IMPLEMENTATION PLAN (clean version)
+
+---
+
+### 1️⃣ Framework
+
+* Tauri + React + Rust backend
+
+---
+
+### 2️⃣ Audio/Video Processing
+
+* FFmpeg CLI integration
+* Pipeline:
+
+  * Optional Intro (user-provided video or image)
+  * Main section:
+
+    * If image → loop to match audio length
+    * If short video → loop to match audio length
+    * Burn captions into video via FFmpeg
+  * Optional Outro (user-provided video or image)
+  * Output: Final video (H.264 MP4)
+
+---
+
+### 3️⃣ Transcription & Captions
+
+* OpenAI Whisper ([https://github.com/openai/whisper](https://github.com/openai/whisper)), local model
+* Transcribe input audio
+* Supported languages:
+
+  * Nepali
+  * Hindi
+  * English
+* Output `.srt` file
+* Burn `.srt` captions into video using FFmpeg:
+
+  * Font (user-selectable)
+  * Size (user-selectable)
+  * Position (top / center / bottom)
+
+---
+
+### 4️⃣ YouTube Integration
+
+* OAuth 2.0 flow via Google Cloud Desktop App OAuth client
+* Scopes:
+
+  * `https://www.googleapis.com/auth/youtube.upload`
+* Token storage (encrypted local storage)
+* Upload video via YouTube Data API v3
+* Batch upload support
+
+---
+
+### 5️⃣ Batch Processing
+
+* Multi-file audio input
+* Apply same settings to all files:
+
+  * Background image or video
+  * Intro video/image
+  * Outro video/image
+  * Captions style and position
+* Process queue → generate multiple videos
+* Optional batch YouTube upload
+
+---
+
+### 6️⃣ UI Features
+
+* Audio file picker (single / multiple)
+* Background picker (image / video)
+* Intro picker (video / image, user-provided)
+* Outro picker (video / image, user-provided)
+* Captions settings:
+
+  * Language (Nepali / Hindi / English / Auto)
+  * Font selector
+  * Size slider
+  * Position (top / center / bottom)
+* YouTube sign-in button + status
+* Generate video button
+* Generate & upload to YouTube button
+* Batch process progress UI
+
+---
+
+### 7️⃣ Packaging & Deployment
+
+* Tauri build pipeline
+* Target:
+
+  * Windows `.exe` installer
+  * Mac `.dmg` installer
+  * Linux `.AppImage`
+* Bundle Whisper model downloader on first launch
+
+
