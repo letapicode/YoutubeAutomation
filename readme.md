@@ -104,6 +104,12 @@
 
 ### Setup
 
+Run the helper script to install required system packages on Ubuntu/Debian:
+
+```bash
+./scripts/install_tauri_deps.sh
+```
+
 Install Tauri's system dependencies (Ubuntu/Debian):
 
 ```bash
