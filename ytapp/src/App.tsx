@@ -4,6 +4,7 @@ import FilePicker from './components/FilePicker';
 import YouTubeAuthButton from './components/YouTubeAuthButton';
 import GenerateUploadButton from './components/GenerateUploadButton';
 import { generateUpload } from './features/youtube';
+import { languageOptions, Language } from './features/language';
 
 const App: React.FC = () => {
     const [file, setFile] = useState('');
@@ -14,22 +15,11 @@ const App: React.FC = () => {
     const [font, setFont] = useState('');
     const [size, setSize] = useState(24);
     const [position, setPosition] = useState('bottom');
+    const [language, setLanguage] = useState<Language>('auto');
 
     const handleGenerate = async () => {
         if (!file) return;
         await generateVideo({
-            file,
-            captions: captions || undefined,
-            captionOptions: { font: font || undefined, size, position },
-            background: background || undefined,
-            intro: intro || undefined,
-            outro: outro || undefined,
-        });
-    };
-
-    const handleGenerateUpload = async () => {
-        if (!file) return;
-        await generateUpload({
             file,
             captions: captions || undefined,
             captionOptions: { font: font || undefined, size, position },
@@ -82,6 +72,13 @@ const App: React.FC = () => {
                     <option value="top">Top</option>
                     <option value="center">Center</option>
                     <option value="bottom">Bottom</option>
+                </select>
+            </div>
+            <div>
+                <select value={language} onChange={(e) => setLanguage(e.target.value as Language)}>
+                    {languageOptions.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
                 </select>
             </div>
             <YouTubeAuthButton />

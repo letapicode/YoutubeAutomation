@@ -7,10 +7,13 @@ use std::{
 use tauri::command;
 use serde::Deserialize;
 use whisper_cli::{Language, Model, Size, Whisper};
+mod model_check;
+use model_check::ensure_whisper_model;
 use google_youtube3::{api::Video, YouTube};
 use yup_oauth2::{InstalledFlowAuthenticator, InstalledFlowReturnMethod};
 use hyper_rustls::HttpsConnectorBuilder;
 use hyper_util::{client::legacy::Client, rt::TokioExecutor};
+mod language;
 
 #[derive(Deserialize, Default)]
 struct CaptionOptions {
@@ -233,6 +236,7 @@ async fn upload_video(file: String) -> Result<String, String> {
     upload_video_impl(file).await
 }
 
+
 #[command]
 async fn upload_videos(files: Vec<String>) -> Result<Vec<String>, String> {
     let mut results = Vec::new();
@@ -240,6 +244,12 @@ async fn upload_videos(files: Vec<String>) -> Result<Vec<String>, String> {
         results.push(upload_video_impl(file).await?);
     }
     Ok(results)
+}
+
+#[derive(Deserialize)]
+struct TranscribeParams {
+    file: String,
+    language: Option<String>,
 }
 
 #[command]
@@ -274,13 +284,14 @@ async fn generate_upload(params: GenerateParams) -> Result<String, String> {
 }
 
 #[command]
-fn transcribe_audio(file: String) -> Result<String, String> {
-    let audio_path = PathBuf::from(&file);
+fn transcribe_audio(params: TranscribeParams) -> Result<String, String> {
+    let audio_path = PathBuf::from(&params.file);
     let srt_path = audio_path.with_extension("srt");
 
     // run asynchronous whisper in tauri runtime
     tauri::async_runtime::block_on(async {
-        let mut whisper = Whisper::new(Model::new(Size::Base), Some(Language::Auto)).await;
+        let lang = language::parse_language(params.language);
+        let mut whisper = Whisper::new(Model::new(Size::Base), Some(lang)).await;
         let transcript = whisper
             .transcribe(&audio_path, false, false)
             .map_err(|e| e.to_string())?;
@@ -292,6 +303,7 @@ fn transcribe_audio(file: String) -> Result<String, String> {
 }
 
 fn main() {
+    ensure_whisper_model();
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             generate_video,

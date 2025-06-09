@@ -30,8 +30,12 @@ async function uploadVideos(params: { files: string[] }): Promise<any> {
   return await invoke('upload_videos', params as any);
 }
 
-async function transcribeAudio(params: { file: string }): Promise<any> {
+async function transcribeAudio(params: { file: string; language?: string }): Promise<any> {
   return await invoke('transcribe_audio', params as any);
+}
+
+async function generateAndUpload(params: GenerateParams): Promise<any> {
+  return await invoke('generate_upload', params as any);
 }
 
 program
@@ -70,6 +74,41 @@ program
       console.log(result);
     } catch (err) {
       console.error('Error generating video:', err);
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command('generate-upload')
+  .description('Generate video and upload to YouTube')
+  .argument('<file>', 'audio file path')
+  .option('-o, --output <output>', 'output video path')
+  .option('--captions <srt>', 'captions file path')
+  .option('--font <font>', 'caption font')
+  .option('--size <size>', 'caption font size', (v) => parseInt(v, 10))
+  .option('--position <pos>', 'caption position (top|center|bottom)')
+  .option('-b, --background <file>', 'background image or video')
+  .option('--intro <file>', 'intro video or image')
+  .option('--outro <file>', 'outro video or image')
+  .action(async (file: string, options: any) => {
+    try {
+      const params: GenerateParams = {
+        file,
+        output: options.output,
+        captions: options.captions,
+        captionOptions: {
+          font: options.font,
+          size: options.size,
+          position: options.position,
+        },
+        background: options.background,
+        intro: options.intro,
+        outro: options.outro,
+      };
+      const result = await generateAndUpload(params);
+      console.log(result);
+    } catch (err) {
+      console.error('Error generating and uploading video:', err);
       process.exitCode = 1;
     }
   });
@@ -145,9 +184,10 @@ program
   .command('transcribe')
   .description('Transcribe audio to SRT')
   .argument('<file>', 'audio file path')
-  .action(async (file: string) => {
+  .option('-l, --language <lang>', 'language code (auto|ne|hi|en)', 'auto')
+  .action(async (file: string, options: any) => {
     try {
-      const result = await transcribeAudio({ file });
+      const result = await transcribeAudio({ file, language: options.language });
       console.log(result);
     } catch (err) {
       console.error('Error transcribing audio:', err);
