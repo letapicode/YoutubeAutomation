@@ -13,3 +13,8 @@ google-youtube3 = { version = "6" }
 hyper-rustls = "0.27"
 hyper-util = "0.1"
 yup-oauth2 = "11"
+aes-gcm = "0.10"
+rand = "0.8"
+base64 = "0.21"
+async-trait = "0.1"
+anyhow = "1"

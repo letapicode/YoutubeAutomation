@@ -1,3 +1,8 @@
+use base64;
+use google_youtube3::{api::Video, YouTube};
+use hyper_rustls::HttpsConnectorBuilder;
+use hyper_util::{client::legacy::Client, rt::TokioExecutor};
+use serde::Deserialize;
 use std::{
     fs::{self, File},
     io::{BufReader, Write},
@@ -5,12 +10,10 @@ use std::{
     process::Command,
 };
 use tauri::command;
-use serde::Deserialize;
 use whisper_cli::{Language, Model, Size, Whisper};
-use google_youtube3::{api::Video, YouTube};
 use yup_oauth2::{InstalledFlowAuthenticator, InstalledFlowReturnMethod};
-use hyper_rustls::HttpsConnectorBuilder;
-use hyper_util::{client::legacy::Client, rt::TokioExecutor};
+
+mod encrypted_storage;
 
 #[derive(Deserialize, Default)]
 struct CaptionOptions {
@@ -78,9 +81,21 @@ fn convert_media(path: &str, duration: Option<f64>) -> Result<PathBuf, String> {
     } else {
         cmd.args(["-i", path]);
     }
-    cmd.args(["-pix_fmt", "yuv420p", "-c:v", "libx264", "-c:a", "aac", out.to_str().unwrap()]);
+    cmd.args([
+        "-pix_fmt",
+        "yuv420p",
+        "-c:v",
+        "libx264",
+        "-c:a",
+        "aac",
+        out.to_str().unwrap(),
+    ]);
     let status = cmd.status().map_err(|e| e.to_string())?;
-    if status.success() { Ok(out) } else { Err("ffmpeg failed".into()) }
+    if status.success() {
+        Ok(out)
+    } else {
+        Err("ffmpeg failed".into())
+    }
 }
 
 fn build_main_section(params: &GenerateParams, duration: f64) -> Result<PathBuf, String> {
@@ -107,13 +122,27 @@ fn build_main_section(params: &GenerateParams, duration: f64) -> Result<PathBuf,
         }
     }
 
-    cmd.args(["-i", &params.file, "-shortest", "-pix_fmt", "yuv420p", "-c:v", "libx264", "-c:a", "aac"]);
+    cmd.args([
+        "-i",
+        &params.file,
+        "-shortest",
+        "-pix_fmt",
+        "yuv420p",
+        "-c:v",
+        "libx264",
+        "-c:a",
+        "aac",
+    ]);
 
     if let Some(ref caption_file) = params.captions {
         let opts = params.caption_options.clone().unwrap_or_default();
         let font = opts.font.unwrap_or_else(|| "Arial".to_string());
         let size = opts.size.unwrap_or(24);
-        let alignment = match opts.position.unwrap_or_else(|| "bottom".to_string()).as_str() {
+        let alignment = match opts
+            .position
+            .unwrap_or_else(|| "bottom".to_string())
+            .as_str()
+        {
             "top" => "8",
             "center" => "5",
             _ => "2",
@@ -126,8 +155,14 @@ fn build_main_section(params: &GenerateParams, duration: f64) -> Result<PathBuf,
     }
 
     cmd.arg(out.to_str().unwrap());
-    let status = cmd.status().map_err(|e| format!("failed to start ffmpeg: {}", e))?;
-    if status.success() { Ok(out) } else { Err(format!("ffmpeg exited with status {:?}", status.code())) }
+    let status = cmd
+        .status()
+        .map_err(|e| format!("failed to start ffmpeg: {}", e))?;
+    if status.success() {
+        Ok(out)
+    } else {
+        Err(format!("ffmpeg exited with status {:?}", status.code()))
+    }
 }
 
 #[command]
@@ -178,25 +213,44 @@ fn generate_video(params: GenerateParams) -> Result<String, String> {
 }
 
 async fn upload_video_impl(file: String) -> Result<String, String> {
-    let secret_path = std::env::var("YOUTUBE_CLIENT_SECRET").unwrap_or_else(|_| "client_secret.json".into());
+    let secret_path =
+        std::env::var("YOUTUBE_CLIENT_SECRET").unwrap_or_else(|_| "client_secret.json".into());
     let secret = yup_oauth2::read_application_secret(secret_path)
         .await
         .map_err(|e| format!("Failed to read client secret: {}", e))?;
 
+    let key = std::env::var("YOUTUBE_TOKEN_KEY")
+        .ok()
+        .and_then(|k| {
+            base64::decode(k).ok().and_then(|v| {
+                if v.len() == 32 {
+                    let mut arr = [0u8; 32];
+                    arr.copy_from_slice(&v);
+                    Some(arr)
+                } else {
+                    None
+                }
+            })
+        })
+        .unwrap_or([0u8; 32]);
+
+    let storage =
+        encrypted_storage::EncryptedTokenStorage::new(PathBuf::from("youtube_tokens.enc"), key)
+            .await;
+
     let auth = InstalledFlowAuthenticator::builder(secret, InstalledFlowReturnMethod::HTTPRedirect)
-        .persist_tokens_to_disk("youtube_tokens.json")
+        .with_storage(Box::new(storage))
         .build()
         .await
         .map_err(|e| format!("Auth error: {}", e))?;
 
-    let client = Client::builder(TokioExecutor::new())
-        .build(
-            HttpsConnectorBuilder::new()
-                .with_native_roots()
-                .https_or_http()
-                .enable_http1()
-                .build(),
-        );
+    let client = Client::builder(TokioExecutor::new()).build(
+        HttpsConnectorBuilder::new()
+            .with_native_roots()
+            .https_or_http()
+            .enable_http1()
+            .build(),
+    );
 
     let mut hub = YouTube::new(client, auth);
 
@@ -262,7 +316,12 @@ fn transcribe_audio(file: String) -> Result<String, String> {
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio])
+        .invoke_handler(tauri::generate_handler![
+            generate_video,
+            upload_video,
+            upload_videos,
+            transcribe_audio
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
