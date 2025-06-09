@@ -11,6 +11,7 @@ import SizeSlider from './components/SizeSlider';
 import { languageOptions, Language } from './features/language';
 import TranscribeButton from './components/TranscribeButton';
 import { loadSettings } from './features/settings';
+import { checkDependencies } from './features/dependencies';
 
 const App: React.FC = () => {
     const { t, i18n } = useTranslation();
@@ -27,6 +28,10 @@ const App: React.FC = () => {
     const [theme, setTheme] = useState<'light' | 'dark'>(() =>
         localStorage.getItem('theme') === 'dark' ? 'dark' : 'light'
     );
+
+    useEffect(() => {
+        checkDependencies();
+    }, []);
 
     useEffect(() => {
         loadSettings().then(s => {

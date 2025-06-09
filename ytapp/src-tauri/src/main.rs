@@ -12,11 +12,13 @@ mod model_check;
 use model_check::ensure_whisper_model;
 use google_youtube3::{api::Video, YouTube};
 use yup_oauth2::{InstalledFlowAuthenticator, InstalledFlowReturnMethod};
+use yup_oauth2::authenticator::Authenticator;
 use hyper_rustls::HttpsConnectorBuilder;
 use hyper_util::{client::legacy::Client, rt::TokioExecutor};
 mod language;
 mod token_store;
 use token_store::EncryptedTokenStorage;
+use tauri::api::dialog::{blocking::MessageDialogBuilder, MessageDialogKind};
 
 #[derive(Deserialize, Default, Clone)]
 struct CaptionOptions {
@@ -46,7 +48,7 @@ struct AppSettings {
 }
 
 fn settings_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
-    let mut dir = app_config_dir(app).ok_or("config dir not found")?;
+    let mut dir = app_config_dir(&app.config()).ok_or("config dir not found")?;
     fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
     dir.push("settings.json");
     Ok(dir)
@@ -244,7 +246,7 @@ async fn upload_video_impl(file: String) -> Result<String, String> {
     Ok(format!("Uploaded video ID: {}", id))
 }
 
-async fn build_authenticator() -> Result<InstalledFlowAuthenticator<EncryptedTokenStorage>, String> {
+async fn build_authenticator() -> Result<Authenticator<HttpsConnector<HttpConnector>>, String> {
     let secret_path = std::env::var("YOUTUBE_CLIENT_SECRET").unwrap_or_else(|_| "client_secret.json".into());
     let secret = yup_oauth2::read_application_secret(secret_path)
         .await
@@ -383,10 +385,36 @@ fn transcribe_audio(params: TranscribeParams) -> Result<String, String> {
     Ok(srt_path.to_string_lossy().to_string())
 }
 
+#[command]
+fn verify_dependencies(app: tauri::AppHandle) -> Result<(), String> {
+    if Command::new("ffmpeg").arg("-version").output().is_err() {
+        MessageDialogBuilder::new("Missing FFmpeg", "FFmpeg is required. Please install it and ensure it is in your PATH.")
+            .kind(MessageDialogKind::Error)
+            .show();
+        return Err("ffmpeg not found".into());
+    }
+
+    let model = Model::new(Size::Base);
+    if !model.get_path().exists() {
+        MessageDialogBuilder::new("Downloading Whisper model", "The base Whisper model is missing and will be downloaded now. This may take a while.")
+            .kind(MessageDialogKind::Info)
+            .show();
+        tauri::async_runtime::block_on(async { model.download().await; });
+        if !model.get_path().exists() {
+            MessageDialogBuilder::new("Whisper model missing", "Failed to download the Whisper model. Please check your internet connection and restart the app.")
+                .kind(MessageDialogKind::Error)
+                .show();
+            return Err("model missing".into());
+        }
+    }
+
+    Ok(())
+}
+
 fn main() {
     ensure_whisper_model();
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, youtube_sign_in, youtube_is_signed_in, load_settings, save_settings])
+        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, youtube_sign_in, youtube_is_signed_in, load_settings, save_settings, verify_dependencies])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
