@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { generateVideo } from './features/processing';
 import FilePicker from './components/FilePicker';
+import YouTubeAuthButton from './components/YouTubeAuthButton';
+import GenerateUploadButton from './components/GenerateUploadButton';
+import { generateUpload } from './features/youtube';
 
 const App: React.FC = () => {
     const [file, setFile] = useState('');
@@ -15,6 +18,18 @@ const App: React.FC = () => {
     const handleGenerate = async () => {
         if (!file) return;
         await generateVideo({
+            file,
+            captions: captions || undefined,
+            captionOptions: { font: font || undefined, size, position },
+            background: background || undefined,
+            intro: intro || undefined,
+            outro: outro || undefined,
+        });
+    };
+
+    const handleGenerateUpload = async () => {
+        if (!file) return;
+        await generateUpload({
             file,
             captions: captions || undefined,
             captionOptions: { font: font || undefined, size, position },
@@ -69,7 +84,19 @@ const App: React.FC = () => {
                     <option value="bottom">Bottom</option>
                 </select>
             </div>
+            <YouTubeAuthButton />
             <button onClick={handleGenerate}>Generate</button>
+            <GenerateUploadButton
+                params={{
+                    file,
+                    captions: captions || undefined,
+                    captionOptions: { font: font || undefined, size, position },
+                    background: background || undefined,
+                    intro: intro || undefined,
+                    outro: outro || undefined,
+                }}
+                onComplete={() => {}}
+            />
         </div>
     );
 };

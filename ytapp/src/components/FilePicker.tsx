@@ -13,7 +13,7 @@ interface FilePickerProps {
   filters?: FileFilter[];
 }
 
-const FilePicker: React.FC<FilePickerProps> = ({ multiple, onSelect, label }) => {
+const FilePicker: React.FC<FilePickerProps> = ({ multiple, onSelect, label, filters }) => {
   const handleClick = async () => {
     const defaultFilters: FileFilter[] = [
       { name: 'Audio', extensions: ['mp3', 'wav', 'm4a', 'flac', 'aac'] },

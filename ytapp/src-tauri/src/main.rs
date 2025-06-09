@@ -243,6 +243,37 @@ async fn upload_videos(files: Vec<String>) -> Result<Vec<String>, String> {
 }
 
 #[command]
+async fn youtube_sign_in() -> Result<(), String> {
+    let secret_path = std::env::var("YOUTUBE_CLIENT_SECRET").unwrap_or_else(|_| "client_secret.json".into());
+    let secret = yup_oauth2::read_application_secret(secret_path)
+        .await
+        .map_err(|e| format!("Failed to read client secret: {}", e))?;
+
+    let auth = InstalledFlowAuthenticator::builder(secret, InstalledFlowReturnMethod::HTTPRedirect)
+        .persist_tokens_to_disk("youtube_tokens.json")
+        .build()
+        .await
+        .map_err(|e| format!("Auth error: {}", e))?;
+
+    auth.token(&["https://www.googleapis.com/auth/youtube.upload"]).await
+        .map(|_| ())
+        .map_err(|e| format!("Auth error: {}", e))
+}
+
+#[command]
+fn youtube_is_signed_in() -> bool {
+    Path::new("youtube_tokens.json").exists()
+}
+
+#[command]
+async fn generate_upload(params: GenerateParams) -> Result<String, String> {
+    let video_path = tauri::async_runtime::spawn_blocking(move || generate_video(params))
+        .await
+        .map_err(|e| e.to_string())??;
+    upload_video_impl(video_path).await
+}
+
+#[command]
 fn transcribe_audio(file: String) -> Result<String, String> {
     let audio_path = PathBuf::from(&file);
     let srt_path = audio_path.with_extension("srt");
@@ -262,7 +293,15 @@ fn transcribe_audio(file: String) -> Result<String, String> {
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio])
+        .invoke_handler(tauri::generate_handler![
+            generate_video,
+            upload_video,
+            upload_videos,
+            transcribe_audio,
+            youtube_sign_in,
+            youtube_is_signed_in,
+            generate_upload
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
