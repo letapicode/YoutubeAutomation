@@ -14,6 +14,9 @@ use whisper_cli::{Language, Model, Size, Whisper};
 use yup_oauth2::{InstalledFlowAuthenticator, InstalledFlowReturnMethod};
 
 mod encrypted_storage;
+mod model_check;
+use model_check::ensure_whisper_model;
+mod language;
 
 #[derive(Deserialize, Default)]
 struct CaptionOptions {
@@ -283,6 +286,14 @@ async fn upload_video_impl(file: String) -> Result<String, String> {
 }
 
 #[command]
+async fn generate_upload(params: GenerateParams) -> Result<String, String> {
+    let output = generate_video(params)?;
+    let res = upload_video_impl(output.clone()).await?;
+    let _ = fs::remove_file(output);
+    Ok(res)
+}
+
+#[command]
 async fn upload_video(file: String) -> Result<String, String> {
     upload_video_impl(file).await
 }
@@ -296,14 +307,21 @@ async fn upload_videos(files: Vec<String>) -> Result<Vec<String>, String> {
     Ok(results)
 }
 
+#[derive(Deserialize)]
+struct TranscribeParams {
+    file: String,
+    language: Option<String>,
+}
+
 #[command]
-fn transcribe_audio(file: String) -> Result<String, String> {
-    let audio_path = PathBuf::from(&file);
+fn transcribe_audio(params: TranscribeParams) -> Result<String, String> {
+    let audio_path = PathBuf::from(&params.file);
     let srt_path = audio_path.with_extension("srt");
 
     // run asynchronous whisper in tauri runtime
     tauri::async_runtime::block_on(async {
-        let mut whisper = Whisper::new(Model::new(Size::Base), Some(Language::Auto)).await;
+        let lang = language::parse_language(params.language);
+        let mut whisper = Whisper::new(Model::new(Size::Base), Some(lang)).await;
         let transcript = whisper
             .transcribe(&audio_path, false, false)
             .map_err(|e| e.to_string())?;
@@ -315,12 +333,14 @@ fn transcribe_audio(file: String) -> Result<String, String> {
 }
 
 fn main() {
+    ensure_whisper_model();
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             generate_video,
             upload_video,
             upload_videos,
-            transcribe_audio
+            transcribe_audio,
+            generate_upload
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
