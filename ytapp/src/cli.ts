@@ -38,6 +38,10 @@ async function generateAndUpload(params: GenerateParams): Promise<any> {
   return await invoke('generate_upload', params as any);
 }
 
+async function signIn(): Promise<void> {
+  await invoke('youtube_sign_in');
+}
+
 program
   .name('ytcli')
   .description('CLI for generating and uploading videos')
@@ -210,6 +214,19 @@ program
       results.forEach((res: any) => console.log(res));
     } catch (err) {
       console.error('Error uploading videos:', err);
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command('sign-in')
+  .description('Authenticate with YouTube')
+  .action(async () => {
+    try {
+      await signIn();
+      console.log('Sign-in complete');
+    } catch (err) {
+      console.error('Error during sign-in:', err);
       process.exitCode = 1;
     }
   });

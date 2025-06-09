@@ -8,6 +8,7 @@ import BatchPage from './components/BatchPage';
 import FontSelector from './components/FontSelector';
 import SizeSlider from './components/SizeSlider';
 import { languageOptions, Language } from './features/language';
+import TranscribeButton from './components/TranscribeButton';
 
 const App: React.FC = () => {
     const [page, setPage] = useState<'single' | 'batch'>('single');
@@ -20,6 +21,10 @@ const App: React.FC = () => {
     const [size, setSize] = useState(24);
     const [position, setPosition] = useState('bottom');
     const [language, setLanguage] = useState<Language>('auto');
+
+    const handleTranscriptionComplete = (srt: string) => {
+        setCaptions(srt);
+    };
 
     const handleGenerate = async () => {
         if (!file) return;
@@ -76,6 +81,7 @@ const App: React.FC = () => {
             </div>
             <div>
                 <input type="text" placeholder="Captions file" value={captions} onChange={(e) => setCaptions(e.target.value)} />
+                <TranscribeButton file={file} language={language} onComplete={handleTranscriptionComplete} />
             </div>
             <div>
                 <FilePicker
