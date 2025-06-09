@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { generateVideo } from './features/processing';
 import YouTubeAuthButton from './components/YouTubeAuthButton';
-import GenerateUploadButton from './components/GenerateUploadButton';
-import { GenerateParams } from './features/youtube';
+import { generateUpload, GenerateParams } from './features/youtube';
 import FilePicker from './components/FilePicker';
 import BatchPage from './components/BatchPage';
 import FontSelector from './components/FontSelector';
@@ -47,27 +46,33 @@ const App: React.FC = () => {
         outro: outro || undefined,
     });
 
+    const handleGenerateUpload = async () => {
+        if (!file) return;
+        await generateUpload(buildParams());
+    };
+
     if (page === 'batch') {
         return (
-            <div>
-                <button onClick={() => setPage('single')}>Back</button>
+            <div className="app">
+                <div className="row">
+                    <button onClick={() => setPage('single')}>Back</button>
+                </div>
                 <BatchPage />
             </div>
         );
     }
 
     return (
-        <div>
+        <div className="app">
             <h1>Youtube Automation</h1>
-            <div>
-                <input type="text" placeholder="Audio file" value={file} onChange={(e) => setFile(e.target.value)} />
-                <FilePicker label="Browse" onSelect={(p) => {
+            <div className="row">
+                <FilePicker label="Select Audio" onSelect={(p) => {
                     if (typeof p === 'string') setFile(p);
                     else if (Array.isArray(p) && p.length) setFile(p[0]);
                 }} />
+                {file && <span>{file}</span>}
             </div>
-            <div>
-                <input type="text" placeholder="Background" value={background} onChange={(e) => setBackground(e.target.value)} />
+            <div className="row">
                 <FilePicker
                     label="Background"
                     onSelect={(p) => {
@@ -78,12 +83,13 @@ const App: React.FC = () => {
                         { name: 'Media', extensions: ['mp4', 'mov', 'mkv', 'png', 'jpg', 'jpeg'] },
                     ]}
                 />
+                {background && <span>{background}</span>}
             </div>
-            <div>
-                <input type="text" placeholder="Captions file" value={captions} onChange={(e) => setCaptions(e.target.value)} />
+            <div className="row">
                 <TranscribeButton file={file} language={language} onComplete={handleTranscriptionComplete} />
+                {captions && <span>{captions}</span>}
             </div>
-            <div>
+            <div className="row">
                 <FilePicker
                     label="Intro"
                     onSelect={(p) => {
@@ -94,7 +100,7 @@ const App: React.FC = () => {
                 />
                 {intro && <span>{intro}</span>}
             </div>
-            <div>
+            <div className="row">
                 <FilePicker
                     label="Outro"
                     onSelect={(p) => {
@@ -105,31 +111,33 @@ const App: React.FC = () => {
                 />
                 {outro && <span>{outro}</span>}
             </div>
-            <div>
+            <div className="row">
                 <FontSelector value={font} onChange={setFont} />
             </div>
-            <div>
+            <div className="row">
                 <SizeSlider value={size} onChange={setSize} />
                 <span>{size}</span>
             </div>
-            <div>
+            <div className="row">
                 <select value={position} onChange={(e) => setPosition(e.target.value)}>
                     <option value="top">Top</option>
                     <option value="center">Center</option>
                     <option value="bottom">Bottom</option>
                 </select>
             </div>
-            <div>
+            <div className="row">
                 <select value={language} onChange={(e) => setLanguage(e.target.value as Language)}>
                     {languageOptions.map(opt => (
                         <option key={opt.value} value={opt.value}>{opt.label}</option>
                     ))}
                 </select>
             </div>
-            <YouTubeAuthButton />
-            <button onClick={handleGenerate}>Generate</button>
-            <GenerateUploadButton params={buildParams()} />
-            <button onClick={() => setPage('batch')}>Batch Tools</button>
+            <div className="row">
+                <YouTubeAuthButton />
+                <button onClick={handleGenerate}>Generate</button>
+                <button onClick={handleGenerateUpload}>Generate &amp; Upload</button>
+                <button onClick={() => setPage('batch')}>Batch Tools</button>
+            </div>
         </div>
     );
 };

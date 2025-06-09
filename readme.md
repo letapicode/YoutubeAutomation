@@ -147,6 +147,10 @@ cargo check          # run inside ytapp/src-tauri
 npx ts-node src/cli.ts --help
 ```
 
+### Design Guidelines
+
+See [design.md](design.md) for the UI style guide based on the principle "Less but better".
+
 Finally, start the Tauri application:
 
 ```bash
