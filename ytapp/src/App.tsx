@@ -86,7 +86,7 @@ const App: React.FC = () => {
                 <button onClick={toggleTheme}>{t('toggle_theme')}</button>
             </div>
             <div className="row">
-                <FilePicker label={t('select_audio')} onSelect={(p) => {
+                <FilePicker label={t('select_audio')} useDropZone onSelect={(p) => {
                     if (typeof p === 'string') setFile(p);
                     else if (Array.isArray(p) && p.length) setFile(p[0]);
                 }} />
@@ -94,6 +94,7 @@ const App: React.FC = () => {
             </div>
             <div className="row">
                 <FilePicker
+                    useDropZone
                     label={t('background')}
                     onSelect={(p) => {
                         if (typeof p === 'string') setBackground(p);
@@ -111,6 +112,7 @@ const App: React.FC = () => {
             </div>
             <div className="row">
                 <FilePicker
+                    useDropZone
                     label={t('intro')}
                     onSelect={(p) => {
                         if (typeof p === 'string') setIntro(p);
@@ -122,6 +124,7 @@ const App: React.FC = () => {
             </div>
             <div className="row">
                 <FilePicker
+                    useDropZone
                     label={t('outro')}
                     onSelect={(p) => {
                         if (typeof p === 'string') setOutro(p);

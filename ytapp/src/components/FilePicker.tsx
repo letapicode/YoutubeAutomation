@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { open } from '@tauri-apps/api/dialog';
+import DropZone from './DropZone';
 
 interface FileFilter {
   name: string;
@@ -12,9 +13,10 @@ interface FilePickerProps {
   onSelect: (paths: string | string[] | null) => void;
   label?: string;
   filters?: FileFilter[];
+  useDropZone?: boolean;
 }
 
-const FilePicker: React.FC<FilePickerProps> = ({ multiple, onSelect, label, filters }) => {
+const FilePicker: React.FC<FilePickerProps> = ({ multiple, onSelect, label, filters, useDropZone }) => {
   const { t } = useTranslation();
   const handleClick = async () => {
     const defaultFilters: FileFilter[] = [
@@ -26,6 +28,28 @@ const FilePicker: React.FC<FilePickerProps> = ({ multiple, onSelect, label, filt
     });
     onSelect(selected);
   };
+
+  const handleDrop = (files: File[]) => {
+    const paths = files.map(f => (f as any).path || f.name);
+    if (multiple) onSelect(paths);
+    else onSelect(paths[0] || null);
+  };
+
+  const exts = (filters && filters.length
+    ? filters
+    : [{ name: 'Audio', extensions: ['mp3', 'wav', 'm4a', 'flac', 'aac'] }]
+  ).flatMap(f => f.extensions);
+
+  if (useDropZone) {
+    return (
+      <DropZone
+        onDropFiles={handleDrop}
+        acceptExt={exts}
+        multiple={multiple}
+        label={label || (multiple ? t('select_files') : t('select_file'))}
+      />
+    );
+  }
 
   return (
     <button onClick={handleClick}>{label || (multiple ? t('select_files') : t('select_file'))}</button>
