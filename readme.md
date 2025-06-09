@@ -99,6 +99,8 @@
   * Mac `.dmg` installer
   * Linux `.AppImage`
 * Bundle Whisper model downloader on first launch
+* Checks for FFmpeg and the Whisper model at startup. Missing dependencies
+  trigger a dialog explaining how to install them.
 
 ---
 
