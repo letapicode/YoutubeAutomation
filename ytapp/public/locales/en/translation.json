@@ -27,5 +27,7 @@
   "signed_in": "Signed in to YouTube",
   "checking": "Checking...",
   "default": "Default",
-  "toggle_theme": "Toggle Theme"
+  "toggle_theme": "Toggle Theme",
+  "settings": "Settings",
+  "save": "Save"
 }
