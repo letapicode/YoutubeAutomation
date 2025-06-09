@@ -7,6 +7,8 @@ use std::{
 use tauri::command;
 use serde::Deserialize;
 use whisper_cli::{Language, Model, Size, Whisper};
+mod model_check;
+use model_check::ensure_whisper_model;
 use google_youtube3::{api::Video, YouTube};
 use yup_oauth2::{InstalledFlowAuthenticator, InstalledFlowReturnMethod};
 use hyper_rustls::HttpsConnectorBuilder;
@@ -269,6 +271,7 @@ fn transcribe_audio(params: TranscribeParams) -> Result<String, String> {
 }
 
 fn main() {
+    ensure_whisper_model();
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio])
         .run(tauri::generate_context!())
