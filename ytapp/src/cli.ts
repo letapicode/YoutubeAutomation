@@ -30,7 +30,7 @@ async function uploadVideos(params: { files: string[] }): Promise<any> {
   return await invoke('upload_videos', params as any);
 }
 
-async function transcribeAudio(params: { file: string }): Promise<any> {
+async function transcribeAudio(params: { file: string; language?: string }): Promise<any> {
   return await invoke('transcribe_audio', params as any);
 }
 
@@ -145,9 +145,10 @@ program
   .command('transcribe')
   .description('Transcribe audio to SRT')
   .argument('<file>', 'audio file path')
-  .action(async (file: string) => {
+  .option('-l, --language <lang>', 'language code (auto|ne|hi|en)', 'auto')
+  .action(async (file: string, options: any) => {
     try {
-      const result = await transcribeAudio({ file });
+      const result = await transcribeAudio({ file, language: options.language });
       console.log(result);
     } catch (err) {
       console.error('Error transcribing audio:', err);
