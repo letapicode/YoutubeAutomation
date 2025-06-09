@@ -1,0 +1,12 @@
+:root {
+  --bg-color: #f5f5f5;
+  --text-color: #333;
+  --button-bg: #ffffff;
+  --button-text: #333;
+}
+[data-theme="dark"] {
+  --bg-color: #333;
+  --text-color: #f5f5f5;
+  --button-bg: #444;
+  --button-text: #f5f5f5;
+}

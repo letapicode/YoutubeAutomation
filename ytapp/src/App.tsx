@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { generateVideo } from './features/processing';
 import YouTubeAuthButton from './components/YouTubeAuthButton';
@@ -22,6 +22,16 @@ const App: React.FC = () => {
     const [size, setSize] = useState(24);
     const [position, setPosition] = useState('bottom');
     const [language, setLanguage] = useState<Language>('auto');
+    const [theme, setTheme] = useState<'light' | 'dark'>(() =>
+        localStorage.getItem('theme') === 'dark' ? 'dark' : 'light'
+    );
+
+    useEffect(() => {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+    }, [theme]);
+
+    const toggleTheme = () => setTheme(theme === 'light' ? 'dark' : 'light');
 
     const handleTranscriptionComplete = (srt: string) => {
         setCaptions(srt);
@@ -73,6 +83,7 @@ const App: React.FC = () => {
                     <option value="ne">नेपाली</option>
                     <option value="hi">हिन्दी</option>
                 </select>
+                <button onClick={toggleTheme}>{t('toggle_theme')}</button>
             </div>
             <div className="row">
                 <FilePicker label={t('select_audio')} onSelect={(p) => {
