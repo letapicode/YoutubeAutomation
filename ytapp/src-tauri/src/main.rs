@@ -237,6 +237,14 @@ async fn upload_video(file: String) -> Result<String, String> {
 }
 
 #[command]
+async fn generate_upload(params: GenerateParams) -> Result<String, String> {
+    let output = generate_video(params)?;
+    let result = upload_video_impl(output.clone()).await?;
+    let _ = fs::remove_file(output);
+    Ok(result)
+}
+
+#[command]
 async fn upload_videos(files: Vec<String>) -> Result<Vec<String>, String> {
     let mut results = Vec::new();
     for file in files {
@@ -273,7 +281,7 @@ fn transcribe_audio(params: TranscribeParams) -> Result<String, String> {
 fn main() {
     ensure_whisper_model();
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio])
+        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
