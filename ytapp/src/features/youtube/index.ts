@@ -14,6 +14,15 @@ export async function generateUpload(params: GenerateParams): Promise<string> {
     return await invoke('generate_upload', params);
 }
 
+export interface BatchGenerateParams extends Omit<GenerateParams, 'file' | 'output'> {
+    files: string[];
+    outputDir?: string;
+}
+
+export async function generateBatchUpload(params: BatchGenerateParams): Promise<string[]> {
+    return await invoke('generate_batch_upload', params);
+}
+
 export async function signIn(): Promise<void> {
     await invoke('youtube_sign_in');
 }

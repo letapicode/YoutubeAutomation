@@ -4,9 +4,13 @@ import YouTubeAuthButton from './components/YouTubeAuthButton';
 import GenerateUploadButton from './components/GenerateUploadButton';
 import { GenerateParams } from './features/youtube';
 import FilePicker from './components/FilePicker';
+import BatchPage from './components/BatchPage';
+import FontSelector from './components/FontSelector';
+import SizeSlider from './components/SizeSlider';
 import { languageOptions, Language } from './features/language';
 
 const App: React.FC = () => {
+    const [page, setPage] = useState<'single' | 'batch'>('single');
     const [file, setFile] = useState('');
     const [background, setBackground] = useState('');
     const [captions, setCaptions] = useState('');
@@ -38,6 +42,15 @@ const App: React.FC = () => {
         outro: outro || undefined,
     });
 
+    if (page === 'batch') {
+        return (
+            <div>
+                <button onClick={() => setPage('single')}>Back</button>
+                <BatchPage />
+            </div>
+        );
+    }
+
     return (
         <div>
             <h1>Youtube Automation</h1>
@@ -65,16 +78,33 @@ const App: React.FC = () => {
                 <input type="text" placeholder="Captions file" value={captions} onChange={(e) => setCaptions(e.target.value)} />
             </div>
             <div>
-                <input type="text" placeholder="Intro video" value={intro} onChange={(e) => setIntro(e.target.value)} />
+                <FilePicker
+                    label="Intro"
+                    onSelect={(p) => {
+                        if (typeof p === 'string') setIntro(p);
+                        else if (Array.isArray(p) && p.length) setIntro(p[0]);
+                    }}
+                    filters={[{ name: 'Media', extensions: ['mp4', 'mov', 'mkv', 'png', 'jpg', 'jpeg'] }]}
+                />
+                {intro && <span>{intro}</span>}
             </div>
             <div>
-                <input type="text" placeholder="Outro video" value={outro} onChange={(e) => setOutro(e.target.value)} />
+                <FilePicker
+                    label="Outro"
+                    onSelect={(p) => {
+                        if (typeof p === 'string') setOutro(p);
+                        else if (Array.isArray(p) && p.length) setOutro(p[0]);
+                    }}
+                    filters={[{ name: 'Media', extensions: ['mp4', 'mov', 'mkv', 'png', 'jpg', 'jpeg'] }]}
+                />
+                {outro && <span>{outro}</span>}
             </div>
             <div>
-                <input type="text" placeholder="Font" value={font} onChange={(e) => setFont(e.target.value)} />
+                <FontSelector value={font} onChange={setFont} />
             </div>
             <div>
-                <input type="number" placeholder="Font size" value={size} onChange={(e) => setSize(parseInt(e.target.value) || 0)} />
+                <SizeSlider value={size} onChange={setSize} />
+                <span>{size}</span>
             </div>
             <div>
                 <select value={position} onChange={(e) => setPosition(e.target.value)}>
@@ -93,6 +123,7 @@ const App: React.FC = () => {
             <YouTubeAuthButton />
             <button onClick={handleGenerate}>Generate</button>
             <GenerateUploadButton params={buildParams()} />
+            <button onClick={() => setPage('batch')}>Batch Tools</button>
         </div>
     );
 };

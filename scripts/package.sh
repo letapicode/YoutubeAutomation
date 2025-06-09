@@ -6,9 +6,14 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_DIR="$ROOT_DIR/ytapp"
-DIST_DIR="$ROOT_DIR/dist"
+DIST_DIR="${DIST_DIR:-$ROOT_DIR/dist}"
 
 mkdir -p "$DIST_DIR"
+
+if ! command -v tauri >/dev/null; then
+    echo "Tauri CLI not found. Install with 'cargo install tauri-cli'." >&2
+    exit 1
+fi
 
 build_target() {
     local target="$1"
