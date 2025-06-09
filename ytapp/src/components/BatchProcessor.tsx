@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import FilePicker from './FilePicker';
-import { generateBatchWithProgress } from '../features/batch';
+import { generateBatchWithProgress, BatchOptions } from '../features/batch';
 import { generateBatchUpload } from '../features/youtube';
+import BatchOptionsForm from './BatchOptionsForm';
 
 const BatchProcessor: React.FC = () => {
   const [files, setFiles] = useState<string[]>([]);
   const [progress, setProgress] = useState(0);
   const [running, setRunning] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [options, setOptions] = useState<BatchOptions>({});
 
   const handleSelect = (selected: string | string[] | null) => {
     if (Array.isArray(selected)) {
@@ -23,7 +25,7 @@ const BatchProcessor: React.FC = () => {
     if (!files.length) return;
     setRunning(true);
     setProgress(0);
-    await generateBatchWithProgress(files, {}, (cur, total) => {
+    await generateBatchWithProgress(files, options, (cur, total) => {
       const pct = Math.round(((cur + 1) / total) * 100);
       setProgress(pct);
     });
@@ -33,7 +35,7 @@ const BatchProcessor: React.FC = () => {
   const startBatchUpload = async () => {
     if (!files.length) return;
     setUploading(true);
-    await generateBatchUpload({ files });
+    await generateBatchUpload({ files, ...options });
     setUploading(false);
   };
 
@@ -42,6 +44,7 @@ const BatchProcessor: React.FC = () => {
       <h2>Batch Processor</h2>
       <FilePicker multiple onSelect={handleSelect} label="Select Audio Files" />
       {files.length > 0 && <p>{files.length} files selected</p>}
+      <BatchOptionsForm value={options} onChange={setOptions} />
       <button onClick={startBatch} disabled={running || !files.length}>Start</button>
       <button onClick={startBatchUpload} disabled={uploading || !files.length}>Generate &amp; Upload</button>
       {running && (

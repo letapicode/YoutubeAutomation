@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import FilePicker from './FilePicker';
-import { uploadVideos } from '../features/youtube';
+import { uploadVideo } from '../features/youtube';
 
 const BatchUploader: React.FC = () => {
     const [files, setFiles] = useState<string[]>([]);
-    const [progress, setProgress] = useState(0);
+    const [progressMap, setProgressMap] = useState<Record<string, number>>({});
     const [running, setRunning] = useState(false);
 
     const handleSelect = (p: string | string[] | null) => {
@@ -15,10 +15,15 @@ const BatchUploader: React.FC = () => {
     const startUpload = async () => {
         if (!files.length) return;
         setRunning(true);
-        setProgress(0);
-        const res = await uploadVideos(files);
-        console.log(res);
-        setProgress(100);
+        const prog: Record<string, number> = {};
+        setProgressMap({});
+        for (const file of files) {
+            prog[file] = 0;
+            setProgressMap({ ...prog });
+            await uploadVideo(file);
+            prog[file] = 100;
+            setProgressMap({ ...prog });
+        }
         setRunning(false);
     };
 
@@ -28,7 +33,13 @@ const BatchUploader: React.FC = () => {
             <FilePicker multiple onSelect={handleSelect} label="Select Videos" filters={[{ name: 'Videos', extensions: ['mp4'] }]} />
             {files.length > 0 && <p>{files.length} files selected</p>}
             <button onClick={startUpload} disabled={running || !files.length}>Upload</button>
-            {running && <progress value={progress} max={100} />}
+            {files.map(f => (
+                <div key={f}>
+                    <span>{f}</span>
+                    {running && <progress value={progressMap[f] || 0} max={100} />}
+                    {!running && progressMap[f] === 100 && <span>Done</span>}
+                </div>
+            ))}
         </div>
     );
 };
