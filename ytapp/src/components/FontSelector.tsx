@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface FontSelectorProps {
     value: string;
@@ -8,9 +9,10 @@ interface FontSelectorProps {
 const fonts = ['Arial', 'Helvetica', 'Times New Roman', 'Courier New'];
 
 const FontSelector: React.FC<FontSelectorProps> = ({ value, onChange }) => {
+    const { t } = useTranslation();
     return (
         <select value={value} onChange={e => onChange(e.target.value)}>
-            <option value="">Default</option>
+            <option value="">{t('default')}</option>
             {fonts.map(f => (
                 <option key={f} value={f}>{f}</option>
             ))}

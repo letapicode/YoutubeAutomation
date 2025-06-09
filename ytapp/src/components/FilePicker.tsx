@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { open } from '@tauri-apps/api/dialog';
 
 interface FileFilter {
@@ -14,6 +15,7 @@ interface FilePickerProps {
 }
 
 const FilePicker: React.FC<FilePickerProps> = ({ multiple, onSelect, label, filters }) => {
+  const { t } = useTranslation();
   const handleClick = async () => {
     const defaultFilters: FileFilter[] = [
       { name: 'Audio', extensions: ['mp3', 'wav', 'm4a', 'flac', 'aac'] },
@@ -26,7 +28,7 @@ const FilePicker: React.FC<FilePickerProps> = ({ multiple, onSelect, label, filt
   };
 
   return (
-    <button onClick={handleClick}>{label || (multiple ? 'Select Files' : 'Select File')}</button>
+    <button onClick={handleClick}>{label || (multiple ? t('select_files') : t('select_file'))}</button>
   );
 };
 

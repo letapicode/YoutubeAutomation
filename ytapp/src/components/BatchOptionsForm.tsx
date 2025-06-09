@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import FilePicker from './FilePicker';
 import FontSelector from './FontSelector';
 import SizeSlider from './SizeSlider';
@@ -10,6 +11,7 @@ interface BatchOptionsFormProps {
 }
 
 const BatchOptionsForm: React.FC<BatchOptionsFormProps> = ({ value, onChange }) => {
+    const { t } = useTranslation();
     const update = (opts: Partial<BatchOptions>) => {
         onChange({ ...value, ...opts, captionOptions: { ...value.captionOptions, ...opts.captionOptions } });
     };
@@ -18,7 +20,7 @@ const BatchOptionsForm: React.FC<BatchOptionsFormProps> = ({ value, onChange }) 
         <div>
             <div>
                 <FilePicker
-                    label="Background"
+                    label={t('background')}
                     onSelect={(p) => {
                         if (typeof p === 'string') update({ background: p });
                         else if (Array.isArray(p) && p.length) update({ background: p[0] });
@@ -29,7 +31,7 @@ const BatchOptionsForm: React.FC<BatchOptionsFormProps> = ({ value, onChange }) 
             </div>
             <div>
                 <FilePicker
-                    label="Intro"
+                    label={t('intro')}
                     onSelect={(p) => {
                         if (typeof p === 'string') update({ intro: p });
                         else if (Array.isArray(p) && p.length) update({ intro: p[0] });
@@ -40,7 +42,7 @@ const BatchOptionsForm: React.FC<BatchOptionsFormProps> = ({ value, onChange }) 
             </div>
             <div>
                 <FilePicker
-                    label="Outro"
+                    label={t('outro')}
                     onSelect={(p) => {
                         if (typeof p === 'string') update({ outro: p });
                         else if (Array.isArray(p) && p.length) update({ outro: p[0] });
@@ -58,9 +60,9 @@ const BatchOptionsForm: React.FC<BatchOptionsFormProps> = ({ value, onChange }) 
             </div>
             <div>
                 <select value={value.captionOptions?.position || 'bottom'} onChange={(e) => update({ captionOptions: { position: e.target.value } })}>
-                    <option value="top">Top</option>
-                    <option value="center">Center</option>
-                    <option value="bottom">Bottom</option>
+                    <option value="top">{t('top')}</option>
+                    <option value="center">{t('center')}</option>
+                    <option value="bottom">{t('bottom')}</option>
                 </select>
             </div>
         </div>

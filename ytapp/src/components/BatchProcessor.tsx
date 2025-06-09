@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import FilePicker from './FilePicker';
 import { generateBatchWithProgress, BatchOptions } from '../features/batch';
 import { generateBatchUpload } from '../features/youtube';
 import BatchOptionsForm from './BatchOptionsForm';
 
 const BatchProcessor: React.FC = () => {
+  const { t } = useTranslation();
   const [files, setFiles] = useState<string[]>([]);
   const [progress, setProgress] = useState(0);
   const [running, setRunning] = useState(false);
@@ -41,12 +43,12 @@ const BatchProcessor: React.FC = () => {
 
   return (
     <div>
-      <h2>Batch Processor</h2>
-      <FilePicker multiple onSelect={handleSelect} label="Select Audio Files" />
-      {files.length > 0 && <p>{files.length} files selected</p>}
+      <h2>{t('batch_processor')}</h2>
+      <FilePicker multiple onSelect={handleSelect} label={t('select_audio_files')} />
+      {files.length > 0 && <p>{t('files_selected', { count: files.length })}</p>}
       <BatchOptionsForm value={options} onChange={setOptions} />
-      <button onClick={startBatch} disabled={running || !files.length}>Start</button>
-      <button onClick={startBatchUpload} disabled={uploading || !files.length}>Generate &amp; Upload</button>
+      <button onClick={startBatch} disabled={running || !files.length}>{t('start')}</button>
+      <button onClick={startBatchUpload} disabled={uploading || !files.length}>{t('generate_upload')}</button>
       {running && (
         <div>
           <progress value={progress} max={100} />

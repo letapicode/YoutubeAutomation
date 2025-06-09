@@ -1,6 +1,7 @@
 import { program } from 'commander';
 import { invoke } from '@tauri-apps/api/core';
 import path from 'path';
+import { spawn } from 'child_process';
 
 interface CaptionOptions {
   font?: string;
@@ -32,6 +33,21 @@ async function uploadVideos(params: { files: string[] }): Promise<any> {
 
 async function transcribeAudio(params: { file: string; language?: string }): Promise<any> {
   return await invoke('transcribe_audio', params as any);
+}
+
+function translateSrt(input: string, target: string): Promise<string> {
+  const output = input.replace(/\.srt$/, `.${target}.srt`);
+  return new Promise((resolve, reject) => {
+    const child = spawn('argos-translate', [
+      '--input-file', input,
+      '--output-file', output,
+      '--from-lang', 'en',
+      '--to-lang', target,
+    ]);
+    child.on('exit', code => {
+      if (code === 0) resolve(output); else reject(new Error('translation failed'));
+    });
+  });
 }
 
 async function generateAndUpload(params: GenerateParams): Promise<any> {
@@ -236,9 +252,13 @@ program
   .description('Transcribe audio to SRT')
   .argument('<file>', 'audio file path')
   .option('-l, --language <lang>', 'language code (auto|ne|hi|en)', 'auto')
+  .option('-t, --translate <lang>', 'translate subtitles to language')
   .action(async (file: string, options: any) => {
     try {
-      const result = await transcribeAudio({ file, language: options.language });
+      let result = await transcribeAudio({ file, language: options.language });
+      if (options.translate) {
+        result = await translateSrt(result as string, options.translate);
+      }
       console.log(result);
     } catch (err) {
       console.error('Error transcribing audio:', err);
