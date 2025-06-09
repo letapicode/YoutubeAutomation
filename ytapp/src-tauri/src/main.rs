@@ -17,7 +17,7 @@ mod language;
 mod token_store;
 use token_store::EncryptedTokenStorage;
 
-#[derive(Deserialize, Default)]
+#[derive(Deserialize, Default, Clone)]
 struct CaptionOptions {
     font: Option<String>,
     size: Option<u32>,
@@ -137,7 +137,10 @@ fn build_main_section(params: &GenerateParams, duration: f64) -> Result<PathBuf,
 
 #[command]
 fn generate_video(params: GenerateParams) -> Result<String, String> {
-    let output_path = params.output.unwrap_or_else(|| "output.mp4".to_string());
+    let output_path = params
+        .output
+        .clone()
+        .unwrap_or_else(|| "output.mp4".to_string());
 
     let duration = audio_duration(&params.file)?;
     let main = build_main_section(&params, duration)?;
