@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { transcribeAudio } from '../features/transcription';
 import { Language } from '../features/language';
 
@@ -9,6 +10,7 @@ interface TranscribeButtonProps {
 }
 
 const TranscribeButton: React.FC<TranscribeButtonProps> = ({ file, language, onComplete }) => {
+    const { t } = useTranslation();
     const [running, setRunning] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -28,7 +30,7 @@ const TranscribeButton: React.FC<TranscribeButtonProps> = ({ file, language, onC
     return (
         <div>
             <button onClick={handleClick} disabled={running || !file}>
-                {running ? 'Transcribing...' : 'Transcribe'}
+                {running ? t('transcribing') : t('transcribe')}
             </button>
             {error && <span>{error}</span>}
         </div>

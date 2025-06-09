@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { generateVideo } from './features/processing';
 import YouTubeAuthButton from './components/YouTubeAuthButton';
 import { generateUpload, GenerateParams } from './features/youtube';
@@ -10,6 +11,7 @@ import { languageOptions, Language } from './features/language';
 import TranscribeButton from './components/TranscribeButton';
 
 const App: React.FC = () => {
+    const { t, i18n } = useTranslation();
     const [page, setPage] = useState<'single' | 'batch'>('single');
     const [file, setFile] = useState('');
     const [background, setBackground] = useState('');
@@ -55,7 +57,7 @@ const App: React.FC = () => {
         return (
             <div className="app">
                 <div className="row">
-                    <button onClick={() => setPage('single')}>Back</button>
+                    <button onClick={() => setPage('single')}>{t('back')}</button>
                 </div>
                 <BatchPage />
             </div>
@@ -64,9 +66,16 @@ const App: React.FC = () => {
 
     return (
         <div className="app">
-            <h1>Youtube Automation</h1>
+            <h1>{t('title')}</h1>
             <div className="row">
-                <FilePicker label="Select Audio" onSelect={(p) => {
+                <select value={i18n.language} onChange={e => i18n.changeLanguage(e.target.value)}>
+                    <option value="en">English</option>
+                    <option value="ne">नेपाली</option>
+                    <option value="hi">हिन्दी</option>
+                </select>
+            </div>
+            <div className="row">
+                <FilePicker label={t('select_audio')} onSelect={(p) => {
                     if (typeof p === 'string') setFile(p);
                     else if (Array.isArray(p) && p.length) setFile(p[0]);
                 }} />
@@ -74,7 +83,7 @@ const App: React.FC = () => {
             </div>
             <div className="row">
                 <FilePicker
-                    label="Background"
+                    label={t('background')}
                     onSelect={(p) => {
                         if (typeof p === 'string') setBackground(p);
                         else if (Array.isArray(p) && p.length) setBackground(p[0]);
@@ -91,7 +100,7 @@ const App: React.FC = () => {
             </div>
             <div className="row">
                 <FilePicker
-                    label="Intro"
+                    label={t('intro')}
                     onSelect={(p) => {
                         if (typeof p === 'string') setIntro(p);
                         else if (Array.isArray(p) && p.length) setIntro(p[0]);
@@ -102,7 +111,7 @@ const App: React.FC = () => {
             </div>
             <div className="row">
                 <FilePicker
-                    label="Outro"
+                    label={t('outro')}
                     onSelect={(p) => {
                         if (typeof p === 'string') setOutro(p);
                         else if (Array.isArray(p) && p.length) setOutro(p[0]);
@@ -120,9 +129,9 @@ const App: React.FC = () => {
             </div>
             <div className="row">
                 <select value={position} onChange={(e) => setPosition(e.target.value)}>
-                    <option value="top">Top</option>
-                    <option value="center">Center</option>
-                    <option value="bottom">Bottom</option>
+                    <option value="top">{t('top')}</option>
+                    <option value="center">{t('center')}</option>
+                    <option value="bottom">{t('bottom')}</option>
                 </select>
             </div>
             <div className="row">
@@ -134,9 +143,9 @@ const App: React.FC = () => {
             </div>
             <div className="row">
                 <YouTubeAuthButton />
-                <button onClick={handleGenerate}>Generate</button>
-                <button onClick={handleGenerateUpload}>Generate &amp; Upload</button>
-                <button onClick={() => setPage('batch')}>Batch Tools</button>
+                <button onClick={handleGenerate}>{t('generate')}</button>
+                <button onClick={handleGenerateUpload}>{t('generate_upload')}</button>
+                <button onClick={() => setPage('batch')}>{t('batch_tools')}</button>
             </div>
         </div>
     );

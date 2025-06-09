@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { signIn, isSignedIn } from '../features/youtube';
 
 const YouTubeAuthButton: React.FC = () => {
+  const { t } = useTranslation();
   const [signedIn, setSignedIn] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -22,10 +24,10 @@ const YouTubeAuthButton: React.FC = () => {
     setSignedIn(true);
   };
 
-  if (loading) return <button disabled>Checking...</button>;
+  if (loading) return <button disabled>{t('checking')}</button>;
   return (
     <button onClick={handleClick} disabled={signedIn}>
-      {signedIn ? 'Signed in to YouTube' : 'Sign in to YouTube'}
+      {signedIn ? t('signed_in') : t('sign_in')}
     </button>
   );
 };
