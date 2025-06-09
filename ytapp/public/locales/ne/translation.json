@@ -27,5 +27,7 @@
   "signed_in": "युट्युबमा साइन इन भएको",
   "checking": "जाँच हुँदै...",
   "default": "पूर्वनिर्धारित",
-  "toggle_theme": "थिम बदल्नुहोस्"
+  "toggle_theme": "थिम बदल्नुहोस्",
+  "settings": "Settings",
+  "save": "Save"
 }

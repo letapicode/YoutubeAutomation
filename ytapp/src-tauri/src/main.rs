@@ -5,7 +5,8 @@ use std::{
     process::Command,
 };
 use tauri::command;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
+use tauri::api::path::app_config_dir;
 use whisper_cli::{Language, Model, Size, Whisper};
 mod model_check;
 use model_check::ensure_whisper_model;
@@ -33,6 +34,22 @@ struct GenerateParams {
     background: Option<String>,
     intro: Option<String>,
     outro: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Default, Clone)]
+struct AppSettings {
+    intro: Option<String>,
+    outro: Option<String>,
+    background: Option<String>,
+    caption_font: Option<String>,
+    caption_size: Option<u32>,
+}
+
+fn settings_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+    let mut dir = app_config_dir(app).ok_or("config dir not found")?;
+    fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    dir.push("settings.json");
+    Ok(dir)
 }
 
 fn is_image(p: &str) -> bool {
@@ -323,6 +340,24 @@ async fn generate_batch_upload(params: BatchGenerateParams) -> Result<Vec<String
     Ok(results)
 }
 
+#[command]
+fn load_settings(app: tauri::AppHandle) -> Result<AppSettings, String> {
+    let path = settings_path(&app)?;
+    let data = match fs::read_to_string(&path) {
+        Ok(d) => d,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(AppSettings::default()),
+        Err(e) => return Err(e.to_string()),
+    };
+    serde_json::from_str(&data).map_err(|e| e.to_string())
+}
+
+#[command]
+fn save_settings(app: tauri::AppHandle, settings: AppSettings) -> Result<(), String> {
+    let path = settings_path(&app)?;
+    let data = serde_json::to_string(&settings).map_err(|e| e.to_string())?;
+    fs::write(path, data).map_err(|e| e.to_string())
+}
+
 #[derive(Deserialize)]
 struct TranscribeParams {
     file: String,
@@ -351,7 +386,7 @@ fn transcribe_audio(params: TranscribeParams) -> Result<String, String> {
 fn main() {
     ensure_whisper_model();
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, youtube_sign_in, youtube_is_signed_in])
+        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, youtube_sign_in, youtube_is_signed_in, load_settings, save_settings])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

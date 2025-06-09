@@ -5,14 +5,16 @@ import YouTubeAuthButton from './components/YouTubeAuthButton';
 import { generateUpload, GenerateParams } from './features/youtube';
 import FilePicker from './components/FilePicker';
 import BatchPage from './components/BatchPage';
+import SettingsPage from './components/SettingsPage';
 import FontSelector from './components/FontSelector';
 import SizeSlider from './components/SizeSlider';
 import { languageOptions, Language } from './features/language';
 import TranscribeButton from './components/TranscribeButton';
+import { loadSettings } from './features/settings';
 
 const App: React.FC = () => {
     const { t, i18n } = useTranslation();
-    const [page, setPage] = useState<'single' | 'batch'>('single');
+    const [page, setPage] = useState<'single' | 'batch' | 'settings'>('single');
     const [file, setFile] = useState('');
     const [background, setBackground] = useState('');
     const [captions, setCaptions] = useState('');
@@ -25,6 +27,16 @@ const App: React.FC = () => {
     const [theme, setTheme] = useState<'light' | 'dark'>(() =>
         localStorage.getItem('theme') === 'dark' ? 'dark' : 'light'
     );
+
+    useEffect(() => {
+        loadSettings().then(s => {
+            if (s.background) setBackground(s.background);
+            if (s.intro) setIntro(s.intro);
+            if (s.outro) setOutro(s.outro);
+            if (s.captionFont) setFont(s.captionFont);
+            if (s.captionSize) setSize(s.captionSize);
+        });
+    }, []);
 
     useEffect(() => {
         document.documentElement.setAttribute('data-theme', theme);
@@ -70,6 +82,17 @@ const App: React.FC = () => {
                     <button onClick={() => setPage('single')}>{t('back')}</button>
                 </div>
                 <BatchPage />
+            </div>
+        );
+    }
+
+    if (page === 'settings') {
+        return (
+            <div className="app">
+                <div className="row">
+                    <button onClick={() => setPage('single')}>{t('back')}</button>
+                </div>
+                <SettingsPage />
             </div>
         );
     }
@@ -160,6 +183,7 @@ const App: React.FC = () => {
                 <button onClick={handleGenerate}>{t('generate')}</button>
                 <button onClick={handleGenerateUpload}>{t('generate_upload')}</button>
                 <button onClick={() => setPage('batch')}>{t('batch_tools')}</button>
+                <button onClick={() => setPage('settings')}>{t('settings')}</button>
             </div>
         </div>
     );

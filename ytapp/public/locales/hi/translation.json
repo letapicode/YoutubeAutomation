@@ -27,5 +27,7 @@
   "signed_in": "YouTube में साइन इन",
   "checking": "जांच हो रही है...",
   "default": "डिफ़ॉल्ट",
-  "toggle_theme": "थीम बदलें"
+  "toggle_theme": "थीम बदलें",
+  "settings": "Settings",
+  "save": "Save"
 }
