@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { generateVideo } from './features/processing';
 import FilePicker from './components/FilePicker';
+import { languageOptions, Language } from './features/language';
 
 const App: React.FC = () => {
     const [file, setFile] = useState('');
@@ -11,6 +12,7 @@ const App: React.FC = () => {
     const [font, setFont] = useState('');
     const [size, setSize] = useState(24);
     const [position, setPosition] = useState('bottom');
+    const [language, setLanguage] = useState<Language>('auto');
 
     const handleGenerate = async () => {
         if (!file) return;
@@ -67,6 +69,13 @@ const App: React.FC = () => {
                     <option value="top">Top</option>
                     <option value="center">Center</option>
                     <option value="bottom">Bottom</option>
+                </select>
+            </div>
+            <div>
+                <select value={language} onChange={(e) => setLanguage(e.target.value as Language)}>
+                    {languageOptions.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
                 </select>
             </div>
             <button onClick={handleGenerate}>Generate</button>
