@@ -284,6 +284,46 @@ async fn upload_videos(files: Vec<String>) -> Result<Vec<String>, String> {
 }
 
 #[derive(Deserialize)]
+struct BatchGenerateParams {
+    files: Vec<String>,
+    output_dir: Option<String>,
+    captions: Option<String>,
+    caption_options: Option<CaptionOptions>,
+    background: Option<String>,
+    intro: Option<String>,
+    outro: Option<String>,
+}
+
+#[command]
+async fn generate_batch_upload(params: BatchGenerateParams) -> Result<Vec<String>, String> {
+    let mut results = Vec::new();
+    for file in &params.files {
+        let out = if let Some(ref dir) = params.output_dir {
+            let name = Path::new(file)
+                .file_stem()
+                .and_then(|s| s.to_str())
+                .unwrap_or("out");
+            Some(format!("{}/{}.mp4", dir, name))
+        } else {
+            None
+        };
+        let video = generate_video(GenerateParams {
+            file: file.clone(),
+            output: out.clone(),
+            captions: params.captions.clone(),
+            caption_options: params.caption_options.clone(),
+            background: params.background.clone(),
+            intro: params.intro.clone(),
+            outro: params.outro.clone(),
+        })?;
+        let res = upload_video_impl(video.clone()).await?;
+        let _ = fs::remove_file(video);
+        results.push(res);
+    }
+    Ok(results)
+}
+
+#[derive(Deserialize)]
 struct TranscribeParams {
     file: String,
     language: Option<String>,
@@ -311,7 +351,7 @@ fn transcribe_audio(params: TranscribeParams) -> Result<String, String> {
 fn main() {
     ensure_whisper_model();
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, youtube_sign_in, youtube_is_signed_in])
+        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, youtube_sign_in, youtube_is_signed_in])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

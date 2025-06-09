@@ -114,6 +114,40 @@ program
   });
 
 program
+  .command('generate-upload-batch')
+  .description('Generate multiple videos and upload to YouTube')
+  .argument('<files...>', 'audio files')
+  .option('-d, --output-dir <dir>', 'output directory', '.')
+  .option('--captions <srt>', 'captions file path')
+  .option('--font <font>', 'caption font')
+  .option('--size <size>', 'caption font size', (v) => parseInt(v, 10))
+  .option('--position <pos>', 'caption position (top|center|bottom)')
+  .option('-b, --background <file>', 'background image or video')
+  .option('--intro <file>', 'intro video or image')
+  .option('--outro <file>', 'outro video or image')
+  .action(async (files: string[], options: any) => {
+    try {
+      const result = await invoke('generate_batch_upload', {
+        files,
+        outputDir: options.outputDir,
+        captions: options.captions,
+        captionOptions: {
+          font: options.font,
+          size: options.size,
+          position: options.position,
+        },
+        background: options.background,
+        intro: options.intro,
+        outro: options.outro,
+      } as any);
+      console.log(result);
+    } catch (err) {
+      console.error('Error generating and uploading batch:', err);
+      process.exitCode = 1;
+    }
+  });
+
+program
   .command('batch')
   .description('Generate multiple videos')
   .argument('<files...>', 'list of audio files')

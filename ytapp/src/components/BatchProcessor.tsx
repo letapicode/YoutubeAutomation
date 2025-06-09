@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import FilePicker from './FilePicker';
 import { generateBatchWithProgress } from '../features/batch';
+import { generateBatchUpload } from '../features/youtube';
 
 const BatchProcessor: React.FC = () => {
   const [files, setFiles] = useState<string[]>([]);
   const [progress, setProgress] = useState(0);
   const [running, setRunning] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const handleSelect = (selected: string | string[] | null) => {
     if (Array.isArray(selected)) {
@@ -28,12 +30,20 @@ const BatchProcessor: React.FC = () => {
     setRunning(false);
   };
 
+  const startBatchUpload = async () => {
+    if (!files.length) return;
+    setUploading(true);
+    await generateBatchUpload({ files });
+    setUploading(false);
+  };
+
   return (
     <div>
       <h2>Batch Processor</h2>
       <FilePicker multiple onSelect={handleSelect} label="Select Audio Files" />
       {files.length > 0 && <p>{files.length} files selected</p>}
       <button onClick={startBatch} disabled={running || !files.length}>Start</button>
+      <button onClick={startBatchUpload} disabled={uploading || !files.length}>Generate &amp; Upload</button>
       {running && (
         <div>
           <progress value={progress} max={100} />
