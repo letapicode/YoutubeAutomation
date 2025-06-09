@@ -44,7 +44,7 @@ const BatchProcessor: React.FC = () => {
   return (
     <div>
       <h2>{t('batch_processor')}</h2>
-      <FilePicker multiple onSelect={handleSelect} label={t('select_audio_files')} />
+      <FilePicker multiple useDropZone onSelect={handleSelect} label={t('select_audio_files')} />
       {files.length > 0 && <p>{t('files_selected', { count: files.length })}</p>}
       <BatchOptionsForm value={options} onChange={setOptions} />
       <button onClick={startBatch} disabled={running || !files.length}>{t('start')}</button>
