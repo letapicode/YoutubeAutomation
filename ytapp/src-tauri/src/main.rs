@@ -14,6 +14,8 @@ use yup_oauth2::{InstalledFlowAuthenticator, InstalledFlowReturnMethod};
 use hyper_rustls::HttpsConnectorBuilder;
 use hyper_util::{client::legacy::Client, rt::TokioExecutor};
 mod language;
+mod token_store;
+use token_store::EncryptedTokenStorage;
 
 #[derive(Deserialize, Default)]
 struct CaptionOptions {
@@ -181,16 +183,7 @@ fn generate_video(params: GenerateParams) -> Result<String, String> {
 }
 
 async fn upload_video_impl(file: String) -> Result<String, String> {
-    let secret_path = std::env::var("YOUTUBE_CLIENT_SECRET").unwrap_or_else(|_| "client_secret.json".into());
-    let secret = yup_oauth2::read_application_secret(secret_path)
-        .await
-        .map_err(|e| format!("Failed to read client secret: {}", e))?;
-
-    let auth = InstalledFlowAuthenticator::builder(secret, InstalledFlowReturnMethod::HTTPRedirect)
-        .persist_tokens_to_disk("youtube_tokens.json")
-        .build()
-        .await
-        .map_err(|e| format!("Auth error: {}", e))?;
+    let auth = build_authenticator().await?;
 
     let client = Client::builder(TokioExecutor::new())
         .build(
@@ -231,9 +224,43 @@ async fn upload_video_impl(file: String) -> Result<String, String> {
     Ok(format!("Uploaded video ID: {}", id))
 }
 
+async fn build_authenticator() -> Result<InstalledFlowAuthenticator<EncryptedTokenStorage>, String> {
+    let secret_path = std::env::var("YOUTUBE_CLIENT_SECRET").unwrap_or_else(|_| "client_secret.json".into());
+    let secret = yup_oauth2::read_application_secret(secret_path)
+        .await
+        .map_err(|e| format!("Failed to read client secret: {}", e))?;
+
+    let token_path = std::env::var("YOUTUBE_TOKEN_FILE").unwrap_or_else(|_| "youtube_tokens.enc".into());
+    let key_env = std::env::var("YOUTUBE_TOKEN_KEY").unwrap_or_else(|_| "0123456789abcdef0123456789abcdef".into());
+    let mut key = [0u8; 32];
+    for (i, b) in key_env.as_bytes().iter().take(32).enumerate() {
+        key[i] = *b;
+    }
+    let store = EncryptedTokenStorage::new(token_path, key)
+        .await
+        .map_err(|e| format!("Token storage error: {}", e))?;
+
+    InstalledFlowAuthenticator::builder(secret, InstalledFlowReturnMethod::HTTPRedirect)
+        .with_storage(Box::new(store))
+        .build()
+        .await
+        .map_err(|e| format!("Auth error: {}", e))
+}
+
 #[command]
 async fn upload_video(file: String) -> Result<String, String> {
     upload_video_impl(file).await
+}
+
+#[command]
+async fn youtube_sign_in() -> Result<(), String> {
+    build_authenticator().await.map(|_| ())
+}
+
+#[command]
+async fn youtube_is_signed_in() -> bool {
+    let token_path = std::env::var("YOUTUBE_TOKEN_FILE").unwrap_or_else(|_| "youtube_tokens.enc".into());
+    tokio::fs::metadata(token_path).await.is_ok()
 }
 
 #[command]
@@ -281,7 +308,7 @@ fn transcribe_audio(params: TranscribeParams) -> Result<String, String> {
 fn main() {
     ensure_whisper_model();
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload])
+        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, youtube_sign_in, youtube_is_signed_in])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

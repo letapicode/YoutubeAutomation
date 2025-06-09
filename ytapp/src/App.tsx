@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { generateVideo } from './features/processing';
+import YouTubeAuthButton from './components/YouTubeAuthButton';
+import GenerateUploadButton from './components/GenerateUploadButton';
+import { GenerateParams } from './features/youtube';
 import FilePicker from './components/FilePicker';
 import { languageOptions, Language } from './features/language';
 
@@ -25,6 +28,15 @@ const App: React.FC = () => {
             outro: outro || undefined,
         });
     };
+
+    const buildParams = (): GenerateParams => ({
+        file,
+        captions: captions || undefined,
+        captionOptions: { font: font || undefined, size, position },
+        background: background || undefined,
+        intro: intro || undefined,
+        outro: outro || undefined,
+    });
 
     return (
         <div>
@@ -78,7 +90,9 @@ const App: React.FC = () => {
                     ))}
                 </select>
             </div>
+            <YouTubeAuthButton />
             <button onClick={handleGenerate}>Generate</button>
+            <GenerateUploadButton params={buildParams()} />
         </div>
     );
 };
