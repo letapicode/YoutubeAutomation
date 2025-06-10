@@ -1,6 +1,10 @@
 // Utility used at startup to ensure native dependencies like FFmpeg are present.
 import { invoke } from '@tauri-apps/api/core';
 
+/**
+ * Ensure native dependencies like FFmpeg are installed. Prompts the user to
+ * run the provided installation script when verification fails.
+ */
 export async function checkDependencies(): Promise<void> {
   try {
     await invoke('verify_dependencies');

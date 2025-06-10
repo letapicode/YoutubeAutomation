@@ -19,6 +19,9 @@ export const languages = [{ value: 'auto', label: 'Auto', rtl: false }, ...loade
 
 export type Language = typeof languages[number]['value'];
 
+/**
+ * Type guard ensuring a string is a supported language code.
+ */
 export function isLanguage(value: string): value is Language {
   return languages.some(l => l.value === value);
 }

@@ -30,7 +30,16 @@ export interface GenerateParams {
 
 export type ProgressCallback = (progress: number) => void;
 
-export async function generateVideo(params: GenerateParams, onProgress?: ProgressCallback): Promise<string> {
+/**
+ * Generate a video from an audio file using the backend.
+ *
+ * @param params     Options that control video generation.
+ * @param onProgress Optional callback receiving progress percentage.
+ */
+export async function generateVideo(
+  params: GenerateParams,
+  onProgress?: ProgressCallback,
+): Promise<string> {
     let unlisten: (() => void) | undefined;
     if (onProgress) {
         unlisten = await listen<number>('generate_progress', e => {
