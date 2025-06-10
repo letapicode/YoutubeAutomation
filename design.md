@@ -37,5 +37,16 @@ This project follows a minimalist approach inspired by the principle **"Less but
 - Components should remain visually quiet, leaving generous whitespace around elements.
 - Typography scales in small increments (1.25x) for harmony.
 
-Inspired by the work of Dieter Rams and Jony Ive, these rules emphasize clarity, restrained color use and quiet motion.
-Always strive for "as little design as possible".
+Inspired by the work of Dieter Rams and Jony Ive, these rules emphasize clarity, restrained color use and quiet motion. Always strive for "as little design as possible".
+
+## UX Audit
+The interface was reviewed using Dieter Rams' ten principles of good design and remains minimal, useful and unobtrusive.
+
+## Accessibility Checklist
+- ARIA labels for buttons and inputs
+- Full keyboard navigation
+- High‑contrast theme option
+- Screen reader announcements for progress messages
+
+## Wireframes
+Early sketches live in `design/wireframes` outlining the flow: select audio → configure captions → preview → upload.

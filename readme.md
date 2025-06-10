@@ -1,5 +1,20 @@
 ### FINAL IMPLEMENTATION PLAN (clean version)
 
+**Table of Contents**
+
+1. [Framework](#1️⃣-framework)
+2. [Audio/Video Processing](#2️⃣-audiovideo-processing)
+3. [Transcription & Captions](#3️⃣-transcription--captions)
+4. [YouTube Integration](#4️⃣-youtube-integration)
+5. [Batch Processing](#5️⃣-batch-processing)
+6. [UI Features](#6️⃣-ui-features)
+7. [Packaging & Deployment](#7️⃣-packaging--deployment)
+8. [Setup](#setup)
+9. [Onboarding](#onboarding)
+10. [Design Guidelines](#design-guidelines)
+11. [Custom Fonts](#custom-fonts)
+12. [CLI Usage](#cli-usage)
+
 ---
 
 ### 1️⃣ Framework
@@ -68,6 +83,34 @@
   * Lithuanian
   * Latvian
   * Slovak
+  * Catalan
+  * Serbian
+  * Macedonian
+  * Slovenian
+  * Galician
+  * Azerbaijani
+  * Estonian
+  * Nynorsk
+  * Welsh
+  * Punjabi
+  * Afrikaans
+  * Persian
+  * Basque
+  * Bengali
+  * Marathi
+  * Belarusian
+  * Kazakh
+  * Armenian
+  * Swahili
+  * Tamil
+  * Albanian
+  * Filipino
+  * Bosnian
+  * Icelandic
+  * Kannada
+  * Telugu
+  * Maori
+  * Gujarati
 * Output `.srt` file
 * Burn `.srt` captions into video using FFmpeg:
 
@@ -115,8 +158,7 @@
 * Outro picker (video / image, user-provided)
 * Captions settings:
 
-  * Language (Auto-detect, Nepali, Hindi, English, Spanish, French, Chinese,
-    Arabic, Portuguese, Russian, Japanese, German)
+  * Language selector with 60+ options (see list above)
   * Font selector
   * Size slider
   * Position (top / center / bottom)
@@ -127,12 +169,11 @@
 * Batch process progress UI
 * Drag & drop support for file inputs
 * Theme toggle (light/dark)
+* Accessible labels and full keyboard navigation
 * Settings page with persistent defaults
-* Interface translations (English, Nepali, Hindi, Spanish, French, Chinese,
-  Arabic, Portuguese, Russian, Japanese, German, Italian, Korean,
-  Vietnamese, Turkish, Indonesian, plus many more). Translations
-  for the newer languages may be incomplete – contributions are
-  very welcome.
+ * Interface translations are handled via i18n files in `public/locales`.
+   Over 60 languages are supported and fall back to English when a
+   translation is missing. Contributions to improve translations are welcome.
 * Video preview modal after generation
 
 ---
@@ -197,6 +238,12 @@ cargo check          # run inside ytapp/src-tauri
 npx ts-node src/cli.ts --help
 ```
 
+### Contribution
+
+To add a new language create a JSON file in
+`ytapp/src/features/languages/defs` and a matching folder inside
+`ytapp/public/locales`. See `CONTRIBUTING.md` for details.
+
 ### Onboarding
 
 The first time you start the app a short guide appears explaining how to:
@@ -209,7 +256,7 @@ The guide only shows once and the preference is stored in `settings.json`.
 
 ### Design Guidelines
 
-See [design.md](design.md) for the updated design approach. The interface now uses generous whitespace, consistent grid spacing and subtle transitions in the spirit of Dieter Rams and Jony Ive.
+See [design.md](design.md) for the design approach. The interface follows the principles of Dieter Rams and Jony Ive with generous whitespace and a focus on accessibility.
 
 Finally, start the Tauri application:
 
