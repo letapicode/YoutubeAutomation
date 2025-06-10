@@ -12,6 +12,13 @@ This project follows a minimalist approach inspired by the principle **"Less but
 - Accent colors are defined via variables in `theme.css` and should be used sparingly.
 - Buttons rely on `--button-radius` and `--button-shadow` for subtle depth.
 - Keep iconography simple and high-contrast.
+- A high‑contrast theme is available via `data-theme="high-contrast"` using black backgrounds and white text to meet WCAG contrast ratios.
+
+## Shortcuts
+- `Ctrl+G` generates the video.
+- `Ctrl+U` generates and uploads.
+- `Ctrl+,` opens the settings page.
+- `Ctrl+B` opens the batch tools.
 
 ## Motion
 - Interactive elements use subtle transitions (`0.2s ease`) for background and shadow changes.

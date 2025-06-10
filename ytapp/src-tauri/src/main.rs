@@ -72,6 +72,7 @@ struct AppSettings {
     caption_font_path: Option<String>,
     caption_style: Option<String>,
     caption_size: Option<u32>,
+    theme: Option<String>,
     show_guide: Option<bool>,
 }
 
@@ -83,6 +84,7 @@ impl Default for AppSettings {
             background: None,
             caption_font: None,
             caption_size: None,
+            theme: None,
             show_guide: Some(true),
         }
     }

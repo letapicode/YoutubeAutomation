@@ -14,6 +14,7 @@ const SettingsPage: React.FC = () => {
     const [fontPath, setFontPath] = useState('');
     const [fontStyle, setFontStyle] = useState('');
     const [size, setSize] = useState(24);
+    const [theme, setTheme] = useState<'light' | 'dark' | 'high-contrast'>('light');
     const [guide, setGuide] = useState(true);
 
     useEffect(() => {
@@ -25,6 +26,7 @@ const SettingsPage: React.FC = () => {
             setFontPath(s.captionFontPath || '');
             setFontStyle(s.captionStyle || '');
             setSize(s.captionSize || 24);
+            setTheme((s.theme as any) || 'light');
             setGuide(s.showGuide !== false);
         });
     }, []);
@@ -38,6 +40,7 @@ const SettingsPage: React.FC = () => {
             captionFontPath: fontPath || undefined,
             captionStyle: fontStyle || undefined,
             captionSize: size,
+            theme,
             showGuide: guide,
         });
     };
@@ -91,6 +94,14 @@ const SettingsPage: React.FC = () => {
             <div>
                 <SizeSlider value={size} onChange={setSize} />
                 <span>{size}</span>
+            </div>
+            <div>
+                <label>Theme</label>
+                <select value={theme} onChange={e => setTheme(e.target.value as any)}>
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                    <option value="high-contrast">High Contrast</option>
+                </select>
             </div>
             <button onClick={handleSave}>{t('save')}</button>
         </div>

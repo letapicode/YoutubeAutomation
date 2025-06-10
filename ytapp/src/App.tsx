@@ -37,9 +37,10 @@ const App: React.FC = () => {
     const [language, setLanguage] = useState<Language>('auto');
     const [width, setWidth] = useState(1280);
     const [height, setHeight] = useState(720);
-    const [theme, setTheme] = useState<'light' | 'dark'>(() =>
-        localStorage.getItem('theme') === 'dark' ? 'dark' : 'light'
-    );
+    const [theme, setTheme] = useState<'light' | 'dark' | 'high-contrast'>(() => {
+        const stored = localStorage.getItem('theme') as 'light' | 'dark' | 'high-contrast' | null;
+        return stored || 'light';
+    });
     const [progress, setProgress] = useState(0);
     const [generating, setGenerating] = useState(false);
     const [outputs, setOutputs] = useState<string[]>([]);
@@ -61,6 +62,7 @@ const App: React.FC = () => {
             if (s.captionFontPath) setFontPath(s.captionFontPath);
             if (s.captionStyle) setFontStyle(s.captionStyle);
             if (s.captionSize) setSize(s.captionSize);
+            if (s.theme) setTheme(s.theme);
             if (s.showGuide !== false) setShowGuide(true);
         });
     }, []);
@@ -70,7 +72,33 @@ const App: React.FC = () => {
         localStorage.setItem('theme', theme);
     }, [theme]);
 
-    const toggleTheme = () => setTheme(theme === 'light' ? 'dark' : 'light');
+    useEffect(() => {
+        const handler = (e: KeyboardEvent) => {
+            if (e.ctrlKey && e.key.toLowerCase() === 'g') {
+                e.preventDefault();
+                handleGenerate();
+            } else if (e.ctrlKey && e.key.toLowerCase() === 'u') {
+                e.preventDefault();
+                handleGenerateUpload();
+            } else if (e.ctrlKey && e.key === ',') {
+                e.preventDefault();
+                setPage('settings');
+            } else if (e.ctrlKey && e.key.toLowerCase() === 'b') {
+                e.preventDefault();
+                setPage('batch');
+            }
+        };
+        window.addEventListener('keydown', handler);
+        return () => window.removeEventListener('keydown', handler);
+    }, [handleGenerate, handleGenerateUpload]);
+
+    const toggleTheme = () => {
+        setTheme(t => {
+            const next = t === 'light' ? 'dark' : t === 'dark' ? 'high-contrast' : 'light';
+            saveSettings({ theme: next });
+            return next;
+        });
+    };
 
     const handleTranscriptionComplete = (srts: string[]) => {
         if (srts.length) setCaptions(srts[0]);

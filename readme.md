@@ -178,6 +178,17 @@ The first time you start the app a short guide appears explaining how to:
 
 The guide only shows once and the preference is stored in `settings.json`.
 
+### Themes and Shortcuts
+
+Select **Light**, **Dark** or **High Contrast** from the settings page. The toggle button cycles through the same options.
+
+Keyboard shortcuts:
+
+- `Ctrl+G` generate video
+- `Ctrl+U` generate and upload
+- `Ctrl+,` open settings
+- `Ctrl+B` open batch tools
+
 ### Design Guidelines
 
 See [design.md](design.md) for the updated design approach. The interface now uses generous whitespace, consistent grid spacing and subtle transitions in the spirit of Dieter Rams and Jony Ive.

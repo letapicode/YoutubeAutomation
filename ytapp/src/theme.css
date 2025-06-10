@@ -17,3 +17,12 @@
   --spacing: 1.5rem;
   --transition: 0.2s ease;
 }
+[data-theme="high-contrast"] {
+  --bg-color: #000;
+  --text-color: #fff;
+  --button-bg: #000;
+  --button-text: #fff;
+  --button-shadow: none;
+  --spacing: 1.5rem;
+  --transition: 0.2s ease;
+}

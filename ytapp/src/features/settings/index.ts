@@ -8,6 +8,7 @@ export interface Settings {
     captionFontPath?: string;
     captionStyle?: string;
     captionSize?: number;
+    theme?: 'light' | 'dark' | 'high-contrast';
     showGuide?: boolean;
 }
 
