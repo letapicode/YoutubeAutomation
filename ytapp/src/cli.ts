@@ -1,6 +1,7 @@
 // Command line interface mirroring the GUI functionality.
 import { program } from 'commander';
 import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
 import path from 'path';
 import { translateSrt } from './utils/translate';
 
@@ -10,6 +11,8 @@ interface CaptionOptions {
   style?: string;
   size?: number;
   position?: string;
+  color?: string;
+  background?: string;
 }
 
 interface GenerateParams {
@@ -32,7 +35,23 @@ interface GenerateParams {
  * Invoke the backend to generate a single video.
  */
 async function generateVideo(params: GenerateParams): Promise<any> {
-  return await invoke('generate_video', params as any);
+  let unlisten: (() => void) | undefined;
+  try {
+    unlisten = await listen<number>('generate_progress', e => {
+      if (typeof e.payload === 'number') {
+        const pct = Math.round(e.payload);
+        process.stdout.write(`\rProgress: ${pct}%`);
+        if (pct === 100) process.stdout.write('\n');
+      }
+    });
+  } catch {
+    // ignore event subscription errors
+  }
+  try {
+    return await invoke('generate_video', params as any);
+  } finally {
+    if (unlisten) unlisten();
+  }
 }
 
 interface UploadParams {
@@ -84,7 +103,23 @@ async function transcribeAudio(params: { file: string; language?: string; transl
  * Convenience helper that generates a video and uploads it in a single step.
  */
 async function generateAndUpload(params: GenerateParams): Promise<any> {
-  return await invoke('generate_upload', params as any);
+  let unlisten: (() => void) | undefined;
+  try {
+    unlisten = await listen<number>('generate_progress', e => {
+      if (typeof e.payload === 'number') {
+        const pct = Math.round(e.payload);
+        process.stdout.write(`\rProgress: ${pct}%`);
+        if (pct === 100) process.stdout.write('\n');
+      }
+    });
+  } catch {
+    // ignore event subscription errors
+  }
+  try {
+    return await invoke('generate_upload', params as any);
+  } finally {
+    if (unlisten) unlisten();
+  }
 }
 
 /**
@@ -109,6 +144,8 @@ program
   .option('--font-path <path>', 'caption font file')
   .option('--style <style>', 'caption font style')
   .option('--size <size>', 'caption font size', (v) => parseInt(v, 10))
+  .option('--caption-color <color>', 'caption text color (hex)')
+  .option('--caption-bg <color>', 'caption background color (hex)')
   .option('--position <pos>', 'caption position (top|center|bottom)')
   .option('-b, --background <file>', 'background image or video')
   .option('--intro <file>', 'intro video or image')
@@ -131,6 +168,8 @@ program
           style: options.style,
           size: options.size,
           position: options.position,
+          color: options.captionColor,
+          background: options.captionBg,
         },
         background: options.background,
         intro: options.intro,
@@ -160,6 +199,8 @@ program
   .option('--font-path <path>', 'caption font file')
   .option('--style <style>', 'caption font style')
   .option('--size <size>', 'caption font size', (v) => parseInt(v, 10))
+  .option('--caption-color <color>', 'caption text color (hex)')
+  .option('--caption-bg <color>', 'caption background color (hex)')
   .option('--position <pos>', 'caption position (top|center|bottom)')
   .option('-b, --background <file>', 'background image or video')
   .option('--intro <file>', 'intro video or image')
@@ -178,6 +219,8 @@ program
           style: options.style,
           size: options.size,
           position: options.position,
+          color: options.captionColor,
+          background: options.captionBg,
         },
         background: options.background,
         intro: options.intro,
@@ -203,6 +246,8 @@ program
   .option('--font-path <path>', 'caption font file')
   .option('--style <style>', 'caption font style')
   .option('--size <size>', 'caption font size', (v) => parseInt(v, 10))
+  .option('--caption-color <color>', 'caption text color (hex)')
+  .option('--caption-bg <color>', 'caption background color (hex)')
   .option('--position <pos>', 'caption position (top|center|bottom)')
   .option('-b, --background <file>', 'background image or video')
   .option('--intro <file>', 'intro video or image')
@@ -215,6 +260,18 @@ program
   .option('--publish-at <date>', 'schedule publish date (ISO)')
   .action(async (files: string[], options: any) => {
     try {
+      let unlisten: (() => void) | undefined;
+      try {
+        unlisten = await listen<number>('generate_progress', e => {
+          if (typeof e.payload === 'number') {
+            const pct = Math.round(e.payload);
+            process.stdout.write(`\rProgress: ${pct}%`);
+            if (pct === 100) process.stdout.write('\n');
+          }
+        });
+      } catch {
+        // ignore
+      }
       const result = await invoke('generate_batch_upload', {
         files,
         outputDir: options.outputDir,
@@ -225,6 +282,8 @@ program
           style: options.style,
           size: options.size,
           position: options.position,
+          color: options.captionColor,
+          background: options.captionBg,
         },
         background: options.background,
         intro: options.intro,
@@ -236,6 +295,7 @@ program
         tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
         publishAt: options.publishAt,
       } as any);
+      if (unlisten) unlisten();
       console.log(result);
     } catch (err) {
       console.error('Error generating and uploading batch:', err);
@@ -251,6 +311,8 @@ program
   .option('--captions <srt>', 'captions file path')
   .option('--font <font>', 'caption font')
   .option('--size <size>', 'caption font size', (v) => parseInt(v, 10))
+  .option('--caption-color <color>', 'caption text color (hex)')
+  .option('--caption-bg <color>', 'caption background color (hex)')
   .option('--position <pos>', 'caption position (top|center|bottom)')
   .option('-b, --background <file>', 'background image or video')
   .option('--intro <file>', 'intro video or image')
@@ -269,12 +331,14 @@ program
           output,
           captions: options.captions,
           captionOptions: {
-            font: options.font,
-            fontPath: options.fontPath,
-            style: options.style,
-            size: options.size,
-            position: options.position,
-          },
+          font: options.font,
+          fontPath: options.fontPath,
+          style: options.style,
+          size: options.size,
+          position: options.position,
+          color: options.captionColor,
+          background: options.captionBg,
+        },
           background: options.background,
           intro: options.intro,
           outro: options.outro,

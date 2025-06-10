@@ -73,3 +73,17 @@ pub fn parse_language(code: Option<String>) -> Option<Language> {
         _ => None,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parses_basic_codes() {
+        assert_eq!(parse_language(Some("en".into())), Some(Language::English));
+        assert_eq!(parse_language(Some("hi".into())), Some(Language::Hindi));
+        assert_eq!(parse_language(Some("ne".into())), Some(Language::Nepali));
+        assert_eq!(parse_language(Some("auto".into())), None);
+        assert_eq!(parse_language(None), None);
+    }
+}
