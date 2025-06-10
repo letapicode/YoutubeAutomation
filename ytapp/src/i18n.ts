@@ -16,26 +16,35 @@ import ko from '../public/locales/ko/translation.json';
 import vi from '../public/locales/vi/translation.json';
 import tr from '../public/locales/tr/translation.json';
 import id from '../public/locales/id/translation.json';
+import { languages } from './features/languages';
+
+const translations: Record<string, any> = {
+  en,
+  ne,
+  hi,
+  es,
+  fr,
+  zh,
+  ar,
+  pt,
+  ru,
+  ja,
+  de,
+  it,
+  ko,
+  vi,
+  tr,
+  id,
+};
+
+const resources = languages.reduce<Record<string, { translation: any }>>((acc, l) => {
+  const t = translations[l.value];
+  if (t) acc[l.value] = { translation: t };
+  return acc;
+}, {});
 
 i18n.use(initReactI18next).init({
-  resources: {
-    en: { translation: en },
-    ne: { translation: ne },
-    hi: { translation: hi },
-    es: { translation: es },
-    fr: { translation: fr },
-    zh: { translation: zh },
-    ar: { translation: ar },
-    pt: { translation: pt },
-    ru: { translation: ru },
-    ja: { translation: ja },
-    de: { translation: de },
-    it: { translation: it },
-    ko: { translation: ko },
-    vi: { translation: vi },
-    tr: { translation: tr },
-    id: { translation: id },
-  },
+  resources,
   lng: 'en',
   fallbackLng: 'en',
   interpolation: { escapeValue: false },

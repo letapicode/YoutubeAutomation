@@ -1,45 +1,7 @@
-export const languageOptions = [
-  { value: 'auto', label: 'Auto' },
-  { value: 'ne', label: 'Nepali' },
-  { value: 'hi', label: 'Hindi' },
-  { value: 'en', label: 'English' },
-  { value: 'es', label: 'Spanish' },
-  { value: 'fr', label: 'French' },
-  { value: 'zh', label: 'Chinese' },
-  { value: 'ar', label: 'Arabic' },
-  { value: 'pt', label: 'Portuguese' },
-  { value: 'ru', label: 'Russian' },
-  { value: 'ja', label: 'Japanese' },
-  { value: 'de', label: 'German' },
-  { value: 'it', label: 'Italian' },
-  { value: 'ko', label: 'Korean' },
-  { value: 'vi', label: 'Vietnamese' },
-  { value: 'tr', label: 'Turkish' },
-  { value: 'id', label: 'Indonesian' },
-  { value: 'nl', label: 'Dutch' },
-  { value: 'th', label: 'Thai' },
-  { value: 'pl', label: 'Polish' },
-  { value: 'sv', label: 'Swedish' },
-  { value: 'fi', label: 'Finnish' },
-  { value: 'he', label: 'Hebrew' },
-  { value: 'uk', label: 'Ukrainian' },
-  { value: 'el', label: 'Greek' },
-  { value: 'ms', label: 'Malay' },
-  { value: 'cs', label: 'Czech' },
-  { value: 'ro', label: 'Romanian' },
-  { value: 'da', label: 'Danish' },
-  { value: 'hu', label: 'Hungarian' },
-  { value: 'no', label: 'Norwegian' },
-  { value: 'ur', label: 'Urdu' },
-  { value: 'hr', label: 'Croatian' },
-  { value: 'bg', label: 'Bulgarian' },
-  { value: 'lt', label: 'Lithuanian' },
-  { value: 'lv', label: 'Latvian' },
-  { value: 'sk', label: 'Slovak' },
-] as const;
+import { languages, Language, isLanguage } from './languages';
 
-export type Language = typeof languageOptions[number]['value'];
+// Backwards compatibility: expose the languages array under the old name.
+export const languageOptions = languages;
 
-export function isLanguage(value: string): value is Language {
-  return languageOptions.some(opt => opt.value === value);
-}
+export type { Language };
+export { isLanguage };
