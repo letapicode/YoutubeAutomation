@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { generateVideo } from './features/processing';
 import { listen } from '@tauri-apps/api/event';
+import { convertFileSrc } from '@tauri-apps/api/core';
+import { removeFile } from '@tauri-apps/api/fs';
+import { tempDir } from '@tauri-apps/api/path';
 import YouTubeAuthButton from './components/YouTubeAuthButton';
 import { generateUpload, GenerateParams } from './features/youtube';
 import FilePicker from './components/FilePicker';
@@ -13,6 +16,7 @@ import { languageOptions, Language } from './features/language';
 import TranscribeButton from './components/TranscribeButton';
 import { loadSettings } from './features/settings';
 import { checkDependencies } from './features/dependencies';
+import Modal from './components/Modal';
 
 const App: React.FC = () => {
     const { t, i18n } = useTranslation();
@@ -33,6 +37,8 @@ const App: React.FC = () => {
     );
     const [progress, setProgress] = useState(0);
     const [generating, setGenerating] = useState(false);
+    const [outputs, setOutputs] = useState<string[]>([]);
+    const [preview, setPreview] = useState('');
 
     useEffect(() => {
         checkDependencies();
@@ -63,7 +69,7 @@ const App: React.FC = () => {
         if (!file) return;
         setGenerating(true);
         setProgress(0);
-        await generateVideo({
+        const out = await generateVideo({
             file,
             captions: captions || undefined,
             captionOptions: { font: font || undefined, size, position },
@@ -73,6 +79,7 @@ const App: React.FC = () => {
             width,
             height,
         }, p => setProgress(Math.round(p)));
+        setOutputs(o => [...o, out]);
         setGenerating(false);
     };
 
@@ -86,6 +93,20 @@ const App: React.FC = () => {
         width,
         height,
     });
+
+    const closePreview = async () => {
+        if (preview) {
+            try {
+                const tmp = await tempDir();
+                if (preview.startsWith(tmp)) {
+                    await removeFile(preview);
+                }
+            } catch {
+                // ignore cleanup errors
+            }
+        }
+        setPreview('');
+    };
 
     const handleGenerateUpload = async () => {
         if (!file) return;
@@ -230,6 +251,21 @@ const App: React.FC = () => {
                     <span>{progress}%</span>
                 </div>
             )}
+            {outputs.map((o, i) => (
+                <div className="row" key={i}>
+                    <span>{o}</span>
+                    <button onClick={() => setPreview(o)}>{t('preview')}</button>
+                </div>
+            ))}
+            <Modal open={!!preview} onClose={closePreview}>
+                {preview && (
+                    <video
+                        src={convertFileSrc(preview)}
+                        controls
+                        style={{ maxWidth: '100%', maxHeight: '80vh' }}
+                    />
+                )}
+            </Modal>
         </div>
     );
 };
