@@ -1,0 +1,11 @@
+{
+  "package": {
+    "productName": "ytapp",
+    "version": "0.1.0"
+  },
+  "tauri": {
+    "bundle": {
+      "identifier": "com.example.ytapp"
+    }
+  }
+}
