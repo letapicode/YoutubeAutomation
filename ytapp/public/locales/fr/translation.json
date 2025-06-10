@@ -32,5 +32,9 @@
   "settings": "Paramètres",
   "save": "Sauvegarder",
   "preview": "Aperçu",
-  "advanced_settings": "Paramètres avancés"
+  "advanced_settings": "Paramètres avancés",
+  "video_title": "Title",
+  "description": "Description",
+  "tags": "Tags",
+  "publish_date": "Publish Date"
 }
