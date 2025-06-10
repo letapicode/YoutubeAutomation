@@ -12,6 +12,9 @@ import ru from '../public/locales/ru/translation.json';
 import ja from '../public/locales/ja/translation.json';
 import de from '../public/locales/de/translation.json';
 
+// Languages that should display right-to-left
+const rtlLanguages = ['ar', 'he', 'fa', 'ur'];
+
 i18n.use(initReactI18next).init({
   resources: {
     en: { translation: en },
@@ -32,3 +35,11 @@ i18n.use(initReactI18next).init({
 });
 
 export default i18n;
+
+// Update the document direction when the language changes
+function updateDir(lang: string) {
+  document.documentElement.dir = rtlLanguages.includes(lang) ? 'rtl' : 'ltr';
+}
+
+i18n.on('languageChanged', updateDir);
+updateDir(i18n.language);

@@ -6,6 +6,7 @@ This project follows a minimalist approach inspired by the principle **"Less but
 - Use CSS grid for the main `.app` container with a `2rem` gap to allow generous whitespace.
 - Rows are flex containers with a `1.5rem` gap for consistent spacing.
 - On small screens rows stack vertically, while `[dir="rtl"]` reverses the row direction.
+- Switching languages automatically sets the document `dir` to support RTL layouts.
 
 ## Colors & Themes
 - Use a restrained palette: light grey backgrounds (`#f5f5f5`) and dark grey text (`#333`).
