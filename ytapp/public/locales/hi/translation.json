@@ -32,5 +32,9 @@
   "settings": "Settings",
   "save": "Save",
   "preview": "पूर्वावलोकन",
-  "advanced_settings": "उन्नत सेटिंग्स"
+  "advanced_settings": "उन्नत सेटिंग्स",
+  "video_title": "Title",
+  "description": "Description",
+  "tags": "Tags",
+  "publish_date": "Publish Date"
 }

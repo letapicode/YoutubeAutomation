@@ -15,6 +15,7 @@ use yup_oauth2::{InstalledFlowAuthenticator, InstalledFlowReturnMethod};
 use yup_oauth2::authenticator::Authenticator;
 use hyper_rustls::HttpsConnectorBuilder;
 use hyper_util::{client::legacy::Client, rt::TokioExecutor};
+use chrono::prelude::*;
 mod language;
 mod token_store;
 use token_store::EncryptedTokenStorage;
@@ -37,7 +38,7 @@ struct CaptionOptions {
     position: Option<String>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 struct GenerateParams {
     file: String,
     output: Option<String>,
@@ -48,6 +49,18 @@ struct GenerateParams {
     outro: Option<String>,
     width: Option<u32>,
     height: Option<u32>,
+    title: Option<String>,
+    description: Option<String>,
+    tags: Option<Vec<String>>,
+    publish_at: Option<String>,
+}
+
+#[derive(Deserialize, Clone, Default)]
+struct UploadOptions {
+    title: Option<String>,
+    description: Option<String>,
+    tags: Option<Vec<String>>,
+    publish_at: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Default, Clone)]
@@ -286,7 +299,7 @@ fn generate_video(window: Window, params: GenerateParams) -> Result<String, Stri
     Ok(output_path)
 }
 
-async fn upload_video_impl(file: String) -> Result<String, String> {
+async fn upload_video_impl(file: String, opts: UploadOptions) -> Result<String, String> {
     let auth = build_authenticator().await?;
 
     let client = Client::builder(TokioExecutor::new())
@@ -305,13 +318,20 @@ async fn upload_video_impl(file: String) -> Result<String, String> {
         .and_then(|n| n.to_str())
         .unwrap_or("upload");
 
-    let video = Video {
-        snippet: Some(google_youtube3::api::VideoSnippet {
-            title: Some(file_name.to_string()),
-            ..Default::default()
-        }),
+    let mut video = Video::default();
+    video.snippet = Some(google_youtube3::api::VideoSnippet {
+        title: Some(opts.title.clone().unwrap_or_else(|| file_name.to_string())),
+        description: opts.description.clone(),
+        tags: opts.tags.clone(),
         ..Default::default()
-    };
+    });
+    if opts.publish_at.is_some() {
+        video.status = Some(google_youtube3::api::VideoStatus {
+            privacy_status: Some("private".to_string()),
+            publish_at: opts.publish_at.as_ref().and_then(|s| chrono::DateTime::parse_from_rfc3339(s).ok()).map(|d| d.with_timezone(&chrono::Utc)),
+            ..Default::default()
+        });
+    }
 
     let f = std::fs::File::open(&file).map_err(|e| format!("Failed to open file: {}", e))?;
     let mut reader = std::io::BufReader::new(f);
@@ -352,8 +372,8 @@ async fn build_authenticator() -> Result<Authenticator<HttpsConnector<HttpConnec
 }
 
 #[command]
-async fn upload_video(file: String) -> Result<String, String> {
-    upload_video_impl(file).await
+async fn upload_video(file: String, opts: Option<UploadOptions>) -> Result<String, String> {
+    upload_video_impl(file, opts.unwrap_or_default()).await
 }
 
 #[command]
@@ -369,17 +389,23 @@ async fn youtube_is_signed_in() -> bool {
 
 #[command]
 async fn generate_upload(window: Window, params: GenerateParams) -> Result<String, String> {
-    let output = generate_video(window.clone(), params)?;
-    let result = upload_video_impl(output.clone()).await?;
+    let output = generate_video(window.clone(), params.clone())?;
+    let result = upload_video_impl(output.clone(), UploadOptions {
+        title: params.title,
+        description: params.description,
+        tags: params.tags,
+        publish_at: params.publish_at,
+    }).await?;
     let _ = fs::remove_file(output);
     Ok(result)
 }
 
 #[command]
-async fn upload_videos(files: Vec<String>) -> Result<Vec<String>, String> {
+async fn upload_videos(files: Vec<String>, opts: Option<UploadOptions>) -> Result<Vec<String>, String> {
     let mut results = Vec::new();
+    let o = opts.unwrap_or_default();
     for file in files {
-        results.push(upload_video_impl(file).await?);
+        results.push(upload_video_impl(file, o.clone()).await?);
     }
     Ok(results)
 }
@@ -395,6 +421,10 @@ struct BatchGenerateParams {
     outro: Option<String>,
     width: Option<u32>,
     height: Option<u32>,
+    title: Option<String>,
+    description: Option<String>,
+    tags: Option<Vec<String>>,
+    publish_at: Option<String>,
 }
 
 #[command]
@@ -420,8 +450,17 @@ async fn generate_batch_upload(window: Window, params: BatchGenerateParams) -> R
             outro: params.outro.clone(),
             width: params.width,
             height: params.height,
+            title: params.title.clone(),
+            description: params.description.clone(),
+            tags: params.tags.clone(),
+            publish_at: params.publish_at.clone(),
         })?;
-        let res = upload_video_impl(video.clone()).await?;
+        let res = upload_video_impl(video.clone(), UploadOptions {
+            title: params.title.clone(),
+            description: params.description.clone(),
+            tags: params.tags.clone(),
+            publish_at: params.publish_at.clone(),
+        }).await?;
         let _ = fs::remove_file(video);
         results.push(res);
     }
@@ -460,7 +499,7 @@ fn transcribe_audio(params: TranscribeParams) -> Result<String, String> {
     // run asynchronous whisper in tauri runtime
     tauri::async_runtime::block_on(async {
         let lang = language::parse_language(params.language);
-        let mut whisper = Whisper::new(Model::new(Size::Base), Some(lang)).await;
+        let mut whisper = Whisper::new(Model::new(Size::Base), lang).await;
         let transcript = whisper
             .transcribe(&audio_path, false, false)
             .map_err(|e| e.to_string())?;

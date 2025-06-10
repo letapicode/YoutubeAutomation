@@ -43,6 +43,10 @@ const App: React.FC = () => {
     const [generating, setGenerating] = useState(false);
     const [outputs, setOutputs] = useState<string[]>([]);
     const [preview, setPreview] = useState('');
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
+    const [tags, setTags] = useState('');
+    const [publishDate, setPublishDate] = useState('');
 
 
     useEffect(() => {
@@ -107,6 +111,10 @@ const App: React.FC = () => {
         outro: outro || undefined,
         width,
         height,
+        title: title || undefined,
+        description: description || undefined,
+        tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : undefined,
+        publishAt: publishDate ? new Date(publishDate).toISOString() : undefined,
     });
 
     const closePreview = async () => {
@@ -201,6 +209,18 @@ const App: React.FC = () => {
                     onComplete={handleTranscriptionComplete}
                 />
                 {captions && <span>{captions}</span>}
+            </div>
+            <div className="row">
+                <input type="text" placeholder={t('video_title')} value={title} onChange={e => setTitle(e.target.value)} />
+            </div>
+            <div className="row">
+                <textarea placeholder={t('description')} value={description} onChange={e => setDescription(e.target.value)} />
+            </div>
+            <div className="row">
+                <input type="text" placeholder={t('tags')} value={tags} onChange={e => setTags(e.target.value)} />
+            </div>
+            <div className="row">
+                <input type="datetime-local" value={publishDate} onChange={e => setPublishDate(e.target.value)} />
             </div>
             <details>
                 <summary>{t('advanced_settings')}</summary>
