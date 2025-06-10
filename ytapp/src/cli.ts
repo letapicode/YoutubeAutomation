@@ -5,6 +5,8 @@ import { spawn } from 'child_process';
 
 interface CaptionOptions {
   font?: string;
+  fontPath?: string;
+  style?: string;
   size?: number;
   position?: string;
 }
@@ -100,6 +102,8 @@ program
   .option('-o, --output <output>', 'output video path')
   .option('--captions <srt>', 'captions file path')
   .option('--font <font>', 'caption font')
+  .option('--font-path <path>', 'caption font file')
+  .option('--style <style>', 'caption font style')
   .option('--size <size>', 'caption font size', (v) => parseInt(v, 10))
   .option('--position <pos>', 'caption position (top|center|bottom)')
   .option('-b, --background <file>', 'background image or video')
@@ -119,6 +123,8 @@ program
         captions: options.captions,
         captionOptions: {
           font: options.font,
+          fontPath: options.fontPath,
+          style: options.style,
           size: options.size,
           position: options.position,
         },
@@ -147,6 +153,8 @@ program
   .option('-o, --output <output>', 'output video path')
   .option('--captions <srt>', 'captions file path')
   .option('--font <font>', 'caption font')
+  .option('--font-path <path>', 'caption font file')
+  .option('--style <style>', 'caption font style')
   .option('--size <size>', 'caption font size', (v) => parseInt(v, 10))
   .option('--position <pos>', 'caption position (top|center|bottom)')
   .option('-b, --background <file>', 'background image or video')
@@ -162,6 +170,8 @@ program
         captions: options.captions,
         captionOptions: {
           font: options.font,
+          fontPath: options.fontPath,
+          style: options.style,
           size: options.size,
           position: options.position,
         },
@@ -186,6 +196,8 @@ program
   .option('-d, --output-dir <dir>', 'output directory', '.')
   .option('--captions <srt>', 'captions file path')
   .option('--font <font>', 'caption font')
+  .option('--font-path <path>', 'caption font file')
+  .option('--style <style>', 'caption font style')
   .option('--size <size>', 'caption font size', (v) => parseInt(v, 10))
   .option('--position <pos>', 'caption position (top|center|bottom)')
   .option('-b, --background <file>', 'background image or video')
@@ -205,6 +217,8 @@ program
         captions: options.captions,
         captionOptions: {
           font: options.font,
+          fontPath: options.fontPath,
+          style: options.style,
           size: options.size,
           position: options.position,
         },
@@ -252,6 +266,8 @@ program
           captions: options.captions,
           captionOptions: {
             font: options.font,
+            fontPath: options.fontPath,
+            style: options.style,
             size: options.size,
             position: options.position,
           },

@@ -5,6 +5,8 @@ export interface Settings {
     outro?: string;
     background?: string;
     captionFont?: string;
+    captionFontPath?: string;
+    captionStyle?: string;
     captionSize?: number;
 }
 

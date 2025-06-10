@@ -3,6 +3,8 @@ import { listen } from '@tauri-apps/api/event';
 
 export interface CaptionOptions {
     font?: string;
+    fontPath?: string;
+    style?: string;
     size?: number;
     position?: string;
 }

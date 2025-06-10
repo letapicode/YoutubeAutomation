@@ -21,9 +21,19 @@ mod token_store;
 use token_store::EncryptedTokenStorage;
 use tauri::api::dialog::{blocking::MessageDialogBuilder, MessageDialogKind};
 
+#[derive(Serialize)]
+struct SystemFont {
+    name: String,
+    style: String,
+    path: String,
+}
+use serde::Serialize;
+
 #[derive(Deserialize, Default, Clone)]
 struct CaptionOptions {
     font: Option<String>,
+    font_path: Option<String>,
+    style: Option<String>,
     size: Option<u32>,
     position: Option<String>,
 }
@@ -59,6 +69,8 @@ struct AppSettings {
     outro: Option<String>,
     background: Option<String>,
     caption_font: Option<String>,
+    caption_font_path: Option<String>,
+    caption_style: Option<String>,
     caption_size: Option<u32>,
 }
 
@@ -185,15 +197,36 @@ fn build_main_section(window: Option<&Window>, params: &GenerateParams, duration
         let opts = params.caption_options.clone().unwrap_or_default();
         let font = opts.font.unwrap_or_else(|| "Arial".to_string());
         let size = opts.size.unwrap_or(24);
+        let style = opts.style.unwrap_or_else(|| "".to_string());
         let alignment = match opts.position.unwrap_or_else(|| "bottom".to_string()).as_str() {
             "top" => "8",
             "center" => "5",
             _ => "2",
         };
-        filter_chain = format!(
-            "{} ,subtitles={}:force_style='FontName={},FontSize={},Alignment={}'",
-            filter_chain, caption_file, font, size, alignment
-        );
+        let mut style_parts = vec![format!("FontName={}", font), format!("FontSize={}", size), format!("Alignment={}", alignment)];
+        if style.to_lowercase().contains("bold") {
+            style_parts.push("Bold=1".into());
+        }
+        if style.to_lowercase().contains("italic") {
+            style_parts.push("Italic=1".into());
+        }
+        if let Some(ref path) = opts.font_path {
+            let dir = Path::new(path).parent().and_then(|p| p.to_str()).unwrap_or("");
+            filter_chain = format!(
+                "{} ,subtitles={}:fontsdir={}:force_style='{}'",
+                filter_chain,
+                caption_file,
+                dir,
+                style_parts.join(",")
+            );
+        } else {
+            filter_chain = format!(
+                "{} ,subtitles={}:force_style='{}'",
+                filter_chain,
+                caption_file,
+                style_parts.join(",")
+            );
+        }
     }
 
     cmd.args(["-vf", &filter_chain]);
@@ -478,6 +511,31 @@ fn transcribe_audio(params: TranscribeParams) -> Result<String, String> {
 }
 
 #[command]
+fn list_fonts() -> Result<Vec<SystemFont>, String> {
+    let output = Command::new("fc-list")
+        .args(["-f", "%{family}||%{style}||%{file}\n"]) 
+        .output()
+        .map_err(|e| e.to_string())?;
+    if !output.status.success() {
+        return Err("fc-list failed".into());
+    }
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let mut fonts = Vec::new();
+    for line in stdout.lines() {
+        if let Some((fam, rest)) = line.split_once("||") {
+            if let Some((style, file)) = rest.split_once("||") {
+                fonts.push(SystemFont {
+                    name: fam.trim().split(',').next().unwrap_or("").to_string(),
+                    style: style.trim().to_string(),
+                    path: file.trim().to_string(),
+                });
+            }
+        }
+    }
+    Ok(fonts)
+}
+
+#[command]
 fn verify_dependencies(app: tauri::AppHandle) -> Result<(), String> {
     if Command::new("ffmpeg").arg("-version").output().is_err() {
         MessageDialogBuilder::new("Missing FFmpeg", "FFmpeg is required. Please install it and ensure it is in your PATH.")
@@ -524,7 +582,7 @@ fn install_tauri_deps() -> Result<(), String> {
 fn main() {
     ensure_whisper_model();
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, youtube_sign_in, youtube_is_signed_in, load_settings, save_settings, verify_dependencies, install_tauri_deps])
+        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, youtube_sign_in, youtube_is_signed_in, load_settings, save_settings, verify_dependencies, install_tauri_deps, list_fonts])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
