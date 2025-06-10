@@ -32,6 +32,9 @@ async function generateOne(file: string, options: BatchOptions): Promise<string>
     });
 }
 
+/**
+ * Generate videos sequentially without progress callbacks.
+ */
 export async function generateBatch(files: string[], options: BatchOptions): Promise<string[]> {
     const results: string[] = [];
     for (const f of files) {
@@ -40,6 +43,9 @@ export async function generateBatch(files: string[], options: BatchOptions): Pro
     return results;
 }
 
+/**
+ * Generate videos sequentially while reporting progress to the caller.
+ */
 export async function generateBatchWithProgress(
     files: string[],
     options: BatchOptions,

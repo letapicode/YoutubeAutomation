@@ -4,6 +4,8 @@ This repository contains a cross-platform desktop application built with Tauri. 
 
 The `ytapp` directory holds the application source. TypeScript/React code lives in `ytapp/src` and the Tauri (Rust) code is under `ytapp/src-tauri`.
 
+The frontend communicates with the backend exclusively through Tauri `invoke` calls. Small wrapper modules under `features/` expose these commands as typed functions that can be reused by both the GUI and the CLI. React components reside in `components/` and compose the main `App.tsx` UI.
+
 ## Components
 - **src/App.tsx** – main React component handling video generation UI and navigation.
 - **components/** – reusable React components such as file pickers, modals and batch tools.
@@ -11,8 +13,10 @@ The `ytapp` directory holds the application source. TypeScript/React code lives 
 - **cli.ts** – command line interface providing the same functionality as the GUI.
 
 ## Backend
-- **src-tauri/main.rs** – Tauri backend exposing commands for video generation, uploads, transcription and configuration management.
+- **src-tauri/main.rs** – Rust entry point exposing commands for video generation, uploads, transcription and configuration management.
 - **language.rs**, **model_check.rs**, **token_store.rs** – helper modules used by the backend commands.
+
+Utilities shared between the CLI and renderer (like subtitle translation) live in `src/utils`.
 
 Supporting documentation is found in `readme.md`, `design.md` and language definition files under `features/languages` and `public/locales`.
 

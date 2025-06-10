@@ -2,7 +2,7 @@
 import { program } from 'commander';
 import { invoke } from '@tauri-apps/api/core';
 import path from 'path';
-import { spawn } from 'child_process';
+import { translateSrt } from './utils/translate';
 
 interface CaptionOptions {
   font?: string;
@@ -28,6 +28,9 @@ interface GenerateParams {
   publishAt?: string;
 }
 
+/**
+ * Invoke the backend to generate a single video.
+ */
 async function generateVideo(params: GenerateParams): Promise<any> {
   return await invoke('generate_video', params as any);
 }
@@ -44,14 +47,23 @@ interface UploadBatchParams extends Omit<UploadParams, 'file'> {
   files: string[];
 }
 
+/**
+ * Upload a single video file to YouTube.
+ */
 async function uploadVideo(params: UploadParams): Promise<any> {
   return await invoke('upload_video', params as any);
 }
 
+/**
+ * Upload multiple videos to YouTube sequentially.
+ */
 async function uploadVideos(params: UploadBatchParams): Promise<any> {
   return await invoke('upload_videos', params as any);
 }
 
+/**
+ * Transcribe an audio file and optionally translate the subtitles.
+ */
 async function transcribeAudio(params: { file: string; language?: string; translate?: string[] }): Promise<string[]> {
   const { file, language = 'auto', translate } = params;
   const result: string = await invoke('transcribe_audio', { file, language });
@@ -68,25 +80,16 @@ async function transcribeAudio(params: { file: string; language?: string; transl
   return outputs;
 }
 
-function translateSrt(input: string, target: string): Promise<string> {
-  const output = input.replace(/\.srt$/, `.${target}.srt`);
-  return new Promise((resolve, reject) => {
-    const child = spawn('argos-translate', [
-      '--input-file', input,
-      '--output-file', output,
-      '--from-lang', 'en',
-      '--to-lang', target,
-    ]);
-    child.on('exit', code => {
-      if (code === 0) resolve(output); else reject(new Error('translation failed'));
-    });
-  });
-}
-
+/**
+ * Convenience helper that generates a video and uploads it in a single step.
+ */
 async function generateAndUpload(params: GenerateParams): Promise<any> {
   return await invoke('generate_upload', params as any);
 }
 
+/**
+ * Start the OAuth flow for YouTube.
+ */
 async function signIn(): Promise<void> {
   await invoke('youtube_sign_in');
 }
