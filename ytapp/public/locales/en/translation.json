@@ -30,5 +30,6 @@
   "default": "Default",
   "toggle_theme": "Toggle Theme",
   "settings": "Settings",
-  "save": "Save"
+  "save": "Save",
+  "preview": "Preview"
 }
