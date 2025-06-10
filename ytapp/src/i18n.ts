@@ -5,6 +5,8 @@ import ne from '../public/locales/ne/translation.json';
 import hi from '../public/locales/hi/translation.json';
 import es from '../public/locales/es/translation.json';
 import fr from '../public/locales/fr/translation.json';
+import zh from '../public/locales/zh/translation.json';
+import ar from '../public/locales/ar/translation.json';
 
 i18n.use(initReactI18next).init({
   resources: {
@@ -13,6 +15,8 @@ i18n.use(initReactI18next).init({
     hi: { translation: hi },
     es: { translation: es },
     fr: { translation: fr },
+    zh: { translation: zh },
+    ar: { translation: ar },
   },
   lng: 'en',
   fallbackLng: 'en',

@@ -7,6 +7,8 @@ pub fn parse_language(code: Option<String>) -> Language {
         Some("en") | Some("english") => Language::English,
         Some("es") | Some("spanish") => Language::Spanish,
         Some("fr") | Some("french") => Language::French,
+        Some("zh") | Some("chinese") => Language::Chinese,
+        Some("ar") | Some("arabic") => Language::Arabic,
         _ => Language::Auto,
     }
 }
