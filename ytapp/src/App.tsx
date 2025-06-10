@@ -15,7 +15,6 @@ import SizeSlider from './components/SizeSlider';
 import { languageOptions, Language } from './features/language';
 import TranscribeButton from './components/TranscribeButton';
 import { loadSettings } from './features/settings';
-import { checkDependencies } from './features/dependencies';
 import Modal from './components/Modal';
 
 const App: React.FC = () => {
@@ -40,9 +39,6 @@ const App: React.FC = () => {
     const [outputs, setOutputs] = useState<string[]>([]);
     const [preview, setPreview] = useState('');
 
-    useEffect(() => {
-        checkDependencies();
-    }, []);
 
     useEffect(() => {
         loadSettings().then(s => {
