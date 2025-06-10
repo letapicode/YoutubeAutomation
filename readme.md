@@ -160,6 +160,7 @@ npx ts-node src/cli.ts --help
 ### Design Guidelines
 
 See [design.md](design.md) for the UI style guide based on the principle "Less but better".
+Advanced settings are grouped using the `Collapsible` component so primary pages stay uncluttered.
 
 Finally, start the Tauri application:
 

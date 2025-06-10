@@ -4,6 +4,7 @@ This project follows a minimalist approach inspired by the principle **"Less but
 
 ## Layout
 - Use CSS grid to organize pages. Containers like `.app` and `.row` provide consistent spacing.
+- `.app` uses a grid gap of `1rem` so elements line up evenly.
 - Buttons and form groups should align on a tidy grid with about `1rem` gaps.
 - Collapse advanced options using the `Collapsible` component to keep primary screens concise.
 
@@ -18,5 +19,6 @@ This project follows a minimalist approach inspired by the principle **"Less but
 - Display selected file paths as plain text instead of editable inputs.
 - File inputs should support drag & drop via the `DropZone` component.
 - Use SVG icons next to key actions (e.g., Upload, Settings) for clarity. Icons share the current text color for high contrast.
+- Icons should appear before the action text so screen readers announce the label first.
 
 Following these guidelines keeps the UI clear and purposeful.

@@ -7,7 +7,7 @@ body {
 
 .app {
   display: grid;
-  gap: 1.25rem;
+  gap: 1rem;
   padding: 2rem;
   max-width: 960px;
   margin: 0 auto;
