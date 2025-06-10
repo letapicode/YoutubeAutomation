@@ -1,8 +1,32 @@
 // Command line interface mirroring the GUI functionality.
 import { program } from 'commander';
 import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
 import path from 'path';
 import { translateSrt } from './utils/translate';
+
+async function callWithProgress<T>(
+  fn: () => Promise<T>,
+  onProgress?: (p: number) => void,
+): Promise<T> {
+  let unlisten: (() => void) | undefined;
+  if (onProgress) {
+    unlisten = await listen<number>('generate_progress', e => {
+      if (typeof e.payload === 'number') onProgress(e.payload);
+    });
+  }
+  try {
+    return await fn();
+  } finally {
+    if (unlisten) unlisten();
+  }
+}
+
+function showProgress(p: number): void {
+  const pct = Math.round(p);
+  process.stdout.write(`\r${pct}%`);
+  if (pct >= 100) process.stdout.write('\n');
+}
 
 interface CaptionOptions {
   font?: string;
@@ -10,6 +34,8 @@ interface CaptionOptions {
   style?: string;
   size?: number;
   position?: string;
+  color?: string;
+  background?: string;
 }
 
 interface GenerateParams {
@@ -31,8 +57,14 @@ interface GenerateParams {
 /**
  * Invoke the backend to generate a single video.
  */
-async function generateVideo(params: GenerateParams): Promise<any> {
-  return await invoke('generate_video', params as any);
+async function generateVideo(
+  params: GenerateParams,
+  onProgress?: (p: number) => void,
+): Promise<any> {
+  return await callWithProgress(
+    () => invoke('generate_video', params as any),
+    onProgress,
+  );
 }
 
 interface UploadParams {
@@ -83,8 +115,14 @@ async function transcribeAudio(params: { file: string; language?: string; transl
 /**
  * Convenience helper that generates a video and uploads it in a single step.
  */
-async function generateAndUpload(params: GenerateParams): Promise<any> {
-  return await invoke('generate_upload', params as any);
+async function generateAndUpload(
+  params: GenerateParams,
+  onProgress?: (p: number) => void,
+): Promise<any> {
+  return await callWithProgress(
+    () => invoke('generate_upload', params as any),
+    onProgress,
+  );
 }
 
 /**
@@ -110,6 +148,8 @@ program
   .option('--style <style>', 'caption font style')
   .option('--size <size>', 'caption font size', (v) => parseInt(v, 10))
   .option('--position <pos>', 'caption position (top|center|bottom)')
+  .option('--caption-color <color>', 'caption text color (hex)')
+  .option('--caption-bg <color>', 'caption background color (hex)')
   .option('-b, --background <file>', 'background image or video')
   .option('--intro <file>', 'intro video or image')
   .option('--outro <file>', 'outro video or image')
@@ -131,6 +171,8 @@ program
           style: options.style,
           size: options.size,
           position: options.position,
+          color: options.captionColor,
+          background: options.captionBg,
         },
         background: options.background,
         intro: options.intro,
@@ -142,7 +184,7 @@ program
         tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
         publishAt: options.publishAt,
       };
-      const result = await generateVideo(params);
+      const result = await generateVideo(params, showProgress);
       console.log(result);
     } catch (err) {
       console.error('Error generating video:', err);
@@ -161,6 +203,8 @@ program
   .option('--style <style>', 'caption font style')
   .option('--size <size>', 'caption font size', (v) => parseInt(v, 10))
   .option('--position <pos>', 'caption position (top|center|bottom)')
+  .option('--caption-color <color>', 'caption text color (hex)')
+  .option('--caption-bg <color>', 'caption background color (hex)')
   .option('-b, --background <file>', 'background image or video')
   .option('--intro <file>', 'intro video or image')
   .option('--outro <file>', 'outro video or image')
@@ -178,6 +222,8 @@ program
           style: options.style,
           size: options.size,
           position: options.position,
+          color: options.captionColor,
+          background: options.captionBg,
         },
         background: options.background,
         intro: options.intro,
@@ -185,7 +231,7 @@ program
         width: options.width,
         height: options.height,
       };
-      const result = await generateAndUpload(params);
+      const result = await generateAndUpload(params, showProgress);
       console.log(result);
     } catch (err) {
       console.error('Error generating and uploading video:', err);
@@ -204,6 +250,8 @@ program
   .option('--style <style>', 'caption font style')
   .option('--size <size>', 'caption font size', (v) => parseInt(v, 10))
   .option('--position <pos>', 'caption position (top|center|bottom)')
+  .option('--caption-color <color>', 'caption text color (hex)')
+  .option('--caption-bg <color>', 'caption background color (hex)')
   .option('-b, --background <file>', 'background image or video')
   .option('--intro <file>', 'intro video or image')
   .option('--outro <file>', 'outro video or image')
@@ -215,7 +263,8 @@ program
   .option('--publish-at <date>', 'schedule publish date (ISO)')
   .action(async (files: string[], options: any) => {
     try {
-      const result = await invoke('generate_batch_upload', {
+      const result = await callWithProgress(
+        () => invoke('generate_batch_upload', {
         files,
         outputDir: options.outputDir,
         captions: options.captions,
@@ -225,6 +274,8 @@ program
           style: options.style,
           size: options.size,
           position: options.position,
+          color: options.captionColor,
+          background: options.captionBg,
         },
         background: options.background,
         intro: options.intro,
@@ -235,7 +286,9 @@ program
         description: options.description,
         tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
         publishAt: options.publishAt,
-      } as any);
+      } as any),
+        showProgress,
+      );
       console.log(result);
     } catch (err) {
       console.error('Error generating and uploading batch:', err);
@@ -252,6 +305,8 @@ program
   .option('--font <font>', 'caption font')
   .option('--size <size>', 'caption font size', (v) => parseInt(v, 10))
   .option('--position <pos>', 'caption position (top|center|bottom)')
+  .option('--caption-color <color>', 'caption text color (hex)')
+  .option('--caption-bg <color>', 'caption background color (hex)')
   .option('-b, --background <file>', 'background image or video')
   .option('--intro <file>', 'intro video or image')
   .option('--outro <file>', 'outro video or image')
@@ -274,13 +329,15 @@ program
             style: options.style,
             size: options.size,
             position: options.position,
+            color: options.captionColor,
+            background: options.captionBg,
           },
           background: options.background,
           intro: options.intro,
           outro: options.outro,
           width: options.width,
           height: options.height,
-        });
+        }, showProgress);
         console.log('Generated', output);
       } catch (err) {
         console.error('Error generating', file, err);

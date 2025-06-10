@@ -408,7 +408,8 @@ async fn build_authenticator() -> Result<Authenticator<HttpsConnector<HttpConnec
         .map_err(|e| format!("Failed to read client secret: {}", e))?;
 
     let token_path = std::env::var("YOUTUBE_TOKEN_FILE").unwrap_or_else(|_| "youtube_tokens.enc".into());
-    let key_env = std::env::var("YOUTUBE_TOKEN_KEY").unwrap_or_else(|_| "0123456789abcdef0123456789abcdef".into());
+    let key_env = std::env::var("YOUTUBE_TOKEN_KEY")
+        .map_err(|_| "YOUTUBE_TOKEN_KEY not set".to_string())?;
     let mut key = [0u8; 32];
     for (i, b) in key_env.as_bytes().iter().take(32).enumerate() {
         key[i] = *b;
@@ -599,6 +600,13 @@ fn verify_dependencies(app: tauri::AppHandle) -> Result<(), String> {
             .kind(MessageDialogKind::Error)
             .show();
         return Err("ffmpeg not found".into());
+    }
+
+    if Command::new("argos-translate").arg("--version").output().is_err() {
+        MessageDialogBuilder::new("Missing Argos Translate", "argos-translate is required for subtitle translation. Please install it and ensure it is in your PATH.")
+            .kind(MessageDialogKind::Error)
+            .show();
+        return Err("argos-translate not found".into());
     }
 
     let model = Model::new(Size::Base);
