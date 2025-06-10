@@ -4,6 +4,7 @@ import FilePicker from './FilePicker';
 import { generateBatchWithProgress, BatchOptions } from '../features/batch';
 import { generateBatchUpload } from '../features/youtube';
 import BatchOptionsForm from './BatchOptionsForm';
+import UploadIcon from './UploadIcon';
 
 const BatchProcessor: React.FC = () => {
   const { t } = useTranslation();
@@ -42,15 +43,22 @@ const BatchProcessor: React.FC = () => {
   };
 
   return (
-    <div>
+    <div className="batch-processor">
       <h2>{t('batch_processor')}</h2>
-      <FilePicker multiple useDropZone onSelect={handleSelect} label={t('select_audio_files')} />
-      {files.length > 0 && <p>{t('files_selected', { count: files.length })}</p>}
+      <div className="row">
+        <FilePicker multiple useDropZone onSelect={handleSelect} label={t('select_audio_files')} />
+        {files.length > 0 && <p>{t('files_selected', { count: files.length })}</p>}
+      </div>
       <BatchOptionsForm value={options} onChange={setOptions} />
-      <button onClick={startBatch} disabled={running || !files.length}>{t('start')}</button>
-      <button onClick={startBatchUpload} disabled={uploading || !files.length}>{t('generate_upload')}</button>
+      <div className="row">
+        <button onClick={startBatch} disabled={running || !files.length}>{t('start')}</button>
+        <button onClick={startBatchUpload} disabled={uploading || !files.length}>
+          <UploadIcon />
+          {t('generate_upload')}
+        </button>
+      </div>
       {running && (
-        <div>
+        <div className="row">
           <progress value={progress} max={100} />
           <span>{progress}%</span>
         </div>

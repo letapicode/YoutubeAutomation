@@ -32,7 +32,7 @@ const TranscribeButton: React.FC<TranscribeButtonProps> = ({ file, language, tar
     };
 
     return (
-        <div>
+        <div className="row">
             <button onClick={handleClick} disabled={running || !file}>
                 {running ? t('transcribing') : t('transcribe')}
             </button>
