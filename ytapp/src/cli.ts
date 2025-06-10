@@ -1,6 +1,7 @@
 // Command line interface mirroring the GUI functionality.
 import { program } from 'commander';
 import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
 import path from 'path';
 import { translateSrt } from './utils/translate';
 
@@ -31,8 +32,23 @@ interface GenerateParams {
 /**
  * Invoke the backend to generate a single video.
  */
-async function generateVideo(params: GenerateParams): Promise<any> {
-  return await invoke('generate_video', params as any);
+async function generateVideo(
+  params: GenerateParams,
+  quiet = false,
+): Promise<any> {
+  let unlisten: (() => void) | undefined;
+  if (!quiet) {
+    unlisten = await listen<number>('generate_progress', (e) => {
+      if (typeof e.payload === 'number') {
+        console.log(`Progress: ${Math.round(e.payload)}%`);
+      }
+    });
+  }
+  try {
+    return await invoke('generate_video', params as any);
+  } finally {
+    if (unlisten) unlisten();
+  }
 }
 
 interface UploadParams {
@@ -119,6 +135,7 @@ program
   .option('--description <desc>', 'video description')
   .option('--tags <tags>', 'comma separated tags')
   .option('--publish-at <date>', 'schedule publish date (ISO)')
+  .option('-q, --quiet', 'suppress progress output')
   .action(async (file: string, options: any) => {
     try {
       const params: GenerateParams = {
@@ -142,7 +159,7 @@ program
         tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
         publishAt: options.publishAt,
       };
-      const result = await generateVideo(params);
+      const result = await generateVideo(params, options.quiet);
       console.log(result);
     } catch (err) {
       console.error('Error generating video:', err);
