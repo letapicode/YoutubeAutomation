@@ -5,7 +5,10 @@ import { Language } from '../language';
 export interface TranscribeParams {
     file: string;
     language?: Language;
-    translate?: string;
+    /**
+     * Target language codes to translate the generated SRT file.
+     */
+    translate?: string[];
 }
 
 function translateSrt(input: string, target: string): Promise<string> {
@@ -23,15 +26,19 @@ function translateSrt(input: string, target: string): Promise<string> {
     });
 }
 
-export async function transcribeAudio(params: TranscribeParams): Promise<string> {
+export async function transcribeAudio(params: TranscribeParams): Promise<string[]> {
     const { file, language = 'auto', translate } = params;
-    let result: string = await invoke('transcribe_audio', { file, language });
-    if (translate) {
-        try {
-            result = await translateSrt(result, translate);
-        } catch {
-            // ignore translation errors
+    const result: string = await invoke('transcribe_audio', { file, language });
+    const outputs: string[] = [result];
+    if (translate && Array.isArray(translate)) {
+        for (const target of translate) {
+            try {
+                const out = await translateSrt(result, target);
+                outputs.push(out);
+            } catch {
+                // ignore translation errors
+            }
         }
     }
-    return result;
+    return outputs;
 }

@@ -6,10 +6,14 @@ import { Language } from '../features/language';
 interface TranscribeButtonProps {
     file: string;
     language: Language;
-    onComplete: (srtPath: string) => void;
+    /**
+     * Languages to translate the generated captions into.
+     */
+    targets: string[];
+    onComplete: (srtPaths: string[]) => void;
 }
 
-const TranscribeButton: React.FC<TranscribeButtonProps> = ({ file, language, onComplete }) => {
+const TranscribeButton: React.FC<TranscribeButtonProps> = ({ file, language, targets, onComplete }) => {
     const { t } = useTranslation();
     const [running, setRunning] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -19,7 +23,7 @@ const TranscribeButton: React.FC<TranscribeButtonProps> = ({ file, language, onC
         setRunning(true);
         setError(null);
         try {
-            const result = await transcribeAudio({ file, language });
+            const result = await transcribeAudio({ file, language, translate: targets });
             onComplete(result);
         } catch (err: any) {
             setError(String(err));

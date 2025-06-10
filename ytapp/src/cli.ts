@@ -33,8 +33,20 @@ async function uploadVideos(params: { files: string[] }): Promise<any> {
   return await invoke('upload_videos', params as any);
 }
 
-async function transcribeAudio(params: { file: string; language?: string }): Promise<any> {
-  return await invoke('transcribe_audio', params as any);
+async function transcribeAudio(params: { file: string; language?: string; translate?: string[] }): Promise<string[]> {
+  const { file, language = 'auto', translate } = params;
+  const result: string = await invoke('transcribe_audio', { file, language });
+  const outputs: string[] = [result];
+  if (translate) {
+    for (const t of translate) {
+      try {
+        outputs.push(await translateSrt(result, t));
+      } catch {
+        // ignore translation errors
+      }
+    }
+  }
+  return outputs;
 }
 
 function translateSrt(input: string, target: string): Promise<string> {
@@ -270,14 +282,16 @@ program
   .description('Transcribe audio to SRT')
   .argument('<file>', 'audio file path')
   .option('-l, --language <lang>', 'language code (auto|ne|hi|en)', 'auto')
-  .option('-t, --translate <lang>', 'translate subtitles to language')
+  // Specify one or more target language codes using multiple -t options
+  .option('-t, --translate <lang...>', 'translate subtitles to languages')
   .action(async (file: string, options: any) => {
     try {
-      let result = await transcribeAudio({ file, language: options.language });
-      if (options.translate) {
-        result = await translateSrt(result as string, options.translate);
-      }
-      console.log(result);
+      const results = await transcribeAudio({
+        file,
+        language: options.language,
+        translate: options.translate,
+      });
+      results.forEach(r => console.log(r));
     } catch (err) {
       console.error('Error transcribing audio:', err);
       process.exitCode = 1;
