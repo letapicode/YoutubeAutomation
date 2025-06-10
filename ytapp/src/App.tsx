@@ -25,6 +25,7 @@ const App: React.FC = () => {
     const [captions, setCaptions] = useState('');
     const [intro, setIntro] = useState('');
     const [outro, setOutro] = useState('');
+    const [translations, setTranslations] = useState<string[]>([]);
     const [font, setFont] = useState('');
     const [size, setSize] = useState(24);
     const [position, setPosition] = useState('bottom');
@@ -57,8 +58,8 @@ const App: React.FC = () => {
 
     const toggleTheme = () => setTheme(theme === 'light' ? 'dark' : 'light');
 
-    const handleTranscriptionComplete = (srt: string) => {
-        setCaptions(srt);
+    const handleTranscriptionComplete = (srts: string[]) => {
+        if (srts.length) setCaptions(srts[0]);
     };
 
     const handleGenerate = async () => {
@@ -175,7 +176,12 @@ const App: React.FC = () => {
                 {background && <span>{background}</span>}
             </div>
             <div className="row">
-                <TranscribeButton file={file} language={language} onComplete={handleTranscriptionComplete} />
+                <TranscribeButton
+                    file={file}
+                    language={language}
+                    targets={translations}
+                    onComplete={handleTranscriptionComplete}
+                />
                 {captions && <span>{captions}</span>}
             </div>
             <div className="row">
@@ -239,6 +245,23 @@ const App: React.FC = () => {
                         <option key={opt.value} value={opt.value}>{opt.label}</option>
                     ))}
                 </select>
+            </div>
+            <div className="row">
+                {languageOptions.filter(opt => opt.value !== 'auto').map(opt => (
+                    <label key={opt.value} style={{ marginRight: '0.5em' }}>
+                        <input
+                            type="checkbox"
+                            value={opt.value}
+                            checked={translations.includes(opt.value)}
+                            onChange={() => {
+                                setTranslations(ts => ts.includes(opt.value)
+                                    ? ts.filter(t => t !== opt.value)
+                                    : [...ts, opt.value]);
+                            }}
+                        />
+                        {opt.label}
+                    </label>
+                ))}
             </div>
             <div className="row">
                 <YouTubeAuthButton />
