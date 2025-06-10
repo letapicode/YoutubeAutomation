@@ -464,10 +464,28 @@ fn verify_dependencies(app: tauri::AppHandle) -> Result<(), String> {
     Ok(())
 }
 
+#[command]
+fn install_tauri_deps() -> Result<(), String> {
+    let script = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../scripts/install_tauri_deps.sh");
+    if !script.exists() {
+        return Err("install script not found".into());
+    }
+    let status = Command::new("bash")
+        .arg(script)
+        .status()
+        .map_err(|e| e.to_string())?;
+    if status.success() {
+        Ok(())
+    } else {
+        Err(format!("script exited with status {:?}", status.code()))
+    }
+}
+
 fn main() {
     ensure_whisper_model();
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, youtube_sign_in, youtube_is_signed_in, load_settings, save_settings, verify_dependencies])
+        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, youtube_sign_in, youtube_is_signed_in, load_settings, save_settings, verify_dependencies, install_tauri_deps])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
