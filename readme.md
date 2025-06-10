@@ -289,5 +289,8 @@ Upload an existing video with metadata:
 npx ts-node src/cli.ts upload video.mp4 --title "My Video"
 ```
 
+The `generate` and `batch` commands also accept `--color` and `--bg-color` to
+set the caption text and background colors.
+
 
 

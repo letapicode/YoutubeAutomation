@@ -10,6 +10,8 @@ interface CaptionOptions {
   style?: string;
   size?: number;
   position?: string;
+  color?: string;
+  background?: string;
 }
 
 interface GenerateParams {
@@ -110,6 +112,8 @@ program
   .option('--style <style>', 'caption font style')
   .option('--size <size>', 'caption font size', (v) => parseInt(v, 10))
   .option('--position <pos>', 'caption position (top|center|bottom)')
+  .option('--color <hex>', 'caption text color')
+  .option('--bg-color <hex>', 'caption background color')
   .option('-b, --background <file>', 'background image or video')
   .option('--intro <file>', 'intro video or image')
   .option('--outro <file>', 'outro video or image')
@@ -131,6 +135,8 @@ program
           style: options.style,
           size: options.size,
           position: options.position,
+          color: options.color,
+          background: options.bgColor,
         },
         background: options.background,
         intro: options.intro,
@@ -250,6 +256,8 @@ program
   .option('-d, --output-dir <dir>', 'output directory', '.')
   .option('--captions <srt>', 'captions file path')
   .option('--font <font>', 'caption font')
+  .option('--color <hex>', 'caption text color')
+  .option('--bg-color <hex>', 'caption background color')
   .option('--size <size>', 'caption font size', (v) => parseInt(v, 10))
   .option('--position <pos>', 'caption position (top|center|bottom)')
   .option('-b, --background <file>', 'background image or video')
@@ -274,6 +282,8 @@ program
             style: options.style,
             size: options.size,
             position: options.position,
+            color: options.color,
+            background: options.bgColor,
           },
           background: options.background,
           intro: options.intro,
