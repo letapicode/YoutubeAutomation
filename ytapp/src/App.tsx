@@ -12,7 +12,7 @@ import BatchPage from './components/BatchPage';
 import SettingsPage from './components/SettingsPage';
 import FontSelector from './components/FontSelector';
 import SizeSlider from './components/SizeSlider';
-import { languageOptions, Language } from './features/language';
+import { languages, Language } from './features/languages';
 import TranscribeButton from './components/TranscribeButton';
 import { loadSettings, saveSettings } from './features/settings';
 import Modal from './components/Modal';
@@ -76,8 +76,8 @@ const App: React.FC = () => {
     }, [theme]);
 
     useEffect(() => {
-        const rtl = ['ar', 'he', 'fa', 'ur'].includes(i18n.language);
-        document.documentElement.dir = rtl ? 'rtl' : 'ltr';
+        const lang = languages.find(l => l.value === i18n.language);
+        document.documentElement.dir = lang && lang.rtl ? 'rtl' : 'ltr';
     }, [i18n.language]);
 
     const toggleTheme = () =>
@@ -225,42 +225,9 @@ const App: React.FC = () => {
             <h1>{t('title')}</h1>
             <div className="row">
                 <select value={i18n.language} onChange={e => i18n.changeLanguage(e.target.value)}>
-                    <option value="en">English</option>
-                    <option value="ne">नेपाली</option>
-                    <option value="hi">हिन्दी</option>
-                    <option value="es">Español</option>
-                    <option value="fr">Français</option>
-                    <option value="zh">中文</option>
-                    <option value="ar">العربية</option>
-                    <option value="pt">Português</option>
-                    <option value="ru">Русский</option>
-                    <option value="ja">日本語</option>
-                    <option value="de">Deutsch</option>
-                    <option value="it">Italiano</option>
-                    <option value="ko">한국어</option>
-                    <option value="vi">Tiếng Việt</option>
-                    <option value="tr">Türkçe</option>
-                    <option value="id">Bahasa Indonesia</option>
-                    <option value="nl">Nederlands</option>
-                    <option value="th">ไทย</option>
-                    <option value="pl">Polski</option>
-                    <option value="sv">Svenska</option>
-                    <option value="fi">Suomi</option>
-                    <option value="he">עברית</option>
-                    <option value="uk">Українська</option>
-                    <option value="el">Ελληνικά</option>
-                    <option value="ms">Bahasa Melayu</option>
-                    <option value="cs">Čeština</option>
-                    <option value="ro">Română</option>
-                    <option value="da">Dansk</option>
-                    <option value="hu">Magyar</option>
-                    <option value="no">Norsk</option>
-                    <option value="ur">اردو</option>
-                    <option value="hr">Hrvatski</option>
-                    <option value="bg">Български</option>
-                    <option value="lt">Lietuvių</option>
-                    <option value="lv">Latviešu</option>
-                    <option value="sk">Slovenčina</option>
+                    {languages.map(lang => (
+                        <option key={lang.value} value={lang.value}>{lang.label}</option>
+                    ))}
                 </select>
                 <button onClick={toggleTheme}>{t('toggle_theme')}</button>
             </div>
@@ -379,13 +346,13 @@ const App: React.FC = () => {
             </details>
             <div className="row">
                 <select value={language} onChange={(e) => setLanguage(e.target.value as Language)}>
-                    {languageOptions.map(opt => (
+                    {languages.map(opt => (
                         <option key={opt.value} value={opt.value}>{opt.label}</option>
                     ))}
                 </select>
             </div>
             <div className="row">
-                {languageOptions.filter(opt => opt.value !== 'auto').map(opt => (
+                {languages.filter(opt => opt.value !== 'auto').map(opt => (
                     <label key={opt.value} style={{ marginRight: '0.5em' }}>
                         <input
                             type="checkbox"
