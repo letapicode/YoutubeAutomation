@@ -36,15 +36,16 @@ curl -H "Authorization: Bearer $token" \
   "https://api.github.com/repos/$repo/pulls?state=open"
 ```
 
-## 3. Diff a PR Branch against `main`
+## 3. Diff a PR Branch against `upstream/main`
 
-After identifying a PR branch name, fetch it and run a diff:
+After identifying a PR branch name, fetch it and run a diff against
+`upstream/main`:
 
 ```bash
 # Replace <branch> with the PR branch name
 git fetch upstream <branch>
-git diff main..FETCH_HEAD
+git diff upstream/main..FETCH_HEAD
 ```
 
-This shows any changes not yet in `main`. Combine with `git merge-base` or
-`git status` to check for potential conflicts before merging.
+This shows any changes not yet in `upstream/main`. After merging the branch
+locally, run `git merge-base` or `git status` to detect conflicts.
