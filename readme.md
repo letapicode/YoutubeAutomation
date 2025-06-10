@@ -168,4 +168,20 @@ Finally, start the Tauri application:
 npm run start
 ```
 
+### CLI Usage
+
+Generate and schedule an upload:
+
+```bash
+npx ts-node src/cli.ts generate-upload input.wav --title "My Video" \
+  --description "Demo" --tags tag1,tag2 \
+  --publish-at "2024-07-01T12:00:00Z"
+```
+
+Upload an existing video with metadata:
+
+```bash
+npx ts-node src/cli.ts upload video.mp4 --title "My Video"
+```
+
 

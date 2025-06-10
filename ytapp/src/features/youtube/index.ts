@@ -2,12 +2,24 @@ import { invoke } from '@tauri-apps/api/core';
 import { GenerateParams } from '../processing';
 export type { GenerateParams } from '../processing';
 
-export async function uploadVideo(file: string): Promise<string> {
-    return await invoke('upload_video', { file });
+export interface UploadOptions {
+    file: string;
+    title?: string;
+    description?: string;
+    tags?: string[];
+    publishAt?: string;
 }
 
-export async function uploadVideos(files: string[]): Promise<string[]> {
-    return await invoke('upload_videos', { files });
+export interface UploadBatchOptions extends Omit<UploadOptions, 'file'> {
+    files: string[];
+}
+
+export async function uploadVideo(opts: UploadOptions): Promise<string> {
+    return await invoke('upload_video', opts);
+}
+
+export async function uploadVideos(opts: UploadBatchOptions): Promise<string[]> {
+    return await invoke('upload_videos', opts);
 }
 
 export async function generateUpload(params: GenerateParams): Promise<string> {

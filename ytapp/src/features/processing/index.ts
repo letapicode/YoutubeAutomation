@@ -17,6 +17,10 @@ export interface GenerateParams {
     outro?: string;
     width?: number;
     height?: number;
+    title?: string;
+    description?: string;
+    tags?: string[];
+    publishAt?: string;
 }
 
 export type ProgressCallback = (progress: number) => void;
