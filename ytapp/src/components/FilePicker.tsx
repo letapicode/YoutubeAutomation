@@ -1,3 +1,4 @@
+// Button/DropZone component for selecting files from the filesystem.
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { open } from '@tauri-apps/api/dialog';

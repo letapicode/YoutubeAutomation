@@ -1,3 +1,4 @@
+// Component responsible for generating multiple videos in sequence.
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import FilePicker from './FilePicker';

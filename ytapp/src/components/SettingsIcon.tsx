@@ -1,3 +1,4 @@
+// Simple SVG icon used for the settings button.
 import React from 'react';
 
 const SettingsIcon: React.FC<{className?: string}> = ({ className }) => (

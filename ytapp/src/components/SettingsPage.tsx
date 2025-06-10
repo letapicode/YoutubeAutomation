@@ -1,3 +1,4 @@
+// Application settings page where default options are persisted.
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import FilePicker from './FilePicker';

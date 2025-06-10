@@ -1,3 +1,4 @@
+// First-run guide shown on application startup.
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import Modal from './Modal';

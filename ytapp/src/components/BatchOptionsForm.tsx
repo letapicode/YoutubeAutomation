@@ -1,3 +1,4 @@
+// Form used by BatchProcessor to collect options for each generated video.
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import FilePicker from './FilePicker';

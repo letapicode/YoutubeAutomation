@@ -1,3 +1,4 @@
+// Page that exposes batch generation and upload tools.
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import BatchProcessor from './BatchProcessor';

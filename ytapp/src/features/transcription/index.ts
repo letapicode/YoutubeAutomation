@@ -1,3 +1,4 @@
+// Helpers for generating SRT subtitles with optional translation.
 import { invoke } from '@tauri-apps/api/core';
 import { spawn } from 'child_process';
 import { Language } from '../language';

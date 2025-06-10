@@ -1,3 +1,4 @@
+// Load and save persistent application settings via Tauri.
 import { invoke } from '@tauri-apps/api/core';
 
 export interface Settings {

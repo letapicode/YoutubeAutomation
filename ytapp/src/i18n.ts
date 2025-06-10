@@ -1,3 +1,4 @@
+// Minimal i18next setup loading translations from the locales directory.
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import { languages } from './features/languages';

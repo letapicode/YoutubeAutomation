@@ -1,3 +1,4 @@
+// Dropdown for selecting system fonts or a custom font file.
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';

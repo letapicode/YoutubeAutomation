@@ -1,3 +1,4 @@
+// Range input for adjusting caption font size.
 import React from 'react';
 
 interface SizeSliderProps {

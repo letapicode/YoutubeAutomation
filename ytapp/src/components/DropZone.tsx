@@ -1,3 +1,4 @@
+// Simple wrapper around react-dropzone used by FilePicker.
 import React from 'react';
 import { useDropzone } from 'react-dropzone';
 

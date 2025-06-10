@@ -1,3 +1,4 @@
+// Uploads a list of video files to YouTube one after another.
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import FilePicker from './FilePicker';

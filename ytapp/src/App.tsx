@@ -1,3 +1,4 @@
+// Main application component driving the single-video workflow.
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { generateVideo } from './features/processing';

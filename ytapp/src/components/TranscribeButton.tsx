@@ -1,3 +1,4 @@
+// Button that transcribes audio to SRT and optionally translates it.
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { transcribeAudio } from '../features/transcription';

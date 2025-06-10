@@ -1,3 +1,4 @@
+// Convenience button that generates a video and uploads it to YouTube.
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { generateUpload, GenerateParams } from '../features/youtube';
