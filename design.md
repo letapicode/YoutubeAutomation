@@ -7,8 +7,8 @@ This project follows a minimalist approach inspired by the principle **"Less but
 - **Jony Ive** focuses on simplicity, refined materials and a seamless user experience.
 
 ## Layout
-- Use CSS grid for the main `.app` container with a `2rem` gap to allow generous whitespace.
-- Rows are flex containers with a `1.5rem` gap for consistent spacing.
+- Use CSS grid for the main `.app` container with a `calc(var(--spacing-8) * 4)` gap to allow generous whitespace.
+- Rows are flex containers with a `var(--spacing)` gap for consistent spacing.
 - On small screens rows stack vertically, while `[dir="rtl"]` reverses the row direction.
 - Spacing follows a strict grid to reinforce order and simplicity.
 
@@ -24,7 +24,7 @@ This project follows a minimalist approach inspired by the principle **"Less but
 - Respect `prefers-reduced-motion` by avoiding unnecessary animation.
 
 ## CSS Recommendations
-- Base layout spacing on an 8‑pt grid for consistent rhythm.
+- Base layout spacing on an 8‑pt grid for consistent rhythm. Theme variables like `--spacing-8` help enforce these increments across the UI.
 - Define typography scales in `theme.css` so headings and body text align.
 - Honor `@media (prefers-reduced-motion: reduce)` to disable transitions when requested.
 
