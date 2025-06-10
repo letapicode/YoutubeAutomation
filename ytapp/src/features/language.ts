@@ -11,6 +11,7 @@ export const languageOptions = [
   { value: 'ru', label: 'Russian' },
   { value: 'ja', label: 'Japanese' },
   { value: 'de', label: 'German' },
+  { value: 'it', label: 'Italian' },
 ] as const;
 
 export type Language = typeof languageOptions[number]['value'];

@@ -16,6 +16,7 @@ pub fn parse_language(code: Option<String>) -> Option<Language> {
         Some("ru") | Some("russian") => Some(Language::Russian),
         Some("ja") | Some("japanese") => Some(Language::Japanese),
         Some("de") | Some("german") => Some(Language::German),
+        Some("it") | Some("italian") => Some(Language::Italian),
         Some("auto") | None => None,
         _ => None,
     }
