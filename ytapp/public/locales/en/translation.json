@@ -13,6 +13,7 @@
   "top": "Top",
   "center": "Center",
   "bottom": "Bottom",
+  "resolution": "Resolution",
   "select_file": "Select File",
   "select_files": "Select Files",
   "select_audio_files": "Select Audio Files",

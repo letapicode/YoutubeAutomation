@@ -15,6 +15,8 @@ export interface GenerateParams {
     background?: string;
     intro?: string;
     outro?: string;
+    width?: number;
+    height?: number;
 }
 
 export type ProgressCallback = (progress: number) => void;
