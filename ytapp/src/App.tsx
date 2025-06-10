@@ -241,6 +241,26 @@ const App: React.FC = () => {
                     <option value="vi">Tiếng Việt</option>
                     <option value="tr">Türkçe</option>
                     <option value="id">Bahasa Indonesia</option>
+                    <option value="nl">Nederlands</option>
+                    <option value="th">ไทย</option>
+                    <option value="pl">Polski</option>
+                    <option value="sv">Svenska</option>
+                    <option value="fi">Suomi</option>
+                    <option value="he">עברית</option>
+                    <option value="uk">Українська</option>
+                    <option value="el">Ελληνικά</option>
+                    <option value="ms">Bahasa Melayu</option>
+                    <option value="cs">Čeština</option>
+                    <option value="ro">Română</option>
+                    <option value="da">Dansk</option>
+                    <option value="hu">Magyar</option>
+                    <option value="no">Norsk</option>
+                    <option value="ur">اردو</option>
+                    <option value="hr">Hrvatski</option>
+                    <option value="bg">Български</option>
+                    <option value="lt">Lietuvių</option>
+                    <option value="lv">Latviešu</option>
+                    <option value="sk">Slovenčina</option>
                 </select>
                 <button onClick={toggleTheme}>{t('toggle_theme')}</button>
             </div>

@@ -48,6 +48,26 @@
   * Vietnamese
   * Turkish
   * Indonesian
+  * Dutch
+  * Thai
+  * Polish
+  * Swedish
+  * Finnish
+  * Hebrew
+  * Ukrainian
+  * Greek
+  * Malay
+  * Czech
+  * Romanian
+  * Danish
+  * Hungarian
+  * Norwegian
+  * Urdu
+  * Croatian
+  * Bulgarian
+  * Lithuanian
+  * Latvian
+  * Slovak
 * Output `.srt` file
 * Burn `.srt` captions into video using FFmpeg:
 
