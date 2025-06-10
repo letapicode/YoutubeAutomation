@@ -168,4 +168,12 @@ Finally, start the Tauri application:
 npm run start
 ```
 
+### Custom Fonts
+
+Use the **Font** dropdown in the settings page to load any font installed on your
+system. If your font does not appear in the list, choose **Select File** to pick
+a `.ttf` or `.otf` file. The selected font and style are stored in the
+application settings and passed to FFmpeg so subtitles render with your custom
+font.
+
 

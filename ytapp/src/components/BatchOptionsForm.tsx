@@ -52,7 +52,14 @@ const BatchOptionsForm: React.FC<BatchOptionsFormProps> = ({ value, onChange }) 
                 {value.outro && <span>{value.outro}</span>}
             </div>
             <div className="row">
-                <FontSelector value={value.captionOptions?.font || ''} onChange={(f) => update({ captionOptions: { font: f } })} />
+                <FontSelector
+                    value={value.captionOptions?.font ? {
+                        name: value.captionOptions?.font || '',
+                        path: value.captionOptions?.fontPath,
+                        style: value.captionOptions?.style,
+                    } : null}
+                    onChange={(f) => update({ captionOptions: { font: f?.name, fontPath: f?.path, style: f?.style } })}
+                />
             </div>
             <div className="row">
                 <SizeSlider value={value.captionOptions?.size || 24} onChange={(s) => update({ captionOptions: { size: s } })} />
