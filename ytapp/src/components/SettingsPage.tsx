@@ -11,6 +11,8 @@ const SettingsPage: React.FC = () => {
     const [intro, setIntro] = useState('');
     const [outro, setOutro] = useState('');
     const [font, setFont] = useState('');
+    const [fontPath, setFontPath] = useState('');
+    const [fontStyle, setFontStyle] = useState('');
     const [size, setSize] = useState(24);
     const [guide, setGuide] = useState(true);
 
@@ -20,6 +22,8 @@ const SettingsPage: React.FC = () => {
             setIntro(s.intro || '');
             setOutro(s.outro || '');
             setFont(s.captionFont || '');
+            setFontPath(s.captionFontPath || '');
+            setFontStyle(s.captionStyle || '');
             setSize(s.captionSize || 24);
             setGuide(s.showGuide !== false);
         });
@@ -31,6 +35,8 @@ const SettingsPage: React.FC = () => {
             intro: intro || undefined,
             outro: outro || undefined,
             captionFont: font || undefined,
+            captionFontPath: fontPath || undefined,
+            captionStyle: fontStyle || undefined,
             captionSize: size,
             showGuide: guide,
         });
@@ -73,7 +79,14 @@ const SettingsPage: React.FC = () => {
                 {outro && <span>{outro}</span>}
             </div>
             <div>
-                <FontSelector value={font} onChange={setFont} />
+                <FontSelector
+                    value={font ? { name: font, path: fontPath, style: fontStyle } : null}
+                    onChange={f => {
+                        setFont(f?.name || '');
+                        setFontPath(f?.path || '');
+                        setFontStyle(f?.style || '');
+                    }}
+                />
             </div>
             <div>
                 <SizeSlider value={size} onChange={setSize} />

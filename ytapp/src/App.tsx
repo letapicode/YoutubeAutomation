@@ -30,6 +30,8 @@ const App: React.FC = () => {
     const [outro, setOutro] = useState('');
     const [translations, setTranslations] = useState<string[]>([]);
     const [font, setFont] = useState('');
+    const [fontPath, setFontPath] = useState('');
+    const [fontStyle, setFontStyle] = useState('');
     const [size, setSize] = useState(24);
     const [position, setPosition] = useState('bottom');
     const [language, setLanguage] = useState<Language>('auto');
@@ -43,6 +45,11 @@ const App: React.FC = () => {
     const [outputs, setOutputs] = useState<string[]>([]);
     const [preview, setPreview] = useState('');
     const [showGuide, setShowGuide] = useState(false);
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
+    const [tags, setTags] = useState('');
+    const [publishDate, setPublishDate] = useState('');
+
 
 
     useEffect(() => {
@@ -51,6 +58,8 @@ const App: React.FC = () => {
             if (s.intro) setIntro(s.intro);
             if (s.outro) setOutro(s.outro);
             if (s.captionFont) setFont(s.captionFont);
+            if (s.captionFontPath) setFontPath(s.captionFontPath);
+            if (s.captionStyle) setFontStyle(s.captionStyle);
             if (s.captionSize) setSize(s.captionSize);
             if (s.showGuide !== false) setShowGuide(true);
         });
@@ -74,7 +83,13 @@ const App: React.FC = () => {
         const out = await generateVideo({
             file,
             captions: captions || undefined,
-            captionOptions: { font: font || undefined, size, position },
+            captionOptions: {
+                font: font || undefined,
+                fontPath: fontPath || undefined,
+                style: fontStyle || undefined,
+                size,
+                position,
+            },
             background: background || undefined,
             intro: intro || undefined,
             outro: outro || undefined,
@@ -88,12 +103,22 @@ const App: React.FC = () => {
     const buildParams = (): GenerateParams => ({
         file,
         captions: captions || undefined,
-        captionOptions: { font: font || undefined, size, position },
+        captionOptions: {
+            font: font || undefined,
+            fontPath: fontPath || undefined,
+            style: fontStyle || undefined,
+            size,
+            position,
+        },
         background: background || undefined,
         intro: intro || undefined,
         outro: outro || undefined,
         width,
         height,
+        title: title || undefined,
+        description: description || undefined,
+        tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : undefined,
+        publishAt: publishDate ? new Date(publishDate).toISOString() : undefined,
     });
 
     const closePreview = async () => {
@@ -201,6 +226,18 @@ const App: React.FC = () => {
                 />
                 {captions && <span>{captions}</span>}
             </div>
+            <div className="row">
+                <input type="text" placeholder={t('video_title')} value={title} onChange={e => setTitle(e.target.value)} />
+            </div>
+            <div className="row">
+                <textarea placeholder={t('description')} value={description} onChange={e => setDescription(e.target.value)} />
+            </div>
+            <div className="row">
+                <input type="text" placeholder={t('tags')} value={tags} onChange={e => setTags(e.target.value)} />
+            </div>
+            <div className="row">
+                <input type="datetime-local" value={publishDate} onChange={e => setPublishDate(e.target.value)} />
+            </div>
             <details>
                 <summary>{t('advanced_settings')}</summary>
             <div className="row">
@@ -228,7 +265,14 @@ const App: React.FC = () => {
                 {outro && <span>{outro}</span>}
             </div>
             <div className="row">
-                <FontSelector value={font} onChange={setFont} />
+                <FontSelector
+                    value={font ? { name: font, path: fontPath, style: fontStyle } : null}
+                    onChange={f => {
+                        setFont(f?.name || '');
+                        setFontPath(f?.path || '');
+                        setFontStyle(f?.style || '');
+                    }}
+                />
             </div>
             <div className="row">
                 <SizeSlider value={size} onChange={setSize} />

@@ -3,6 +3,8 @@ import { listen } from '@tauri-apps/api/event';
 
 export interface CaptionOptions {
     font?: string;
+    fontPath?: string;
+    style?: string;
     size?: number;
     position?: string;
 }
@@ -17,6 +19,10 @@ export interface GenerateParams {
     outro?: string;
     width?: number;
     height?: number;
+    title?: string;
+    description?: string;
+    tags?: string[];
+    publishAt?: string;
 }
 
 export type ProgressCallback = (progress: number) => void;

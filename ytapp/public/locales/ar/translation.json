@@ -33,8 +33,15 @@
   "save": "\u062d\u0641\u0638",
   "preview": "\u0645\u0639\u0627\u064a\u0646\u0629",
   "advanced_settings": "\u0625\u0639\u062f\u0627\u062f\u0627\u062a \u0645\u062a\u0642\u062f\u0645\u0629",
+
   "welcome_title": "Welcome",
   "guide_select_audio": "Select an audio file",
   "guide_generate": "Click Generate to create your video",
   "guide_upload": "Use Generate & Upload to post to YouTube"
+
+  "video_title": "Title",
+  "description": "Description",
+  "tags": "Tags",
+  "publish_date": "Publish Date"
+
 }

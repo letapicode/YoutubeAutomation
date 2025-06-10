@@ -30,11 +30,19 @@
 
 * OpenAI Whisper ([https://github.com/openai/whisper](https://github.com/openai/whisper)), local model
 * Transcribe input audio
-* Supported languages:
+* Supported languages (with automatic detection when "Auto" is selected):
 
   * Nepali
   * Hindi
   * English
+  * Spanish
+  * French
+  * Chinese
+  * Arabic
+  * Portuguese
+  * Russian
+  * Japanese
+  * German
 * Output `.srt` file
 * Burn `.srt` captions into video using FFmpeg:
 
@@ -81,7 +89,8 @@
 * Outro picker (video / image, user-provided)
 * Captions settings:
 
-  * Language (Nepali / Hindi / English / Auto)
+  * Language (Auto-detect, Nepali, Hindi, English, Spanish, French, Chinese,
+    Arabic, Portuguese, Russian, Japanese, German)
   * Font selector
   * Size slider
   * Position (top / center / bottom)
@@ -93,7 +102,8 @@
 * Drag & drop support for file inputs
 * Theme toggle (light/dark)
 * Settings page with persistent defaults
-* Interface translations (English, Nepali, Hindi)
+* Interface translations (English, Nepali, Hindi, Spanish, French, Chinese,
+  Arabic, Portuguese, Russian, Japanese, German)
 * Video preview modal after generation
 
 ---
@@ -170,12 +180,38 @@ The guide only shows once and the preference is stored in `settings.json`.
 
 ### Design Guidelines
 
-See [design.md](design.md) for the UI style guide based on the principle "Less but better".
+See [design.md](design.md) for the updated design approach. The interface now uses generous whitespace, consistent grid spacing and subtle transitions in the spirit of Dieter Rams and Jony Ive.
 
 Finally, start the Tauri application:
 
 ```bash
 npm run start
 ```
+
+
+### Custom Fonts
+
+Use the **Font** dropdown in the settings page to load any font installed on your
+system. If your font does not appear in the list, choose **Select File** to pick
+a `.ttf` or `.otf` file. The selected font and style are stored in the
+application settings and passed to FFmpeg so subtitles render with your custom
+font.
+
+### CLI Usage
+
+Generate and schedule an upload:
+
+```bash
+npx ts-node src/cli.ts generate-upload input.wav --title "My Video" \
+  --description "Demo" --tags tag1,tag2 \
+  --publish-at "2024-07-01T12:00:00Z"
+```
+
+Upload an existing video with metadata:
+
+```bash
+npx ts-node src/cli.ts upload video.mp4 --title "My Video"
+```
+
 
 

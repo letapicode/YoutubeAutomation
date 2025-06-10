@@ -5,6 +5,8 @@ import { spawn } from 'child_process';
 
 interface CaptionOptions {
   font?: string;
+  fontPath?: string;
+  style?: string;
   size?: number;
   position?: string;
 }
@@ -19,17 +21,33 @@ interface GenerateParams {
   outro?: string;
   width?: number;
   height?: number;
+  title?: string;
+  description?: string;
+  tags?: string[];
+  publishAt?: string;
 }
 
 async function generateVideo(params: GenerateParams): Promise<any> {
   return await invoke('generate_video', params as any);
 }
 
-async function uploadVideo(params: { file: string }): Promise<any> {
+interface UploadParams {
+  file: string;
+  title?: string;
+  description?: string;
+  tags?: string[];
+  publishAt?: string;
+}
+
+interface UploadBatchParams extends Omit<UploadParams, 'file'> {
+  files: string[];
+}
+
+async function uploadVideo(params: UploadParams): Promise<any> {
   return await invoke('upload_video', params as any);
 }
 
-async function uploadVideos(params: { files: string[] }): Promise<any> {
+async function uploadVideos(params: UploadBatchParams): Promise<any> {
   return await invoke('upload_videos', params as any);
 }
 
@@ -84,6 +102,8 @@ program
   .option('-o, --output <output>', 'output video path')
   .option('--captions <srt>', 'captions file path')
   .option('--font <font>', 'caption font')
+  .option('--font-path <path>', 'caption font file')
+  .option('--style <style>', 'caption font style')
   .option('--size <size>', 'caption font size', (v) => parseInt(v, 10))
   .option('--position <pos>', 'caption position (top|center|bottom)')
   .option('-b, --background <file>', 'background image or video')
@@ -91,6 +111,10 @@ program
   .option('--outro <file>', 'outro video or image')
   .option('--width <width>', 'output width', (v) => parseInt(v, 10))
   .option('--height <height>', 'output height', (v) => parseInt(v, 10))
+  .option('--title <title>', 'video title')
+  .option('--description <desc>', 'video description')
+  .option('--tags <tags>', 'comma separated tags')
+  .option('--publish-at <date>', 'schedule publish date (ISO)')
   .action(async (file: string, options: any) => {
     try {
       const params: GenerateParams = {
@@ -99,6 +123,8 @@ program
         captions: options.captions,
         captionOptions: {
           font: options.font,
+          fontPath: options.fontPath,
+          style: options.style,
           size: options.size,
           position: options.position,
         },
@@ -107,6 +133,10 @@ program
         outro: options.outro,
         width: options.width,
         height: options.height,
+        title: options.title,
+        description: options.description,
+        tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
+        publishAt: options.publishAt,
       };
       const result = await generateVideo(params);
       console.log(result);
@@ -123,6 +153,8 @@ program
   .option('-o, --output <output>', 'output video path')
   .option('--captions <srt>', 'captions file path')
   .option('--font <font>', 'caption font')
+  .option('--font-path <path>', 'caption font file')
+  .option('--style <style>', 'caption font style')
   .option('--size <size>', 'caption font size', (v) => parseInt(v, 10))
   .option('--position <pos>', 'caption position (top|center|bottom)')
   .option('-b, --background <file>', 'background image or video')
@@ -138,6 +170,8 @@ program
         captions: options.captions,
         captionOptions: {
           font: options.font,
+          fontPath: options.fontPath,
+          style: options.style,
           size: options.size,
           position: options.position,
         },
@@ -162,6 +196,8 @@ program
   .option('-d, --output-dir <dir>', 'output directory', '.')
   .option('--captions <srt>', 'captions file path')
   .option('--font <font>', 'caption font')
+  .option('--font-path <path>', 'caption font file')
+  .option('--style <style>', 'caption font style')
   .option('--size <size>', 'caption font size', (v) => parseInt(v, 10))
   .option('--position <pos>', 'caption position (top|center|bottom)')
   .option('-b, --background <file>', 'background image or video')
@@ -169,6 +205,10 @@ program
   .option('--outro <file>', 'outro video or image')
   .option('--width <width>', 'output width', (v) => parseInt(v, 10))
   .option('--height <height>', 'output height', (v) => parseInt(v, 10))
+  .option('--title <title>', 'video title')
+  .option('--description <desc>', 'video description')
+  .option('--tags <tags>', 'comma separated tags')
+  .option('--publish-at <date>', 'schedule publish date (ISO)')
   .action(async (files: string[], options: any) => {
     try {
       const result = await invoke('generate_batch_upload', {
@@ -177,6 +217,8 @@ program
         captions: options.captions,
         captionOptions: {
           font: options.font,
+          fontPath: options.fontPath,
+          style: options.style,
           size: options.size,
           position: options.position,
         },
@@ -185,6 +227,10 @@ program
         outro: options.outro,
         width: options.width,
         height: options.height,
+        title: options.title,
+        description: options.description,
+        tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
+        publishAt: options.publishAt,
       } as any);
       console.log(result);
     } catch (err) {
@@ -220,6 +266,8 @@ program
           captions: options.captions,
           captionOptions: {
             font: options.font,
+            fontPath: options.fontPath,
+            style: options.style,
             size: options.size,
             position: options.position,
           },
@@ -240,9 +288,19 @@ program
   .command('upload')
   .description('Upload video to YouTube')
   .argument('<file>', 'video file path')
-  .action(async (file: string) => {
+  .option('--title <title>', 'video title')
+  .option('--description <desc>', 'video description')
+  .option('--tags <tags>', 'comma separated tags')
+  .option('--publish-at <date>', 'schedule publish date (ISO)')
+  .action(async (file: string, options: any) => {
     try {
-      const result = await uploadVideo({ file });
+      const result = await uploadVideo({
+        file,
+        title: options.title,
+        description: options.description,
+        tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
+        publishAt: options.publishAt,
+      });
       console.log(result);
     } catch (err) {
       console.error('Error uploading video:', err);
@@ -254,9 +312,19 @@ program
   .command('upload-batch')
   .description('Upload multiple videos to YouTube')
   .argument('<files...>', 'video files')
-  .action(async (files: string[]) => {
+  .option('--title <title>', 'video title')
+  .option('--description <desc>', 'video description')
+  .option('--tags <tags>', 'comma separated tags')
+  .option('--publish-at <date>', 'schedule publish date (ISO)')
+  .action(async (files: string[], options: any) => {
     try {
-      const results = await uploadVideos({ files }) as any[];
+      const results = await uploadVideos({
+        files,
+        title: options.title,
+        description: options.description,
+        tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
+        publishAt: options.publishAt,
+      }) as any[];
       results.forEach((res: any) => console.log(res));
     } catch (err) {
       console.error('Error uploading videos:', err);
