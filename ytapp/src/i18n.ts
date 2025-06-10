@@ -7,6 +7,10 @@ import es from '../public/locales/es/translation.json';
 import fr from '../public/locales/fr/translation.json';
 import zh from '../public/locales/zh/translation.json';
 import ar from '../public/locales/ar/translation.json';
+import pt from '../public/locales/pt/translation.json';
+import ru from '../public/locales/ru/translation.json';
+import ja from '../public/locales/ja/translation.json';
+import de from '../public/locales/de/translation.json';
 
 i18n.use(initReactI18next).init({
   resources: {
@@ -17,6 +21,10 @@ i18n.use(initReactI18next).init({
     fr: { translation: fr },
     zh: { translation: zh },
     ar: { translation: ar },
+    pt: { translation: pt },
+    ru: { translation: ru },
+    ja: { translation: ja },
+    de: { translation: de },
   },
   lng: 'en',
   fallbackLng: 'en',

@@ -427,7 +427,7 @@ fn transcribe_audio(params: TranscribeParams) -> Result<String, String> {
     // run asynchronous whisper in tauri runtime
     tauri::async_runtime::block_on(async {
         let lang = language::parse_language(params.language);
-        let mut whisper = Whisper::new(Model::new(Size::Base), Some(lang)).await;
+        let mut whisper = Whisper::new(Model::new(Size::Base), lang).await;
         let transcript = whisper
             .transcribe(&audio_path, false, false)
             .map_err(|e| e.to_string())?;
