@@ -17,8 +17,8 @@ const BatchOptionsForm: React.FC<BatchOptionsFormProps> = ({ value, onChange }) 
     };
 
     return (
-        <div>
-            <div>
+        <div className="grid">
+            <div className="row">
                 <FilePicker
                     label={t('background')}
                     onSelect={(p) => {
@@ -29,7 +29,7 @@ const BatchOptionsForm: React.FC<BatchOptionsFormProps> = ({ value, onChange }) 
                 />
                 {value.background && <span>{value.background}</span>}
             </div>
-            <div>
+            <div className="row">
                 <FilePicker
                     label={t('intro')}
                     onSelect={(p) => {
@@ -40,7 +40,7 @@ const BatchOptionsForm: React.FC<BatchOptionsFormProps> = ({ value, onChange }) 
                 />
                 {value.intro && <span>{value.intro}</span>}
             </div>
-            <div>
+            <div className="row">
                 <FilePicker
                     label={t('outro')}
                     onSelect={(p) => {
@@ -51,21 +51,21 @@ const BatchOptionsForm: React.FC<BatchOptionsFormProps> = ({ value, onChange }) 
                 />
                 {value.outro && <span>{value.outro}</span>}
             </div>
-            <div>
+            <div className="row">
                 <FontSelector value={value.captionOptions?.font || ''} onChange={(f) => update({ captionOptions: { font: f } })} />
             </div>
-            <div>
+            <div className="row">
                 <SizeSlider value={value.captionOptions?.size || 24} onChange={(s) => update({ captionOptions: { size: s } })} />
                 <span>{value.captionOptions?.size || 24}</span>
             </div>
-            <div>
+            <div className="row">
                 <select value={value.captionOptions?.position || 'bottom'} onChange={(e) => update({ captionOptions: { position: e.target.value } })}>
                     <option value="top">{t('top')}</option>
                     <option value="center">{t('center')}</option>
                     <option value="bottom">{t('bottom')}</option>
                 </select>
             </div>
-            <div>
+            <div className="row">
                 <label>{t('resolution')}</label>
                 <select
                     value={`${value.width || 1280}x${value.height || 720}`}

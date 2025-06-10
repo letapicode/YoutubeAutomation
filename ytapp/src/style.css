@@ -7,16 +7,21 @@ body {
 
 .app {
   display: grid;
-  gap: 1rem;
+  gap: 1.25rem;
   padding: 2rem;
-  max-width: 800px;
+  max-width: 960px;
   margin: 0 auto;
 }
 
 .row {
   display: flex;
-  gap: 0.75rem;
+  gap: 1rem;
   align-items: center;
+}
+
+.grid {
+  display: grid;
+  gap: 1rem;
 }
 
 button {
@@ -24,6 +29,11 @@ button {
   background-color: var(--button-bg);
   color: var(--button-text);
   border: 1px solid var(--text-color);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 .dropzone {
@@ -56,4 +66,19 @@ button {
 
 .modal .close {
   float: right;
+}
+
+.collapsible-toggle {
+  background-color: var(--button-bg);
+  color: var(--button-text);
+  border: 1px solid var(--text-color);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 0.5rem 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.collapsible-body {
+  display: grid;
+  gap: 1rem;
 }

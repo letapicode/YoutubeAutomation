@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import FilePicker from './FilePicker';
 import FontSelector from './FontSelector';
 import SizeSlider from './SizeSlider';
+import Collapsible from './Collapsible';
 import { loadSettings, saveSettings } from '../features/settings';
 
 const SettingsPage: React.FC = () => {
@@ -34,49 +35,53 @@ const SettingsPage: React.FC = () => {
     };
 
     return (
-        <div>
+        <div className="grid">
             <h1>{t('settings')}</h1>
-            <div>
-                <FilePicker
-                    label={t('background')}
+            <Collapsible title={t('advanced')}>
+                <div className="row">
+                    <FilePicker
+                        label={t('background')}
                     onSelect={p => {
                         if (typeof p === 'string') setBackground(p);
                         else if (Array.isArray(p) && p.length) setBackground(p[0]);
                     }}
                     filters={[{ name: 'Media', extensions: ['mp4', 'mov', 'mkv', 'png', 'jpg', 'jpeg'] }]}
                 />
-                {background && <span>{background}</span>}
-            </div>
-            <div>
-                <FilePicker
-                    label={t('intro')}
+                    {background && <span>{background}</span>}
+                </div>
+                <div className="row">
+                    <FilePicker
+                        label={t('intro')}
                     onSelect={p => {
                         if (typeof p === 'string') setIntro(p);
                         else if (Array.isArray(p) && p.length) setIntro(p[0]);
                     }}
                     filters={[{ name: 'Media', extensions: ['mp4', 'mov', 'mkv', 'png', 'jpg', 'jpeg'] }]}
                 />
-                {intro && <span>{intro}</span>}
-            </div>
-            <div>
-                <FilePicker
-                    label={t('outro')}
+                    {intro && <span>{intro}</span>}
+                </div>
+                <div className="row">
+                    <FilePicker
+                        label={t('outro')}
                     onSelect={p => {
                         if (typeof p === 'string') setOutro(p);
                         else if (Array.isArray(p) && p.length) setOutro(p[0]);
                     }}
                     filters={[{ name: 'Media', extensions: ['mp4', 'mov', 'mkv', 'png', 'jpg', 'jpeg'] }]}
                 />
-                {outro && <span>{outro}</span>}
+                    {outro && <span>{outro}</span>}
+                </div>
+                <div className="row">
+                    <FontSelector value={font} onChange={setFont} />
+                </div>
+                <div className="row">
+                    <SizeSlider value={size} onChange={setSize} />
+                    <span>{size}</span>
+                </div>
+            </Collapsible>
+            <div className="row">
+                <button onClick={handleSave}>{t('save')}</button>
             </div>
-            <div>
-                <FontSelector value={font} onChange={setFont} />
-            </div>
-            <div>
-                <SizeSlider value={size} onChange={setSize} />
-                <span>{size}</span>
-            </div>
-            <button onClick={handleSave}>{t('save')}</button>
         </div>
     );
 };

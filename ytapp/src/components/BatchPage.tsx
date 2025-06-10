@@ -6,7 +6,7 @@ import BatchUploader from './BatchUploader';
 const BatchPage: React.FC = () => {
     const { t } = useTranslation();
     return (
-        <div>
+        <div className="grid">
             <h1>{t('batch_tools')}</h1>
             <BatchProcessor />
             <BatchUploader />

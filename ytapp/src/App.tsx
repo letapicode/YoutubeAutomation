@@ -17,6 +17,8 @@ import TranscribeButton from './components/TranscribeButton';
 import { loadSettings } from './features/settings';
 import { checkDependencies } from './features/dependencies';
 import Modal from './components/Modal';
+import Collapsible from './components/Collapsible';
+import { UploadIcon, SettingsIcon } from './icons';
 
 const App: React.FC = () => {
     const { t, i18n } = useTranslation();
@@ -162,77 +164,79 @@ const App: React.FC = () => {
                 }} />
                 {file && <span>{file}</span>}
             </div>
-            <div className="row">
-                <FilePicker
-                    useDropZone
-                    label={t('background')}
-                    onSelect={(p) => {
-                        if (typeof p === 'string') setBackground(p);
-                        else if (Array.isArray(p) && p.length) setBackground(p[0]);
-                    }}
-                    filters={[
-                        { name: 'Media', extensions: ['mp4', 'mov', 'mkv', 'png', 'jpg', 'jpeg'] },
-                    ]}
-                />
-                {background && <span>{background}</span>}
-            </div>
-            <div className="row">
-                <TranscribeButton file={file} language={language} onComplete={handleTranscriptionComplete} />
-                {captions && <span>{captions}</span>}
-            </div>
-            <div className="row">
-                <FilePicker
-                    useDropZone
-                    label={t('intro')}
-                    onSelect={(p) => {
-                        if (typeof p === 'string') setIntro(p);
-                        else if (Array.isArray(p) && p.length) setIntro(p[0]);
-                    }}
-                    filters={[{ name: 'Media', extensions: ['mp4', 'mov', 'mkv', 'png', 'jpg', 'jpeg'] }]}
-                />
-                {intro && <span>{intro}</span>}
-            </div>
-            <div className="row">
-                <FilePicker
-                    useDropZone
-                    label={t('outro')}
-                    onSelect={(p) => {
-                        if (typeof p === 'string') setOutro(p);
-                        else if (Array.isArray(p) && p.length) setOutro(p[0]);
-                    }}
-                    filters={[{ name: 'Media', extensions: ['mp4', 'mov', 'mkv', 'png', 'jpg', 'jpeg'] }]}
-                />
-                {outro && <span>{outro}</span>}
-            </div>
-            <div className="row">
-                <FontSelector value={font} onChange={setFont} />
-            </div>
-            <div className="row">
-                <SizeSlider value={size} onChange={setSize} />
-                <span>{size}</span>
-            </div>
-            <div className="row">
-                <select value={position} onChange={(e) => setPosition(e.target.value)}>
-                    <option value="top">{t('top')}</option>
-                    <option value="center">{t('center')}</option>
-                    <option value="bottom">{t('bottom')}</option>
-                </select>
-            </div>
-            <div className="row">
-                <label>{t('resolution')}</label>
-                <select
-                    value={`${width}x${height}`}
-                    onChange={e => {
-                        const [w, h] = e.target.value.split('x').map(v => parseInt(v, 10));
-                        setWidth(w);
-                        setHeight(h);
-                    }}
-                >
-                    <option value="640x360">640x360</option>
-                    <option value="1280x720">1280x720</option>
-                    <option value="1920x1080">1920x1080</option>
-                </select>
-            </div>
+            <Collapsible title={t('advanced')}>
+                <div className="row">
+                    <FilePicker
+                        useDropZone
+                        label={t('background')}
+                        onSelect={(p) => {
+                            if (typeof p === 'string') setBackground(p);
+                            else if (Array.isArray(p) && p.length) setBackground(p[0]);
+                        }}
+                        filters={[
+                            { name: 'Media', extensions: ['mp4', 'mov', 'mkv', 'png', 'jpg', 'jpeg'] },
+                        ]}
+                    />
+                    {background && <span>{background}</span>}
+                </div>
+                <div className="row">
+                    <TranscribeButton file={file} language={language} onComplete={handleTranscriptionComplete} />
+                    {captions && <span>{captions}</span>}
+                </div>
+                <div className="row">
+                    <FilePicker
+                        useDropZone
+                        label={t('intro')}
+                        onSelect={(p) => {
+                            if (typeof p === 'string') setIntro(p);
+                            else if (Array.isArray(p) && p.length) setIntro(p[0]);
+                        }}
+                        filters={[{ name: 'Media', extensions: ['mp4', 'mov', 'mkv', 'png', 'jpg', 'jpeg'] }]}
+                    />
+                    {intro && <span>{intro}</span>}
+                </div>
+                <div className="row">
+                    <FilePicker
+                        useDropZone
+                        label={t('outro')}
+                        onSelect={(p) => {
+                            if (typeof p === 'string') setOutro(p);
+                            else if (Array.isArray(p) && p.length) setOutro(p[0]);
+                        }}
+                        filters={[{ name: 'Media', extensions: ['mp4', 'mov', 'mkv', 'png', 'jpg', 'jpeg'] }]}
+                    />
+                    {outro && <span>{outro}</span>}
+                </div>
+                <div className="row">
+                    <FontSelector value={font} onChange={setFont} />
+                </div>
+                <div className="row">
+                    <SizeSlider value={size} onChange={setSize} />
+                    <span>{size}</span>
+                </div>
+                <div className="row">
+                    <select value={position} onChange={(e) => setPosition(e.target.value)}>
+                        <option value="top">{t('top')}</option>
+                        <option value="center">{t('center')}</option>
+                        <option value="bottom">{t('bottom')}</option>
+                    </select>
+                </div>
+                <div className="row">
+                    <label>{t('resolution')}</label>
+                    <select
+                        value={`${width}x${height}`}
+                        onChange={e => {
+                            const [w, h] = e.target.value.split('x').map(v => parseInt(v, 10));
+                            setWidth(w);
+                            setHeight(h);
+                        }}
+                    >
+                        <option value="640x360">640x360</option>
+                        <option value="1280x720">1280x720</option>
+                        <option value="1920x1080">1920x1080</option>
+                    </select>
+                </div>
+            </Collapsible>
             <div className="row">
                 <select value={language} onChange={(e) => setLanguage(e.target.value as Language)}>
                     {languageOptions.map(opt => (
@@ -243,9 +247,13 @@ const App: React.FC = () => {
             <div className="row">
                 <YouTubeAuthButton />
                 <button onClick={handleGenerate}>{t('generate')}</button>
-                <button onClick={handleGenerateUpload}>{t('generate_upload')}</button>
+                <button onClick={handleGenerateUpload}>
+                    <UploadIcon /> {t('generate_upload')}
+                </button>
                 <button onClick={() => setPage('batch')}>{t('batch_tools')}</button>
-                <button onClick={() => setPage('settings')}>{t('settings')}</button>
+                <button onClick={() => setPage('settings')}>
+                    <SettingsIcon /> {t('settings')}
+                </button>
             </div>
             {generating && (
                 <div className="row">
