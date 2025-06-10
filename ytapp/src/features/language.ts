@@ -3,6 +3,8 @@ export const languageOptions = [
   { value: 'ne', label: 'Nepali' },
   { value: 'hi', label: 'Hindi' },
   { value: 'en', label: 'English' },
+  { value: 'es', label: 'Spanish' },
+  { value: 'fr', label: 'French' },
 ] as const;
 
 export type Language = typeof languageOptions[number]['value'];
