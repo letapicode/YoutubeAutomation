@@ -33,6 +33,8 @@
   "save": "Sauvegarder",
   "preview": "Aperçu",
   "advanced_settings": "Paramètres avancés",
+  "caption_color": "Caption Color",
+  "caption_bg": "Caption Background",
 
   "welcome_title": "Welcome",
   "guide_select_audio": "Select an audio file",

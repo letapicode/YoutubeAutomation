@@ -11,6 +11,11 @@ import pt from '../public/locales/pt/translation.json';
 import ru from '../public/locales/ru/translation.json';
 import ja from '../public/locales/ja/translation.json';
 import de from '../public/locales/de/translation.json';
+import it from '../public/locales/it/translation.json';
+import ko from '../public/locales/ko/translation.json';
+import vi from '../public/locales/vi/translation.json';
+import tr from '../public/locales/tr/translation.json';
+import id from '../public/locales/id/translation.json';
 
 i18n.use(initReactI18next).init({
   resources: {
@@ -25,6 +30,11 @@ i18n.use(initReactI18next).init({
     ru: { translation: ru },
     ja: { translation: ja },
     de: { translation: de },
+    it: { translation: it },
+    ko: { translation: ko },
+    vi: { translation: vi },
+    tr: { translation: tr },
+    id: { translation: id },
   },
   lng: 'en',
   fallbackLng: 'en',
