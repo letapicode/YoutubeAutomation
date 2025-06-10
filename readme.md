@@ -22,6 +22,7 @@
   * Optional Outro (user-provided video or image)
   * Output: Final video (H.264 MP4)
   * Configurable resolution via `--width`/`--height` or UI dropdown
+  * Supports vertical short-form formats (720x1280 and 1080x1920)
 
 ---
 

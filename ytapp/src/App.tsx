@@ -233,6 +233,8 @@ const App: React.FC = () => {
                     <option value="640x360">640x360</option>
                     <option value="1280x720">1280x720</option>
                     <option value="1920x1080">1920x1080</option>
+                    <option value="720x1280">720x1280</option>
+                    <option value="1080x1920">1080x1920</option>
                 </select>
             </div>
             <div className="row">

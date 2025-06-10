@@ -140,13 +140,11 @@ fn convert_media(path: &str, duration: Option<f64>, width: u32, height: u32) -> 
     if status.success() { Ok(out) } else { Err("ffmpeg failed".into()) }
 }
 
-fn build_main_section(window: Option<&Window>, params: &GenerateParams, duration: f64) -> Result<PathBuf, String> {
+fn build_main_section(window: Option<&Window>, params: &GenerateParams, duration: f64, width: u32, height: u32) -> Result<PathBuf, String> {
     let out = temp_file("main");
     let mut cmd = Command::new("ffmpeg");
     cmd.arg("-y");
 
-    let width = params.width.unwrap_or(1280);
-    let height = params.height.unwrap_or(720);
 
     match params.background.as_deref() {
         Some(bg) if is_image(bg) => {
@@ -211,7 +209,7 @@ fn generate_video(window: Window, params: GenerateParams) -> Result<String, Stri
 
     let duration = audio_duration(&params.file)?;
     let _ = window.emit("generate_progress", 0f64);
-    let main = build_main_section(Some(&window), &params, duration)?;
+    let main = build_main_section(Some(&window), &params, duration, width, height)?;
 
     let mut segments = Vec::new();
     if let Some(ref intro) = params.intro {
