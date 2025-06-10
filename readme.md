@@ -43,6 +43,11 @@
   * Russian
   * Japanese
   * German
+  * Italian
+  * Korean
+  * Vietnamese
+  * Turkish
+  * Indonesian
 * Output `.srt` file
 * Burn `.srt` captions into video using FFmpeg:
 
@@ -103,7 +108,8 @@
 * Theme toggle (light/dark)
 * Settings page with persistent defaults
 * Interface translations (English, Nepali, Hindi, Spanish, French, Chinese,
-  Arabic, Portuguese, Russian, Japanese, German)
+  Arabic, Portuguese, Russian, Japanese, German, Italian, Korean,
+  Vietnamese, Turkish, Indonesian)
 * Video preview modal after generation
 
 ---

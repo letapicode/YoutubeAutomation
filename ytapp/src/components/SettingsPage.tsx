@@ -14,6 +14,8 @@ const SettingsPage: React.FC = () => {
     const [fontPath, setFontPath] = useState('');
     const [fontStyle, setFontStyle] = useState('');
     const [size, setSize] = useState(24);
+    const [captionColor, setCaptionColor] = useState('#ffffff');
+    const [captionBg, setCaptionBg] = useState('#000000');
     const [guide, setGuide] = useState(true);
 
     useEffect(() => {
@@ -25,6 +27,8 @@ const SettingsPage: React.FC = () => {
             setFontPath(s.captionFontPath || '');
             setFontStyle(s.captionStyle || '');
             setSize(s.captionSize || 24);
+            if (s.captionColor) setCaptionColor(s.captionColor);
+            if (s.captionBg) setCaptionBg(s.captionBg);
             setGuide(s.showGuide !== false);
         });
     }, []);
@@ -38,6 +42,8 @@ const SettingsPage: React.FC = () => {
             captionFontPath: fontPath || undefined,
             captionStyle: fontStyle || undefined,
             captionSize: size,
+            captionColor,
+            captionBg,
             showGuide: guide,
         });
     };
@@ -91,6 +97,12 @@ const SettingsPage: React.FC = () => {
             <div>
                 <SizeSlider value={size} onChange={setSize} />
                 <span>{size}</span>
+            </div>
+            <div>
+                <label>{t('caption_color')}</label>
+                <input type="color" value={captionColor} onChange={e => setCaptionColor(e.target.value)} />
+                <label>{t('caption_bg')}</label>
+                <input type="color" value={captionBg} onChange={e => setCaptionBg(e.target.value)} />
             </div>
             <button onClick={handleSave}>{t('save')}</button>
         </div>
