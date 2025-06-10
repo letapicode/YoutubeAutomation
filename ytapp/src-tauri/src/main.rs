@@ -27,7 +27,6 @@ struct SystemFont {
     style: String,
     path: String,
 }
-use serde::Serialize;
 
 #[derive(Deserialize, Default, Clone)]
 struct CaptionOptions {
@@ -174,6 +173,17 @@ fn run_with_progress(mut cmd: Command, duration: f64, window: &Window) -> Result
     }
     let status = child.wait().map_err(|e| format!("ffmpeg error: {}", e))?;
     if status.success() { Ok(()) } else { Err(format!("ffmpeg exited with status {:?}", status.code())) }
+}
+
+fn parse_publish_at(s: &str) -> Option<DateTime<Utc>> {
+    if let Ok(dt) = DateTime::parse_from_rfc3339(s) {
+        return Some(dt.with_timezone(&Utc));
+    }
+    if let Ok(naive) = NaiveDateTime::parse_from_str(s, "%Y-%m-%dT%H:%M") {
+        let local = Local.from_local_datetime(&naive).single()?;
+        return Some(local.with_timezone(&Utc));
+    }
+    None
 }
 
 fn convert_media(path: &str, duration: Option<f64>, width: u32, height: u32) -> Result<PathBuf, String> {
@@ -371,7 +381,7 @@ async fn upload_video_impl(file: String, opts: UploadOptions) -> Result<String, 
     if opts.publish_at.is_some() {
         video.status = Some(google_youtube3::api::VideoStatus {
             privacy_status: Some("private".to_string()),
-            publish_at: opts.publish_at.as_ref().and_then(|s| chrono::DateTime::parse_from_rfc3339(s).ok()).map(|d| d.with_timezone(&chrono::Utc)),
+            publish_at: opts.publish_at.as_ref().and_then(|s| parse_publish_at(s)),
             ..Default::default()
         });
     }

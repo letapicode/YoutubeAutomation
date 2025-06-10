@@ -134,7 +134,7 @@ const App: React.FC = () => {
         title: title || undefined,
         description: description || undefined,
         tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : undefined,
-        publishAt: publishDate ? new Date(publishDate).toISOString() : undefined,
+        publishAt: publishDate || undefined,
     });
 
     const closePreview = async () => {
