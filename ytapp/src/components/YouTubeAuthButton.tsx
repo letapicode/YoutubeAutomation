@@ -1,3 +1,4 @@
+// Button that handles OAuth sign-in with YouTube.
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { signIn, isSignedIn } from '../features/youtube';

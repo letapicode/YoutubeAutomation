@@ -1,3 +1,4 @@
+// Command line interface mirroring the GUI functionality.
 import { program } from 'commander';
 import { invoke } from '@tauri-apps/api/core';
 import path from 'path';

@@ -1,3 +1,4 @@
+// SVG icon representing an upload action.
 import React from 'react';
 
 const UploadIcon: React.FC<{className?: string}> = ({ className }) => (

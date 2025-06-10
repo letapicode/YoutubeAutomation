@@ -1,3 +1,4 @@
+// Generic modal dialog used throughout the UI.
 import React from 'react';
 
 interface ModalProps {

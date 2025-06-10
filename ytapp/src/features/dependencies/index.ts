@@ -1,3 +1,4 @@
+// Utility used at startup to ensure native dependencies like FFmpeg are present.
 import { invoke } from '@tauri-apps/api/core';
 
 export async function checkDependencies(): Promise<void> {
