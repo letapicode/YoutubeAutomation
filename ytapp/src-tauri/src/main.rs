@@ -140,13 +140,11 @@ fn convert_media(path: &str, duration: Option<f64>, width: u32, height: u32) -> 
     if status.success() { Ok(out) } else { Err("ffmpeg failed".into()) }
 }
 
-fn build_main_section(window: Option<&Window>, params: &GenerateParams, duration: f64) -> Result<PathBuf, String> {
+fn build_main_section(window: Option<&Window>, params: &GenerateParams, duration: f64, width: u32, height: u32) -> Result<PathBuf, String> {
     let out = temp_file("main");
     let mut cmd = Command::new("ffmpeg");
     cmd.arg("-y");
 
-    let width = params.width.unwrap_or(1280);
-    let height = params.height.unwrap_or(720);
 
     match params.background.as_deref() {
         Some(bg) if is_image(bg) => {
@@ -211,7 +209,7 @@ fn generate_video(window: Window, params: GenerateParams) -> Result<String, Stri
 
     let duration = audio_duration(&params.file)?;
     let _ = window.emit("generate_progress", 0f64);
-    let main = build_main_section(Some(&window), &params, duration)?;
+    let main = build_main_section(Some(&window), &params, duration, width, height)?;
 
     let mut segments = Vec::new();
     if let Some(ref intro) = params.intro {
@@ -466,10 +464,28 @@ fn verify_dependencies(app: tauri::AppHandle) -> Result<(), String> {
     Ok(())
 }
 
+#[command]
+fn install_tauri_deps() -> Result<(), String> {
+    let script = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../scripts/install_tauri_deps.sh");
+    if !script.exists() {
+        return Err("install script not found".into());
+    }
+    let status = Command::new("bash")
+        .arg(script)
+        .status()
+        .map_err(|e| e.to_string())?;
+    if status.success() {
+        Ok(())
+    } else {
+        Err(format!("script exited with status {:?}", status.code()))
+    }
+}
+
 fn main() {
     ensure_whisper_model();
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, youtube_sign_in, youtube_is_signed_in, load_settings, save_settings, verify_dependencies])
+        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, youtube_sign_in, youtube_is_signed_in, load_settings, save_settings, verify_dependencies, install_tauri_deps])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
