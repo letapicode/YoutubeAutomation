@@ -89,6 +89,11 @@
 * Generate & upload to YouTube button
 * Generation progress bar
 * Batch process progress UI
+* Drag & drop support for file inputs
+* Theme toggle (light/dark)
+* Settings page with persistent defaults
+* Interface translations (English, Nepali, Hindi)
+* Video preview modal after generation
 
 ---
 
@@ -103,6 +108,7 @@
 * Bundle Whisper model downloader on first launch
 * Checks for FFmpeg and the Whisper model at startup. Missing dependencies
   trigger a dialog explaining how to install them.
+* `scripts/package.sh` builds installers for Windows, macOS and Linux
 
 ---
 

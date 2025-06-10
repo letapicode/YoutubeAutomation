@@ -24,3 +24,4 @@ cd .. && npx ts-node src/cli.ts --help
 ## Additional Notes
 - Do not commit `.env.tauri` or build artifacts.
 - Prefer cross-platform paths when invoking external tools.
+- To create release installers for all platforms, run `./scripts/package.sh`.
