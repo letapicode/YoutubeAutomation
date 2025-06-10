@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { generateVideo } from './features/processing';
+import { listen } from '@tauri-apps/api/event';
 import YouTubeAuthButton from './components/YouTubeAuthButton';
 import { generateUpload, GenerateParams } from './features/youtube';
 import FilePicker from './components/FilePicker';
@@ -28,6 +29,8 @@ const App: React.FC = () => {
     const [theme, setTheme] = useState<'light' | 'dark'>(() =>
         localStorage.getItem('theme') === 'dark' ? 'dark' : 'light'
     );
+    const [progress, setProgress] = useState(0);
+    const [generating, setGenerating] = useState(false);
 
     useEffect(() => {
         checkDependencies();
@@ -56,6 +59,8 @@ const App: React.FC = () => {
 
     const handleGenerate = async () => {
         if (!file) return;
+        setGenerating(true);
+        setProgress(0);
         await generateVideo({
             file,
             captions: captions || undefined,
@@ -63,7 +68,8 @@ const App: React.FC = () => {
             background: background || undefined,
             intro: intro || undefined,
             outro: outro || undefined,
-        });
+        }, p => setProgress(Math.round(p)));
+        setGenerating(false);
     };
 
     const buildParams = (): GenerateParams => ({
@@ -77,7 +83,14 @@ const App: React.FC = () => {
 
     const handleGenerateUpload = async () => {
         if (!file) return;
+        setGenerating(true);
+        setProgress(0);
+        const unlisten = await listen<number>('generate_progress', e => {
+            if (typeof e.payload === 'number') setProgress(Math.round(e.payload));
+        });
         await generateUpload(buildParams());
+        unlisten();
+        setGenerating(false);
     };
 
     if (page === 'batch') {
@@ -190,6 +203,12 @@ const App: React.FC = () => {
                 <button onClick={() => setPage('batch')}>{t('batch_tools')}</button>
                 <button onClick={() => setPage('settings')}>{t('settings')}</button>
             </div>
+            {generating && (
+                <div className="row">
+                    <progress value={progress} max={100} />
+                    <span>{progress}%</span>
+                </div>
+            )}
         </div>
     );
 };

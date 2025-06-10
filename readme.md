@@ -86,6 +86,7 @@
 * YouTube sign-in button + status
 * Generate video button
 * Generate & upload to YouTube button
+* Generation progress bar
 * Batch process progress UI
 
 ---

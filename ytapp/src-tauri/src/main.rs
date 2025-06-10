@@ -4,7 +4,7 @@ use std::{
     path::{Path, PathBuf},
     process::Command,
 };
-use tauri::command;
+use tauri::{command, Window};
 use serde::{Deserialize, Serialize};
 use tauri::api::path::app_config_dir;
 use whisper_cli::{Language, Model, Size, Whisper};
@@ -92,6 +92,27 @@ fn temp_file(name: &str) -> PathBuf {
     std::env::temp_dir().join(format!("{}_{}.mp4", name, ts))
 }
 
+fn run_with_progress(mut cmd: Command, duration: f64, window: &Window) -> Result<(), String> {
+    use std::io::{BufRead, BufReader};
+    cmd.args(["-progress", "pipe:1", "-nostats"]);
+    cmd.stdout(std::process::Stdio::piped());
+    let mut child = cmd.spawn().map_err(|e| format!("failed to start ffmpeg: {}", e))?;
+    let stdout = child.stdout.take().ok_or("failed to capture stdout")?;
+    let reader = BufReader::new(stdout);
+    for line in reader.lines() {
+        if let Ok(l) = line {
+            if let Some(ms) = l.strip_prefix("out_time_ms=") {
+                if let Ok(val) = ms.trim().parse::<u64>() {
+                    let pct = (val as f64) / (duration * 1_000_000.0) * 100.0;
+                    let _ = window.emit("generate_progress", pct.min(100.0));
+                }
+            }
+        }
+    }
+    let status = child.wait().map_err(|e| format!("ffmpeg error: {}", e))?;
+    if status.success() { Ok(()) } else { Err(format!("ffmpeg exited with status {:?}", status.code())) }
+}
+
 fn convert_media(path: &str, duration: Option<f64>) -> Result<PathBuf, String> {
     let out = temp_file("segment");
     let mut cmd = Command::new("ffmpeg");
@@ -107,7 +128,7 @@ fn convert_media(path: &str, duration: Option<f64>) -> Result<PathBuf, String> {
     if status.success() { Ok(out) } else { Err("ffmpeg failed".into()) }
 }
 
-fn build_main_section(params: &GenerateParams, duration: f64) -> Result<PathBuf, String> {
+fn build_main_section(window: Option<&Window>, params: &GenerateParams, duration: f64) -> Result<PathBuf, String> {
     let out = temp_file("main");
     let mut cmd = Command::new("ffmpeg");
     cmd.arg("-y");
@@ -150,19 +171,27 @@ fn build_main_section(params: &GenerateParams, duration: f64) -> Result<PathBuf,
     }
 
     cmd.arg(out.to_str().unwrap());
-    let status = cmd.status().map_err(|e| format!("failed to start ffmpeg: {}", e))?;
-    if status.success() { Ok(out) } else { Err(format!("ffmpeg exited with status {:?}", status.code())) }
+    if let Some(w) = window {
+        run_with_progress(cmd, duration, w)?;
+    } else {
+        let status = cmd.status().map_err(|e| format!("failed to start ffmpeg: {}", e))?;
+        if !status.success() {
+            return Err(format!("ffmpeg exited with status {:?}", status.code()));
+        }
+    }
+    Ok(out)
 }
 
 #[command]
-fn generate_video(params: GenerateParams) -> Result<String, String> {
+fn generate_video(window: Window, params: GenerateParams) -> Result<String, String> {
     let output_path = params
         .output
         .clone()
         .unwrap_or_else(|| "output.mp4".to_string());
 
     let duration = audio_duration(&params.file)?;
-    let main = build_main_section(&params, duration)?;
+    let _ = window.emit("generate_progress", 0f64);
+    let main = build_main_section(Some(&window), &params, duration)?;
 
     let mut segments = Vec::new();
     if let Some(ref intro) = params.intro {
@@ -200,6 +229,8 @@ fn generate_video(params: GenerateParams) -> Result<String, String> {
             return Err(format!("ffmpeg exited with status {:?}", status.code()));
         }
     }
+
+    let _ = window.emit("generate_progress", 100f64);
 
     Ok(output_path)
 }
@@ -286,8 +317,8 @@ async fn youtube_is_signed_in() -> bool {
 }
 
 #[command]
-async fn generate_upload(params: GenerateParams) -> Result<String, String> {
-    let output = generate_video(params)?;
+async fn generate_upload(window: Window, params: GenerateParams) -> Result<String, String> {
+    let output = generate_video(window.clone(), params)?;
     let result = upload_video_impl(output.clone()).await?;
     let _ = fs::remove_file(output);
     Ok(result)
@@ -314,7 +345,7 @@ struct BatchGenerateParams {
 }
 
 #[command]
-async fn generate_batch_upload(params: BatchGenerateParams) -> Result<Vec<String>, String> {
+async fn generate_batch_upload(window: Window, params: BatchGenerateParams) -> Result<Vec<String>, String> {
     let mut results = Vec::new();
     for file in &params.files {
         let out = if let Some(ref dir) = params.output_dir {
@@ -326,7 +357,7 @@ async fn generate_batch_upload(params: BatchGenerateParams) -> Result<Vec<String
         } else {
             None
         };
-        let video = generate_video(GenerateParams {
+        let video = generate_video(window.clone(), GenerateParams {
             file: file.clone(),
             output: out.clone(),
             captions: params.captions.clone(),

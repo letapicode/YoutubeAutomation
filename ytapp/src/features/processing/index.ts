@@ -1,4 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
 
 export interface CaptionOptions {
     font?: string;
@@ -16,6 +17,19 @@ export interface GenerateParams {
     outro?: string;
 }
 
-export async function generateVideo(params: GenerateParams): Promise<string> {
-    return await invoke('generate_video', params);
+export type ProgressCallback = (progress: number) => void;
+
+export async function generateVideo(params: GenerateParams, onProgress?: ProgressCallback): Promise<string> {
+    let unlisten: (() => void) | undefined;
+    if (onProgress) {
+        unlisten = await listen<number>('generate_progress', e => {
+            if (typeof e.payload === 'number') onProgress(e.payload);
+        });
+    }
+    try {
+        const result: string = await invoke('generate_video', params);
+        return result;
+    } finally {
+        if (unlisten) unlisten();
+    }
 }
