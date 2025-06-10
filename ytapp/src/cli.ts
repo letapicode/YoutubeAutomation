@@ -17,6 +17,8 @@ interface GenerateParams {
   background?: string;
   intro?: string;
   outro?: string;
+  width?: number;
+  height?: number;
 }
 
 async function generateVideo(params: GenerateParams): Promise<any> {
@@ -75,6 +77,8 @@ program
   .option('-b, --background <file>', 'background image or video')
   .option('--intro <file>', 'intro video or image')
   .option('--outro <file>', 'outro video or image')
+  .option('--width <width>', 'output width', (v) => parseInt(v, 10))
+  .option('--height <height>', 'output height', (v) => parseInt(v, 10))
   .action(async (file: string, options: any) => {
     try {
       const params: GenerateParams = {
@@ -89,6 +93,8 @@ program
         background: options.background,
         intro: options.intro,
         outro: options.outro,
+        width: options.width,
+        height: options.height,
       };
       const result = await generateVideo(params);
       console.log(result);
@@ -110,6 +116,8 @@ program
   .option('-b, --background <file>', 'background image or video')
   .option('--intro <file>', 'intro video or image')
   .option('--outro <file>', 'outro video or image')
+  .option('--width <width>', 'output width', (v) => parseInt(v, 10))
+  .option('--height <height>', 'output height', (v) => parseInt(v, 10))
   .action(async (file: string, options: any) => {
     try {
       const params: GenerateParams = {
@@ -124,6 +132,8 @@ program
         background: options.background,
         intro: options.intro,
         outro: options.outro,
+        width: options.width,
+        height: options.height,
       };
       const result = await generateAndUpload(params);
       console.log(result);
@@ -145,6 +155,8 @@ program
   .option('-b, --background <file>', 'background image or video')
   .option('--intro <file>', 'intro video or image')
   .option('--outro <file>', 'outro video or image')
+  .option('--width <width>', 'output width', (v) => parseInt(v, 10))
+  .option('--height <height>', 'output height', (v) => parseInt(v, 10))
   .action(async (files: string[], options: any) => {
     try {
       const result = await invoke('generate_batch_upload', {
@@ -159,6 +171,8 @@ program
         background: options.background,
         intro: options.intro,
         outro: options.outro,
+        width: options.width,
+        height: options.height,
       } as any);
       console.log(result);
     } catch (err) {
@@ -179,6 +193,8 @@ program
   .option('-b, --background <file>', 'background image or video')
   .option('--intro <file>', 'intro video or image')
   .option('--outro <file>', 'outro video or image')
+  .option('--width <width>', 'output width', (v) => parseInt(v, 10))
+  .option('--height <height>', 'output height', (v) => parseInt(v, 10))
   .action(async (files: string[], options: any) => {
     for (const file of files) {
       const output = path.join(
@@ -198,6 +214,8 @@ program
           background: options.background,
           intro: options.intro,
           outro: options.outro,
+          width: options.width,
+          height: options.height,
         });
         console.log('Generated', output);
       } catch (err) {

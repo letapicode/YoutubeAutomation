@@ -65,6 +65,20 @@ const BatchOptionsForm: React.FC<BatchOptionsFormProps> = ({ value, onChange }) 
                     <option value="bottom">{t('bottom')}</option>
                 </select>
             </div>
+            <div>
+                <label>{t('resolution')}</label>
+                <select
+                    value={`${value.width || 1280}x${value.height || 720}`}
+                    onChange={e => {
+                        const [w, h] = e.target.value.split('x').map(v => parseInt(v, 10));
+                        update({ width: w, height: h });
+                    }}
+                >
+                    <option value="640x360">640x360</option>
+                    <option value="1280x720">1280x720</option>
+                    <option value="1920x1080">1920x1080</option>
+                </select>
+            </div>
         </div>
     );
 };

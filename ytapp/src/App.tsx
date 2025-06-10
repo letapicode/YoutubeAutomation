@@ -26,6 +26,8 @@ const App: React.FC = () => {
     const [size, setSize] = useState(24);
     const [position, setPosition] = useState('bottom');
     const [language, setLanguage] = useState<Language>('auto');
+    const [width, setWidth] = useState(1280);
+    const [height, setHeight] = useState(720);
     const [theme, setTheme] = useState<'light' | 'dark'>(() =>
         localStorage.getItem('theme') === 'dark' ? 'dark' : 'light'
     );
@@ -68,6 +70,8 @@ const App: React.FC = () => {
             background: background || undefined,
             intro: intro || undefined,
             outro: outro || undefined,
+            width,
+            height,
         }, p => setProgress(Math.round(p)));
         setGenerating(false);
     };
@@ -79,6 +83,8 @@ const App: React.FC = () => {
         background: background || undefined,
         intro: intro || undefined,
         outro: outro || undefined,
+        width,
+        height,
     });
 
     const handleGenerateUpload = async () => {
@@ -187,6 +193,21 @@ const App: React.FC = () => {
                     <option value="top">{t('top')}</option>
                     <option value="center">{t('center')}</option>
                     <option value="bottom">{t('bottom')}</option>
+                </select>
+            </div>
+            <div className="row">
+                <label>{t('resolution')}</label>
+                <select
+                    value={`${width}x${height}`}
+                    onChange={e => {
+                        const [w, h] = e.target.value.split('x').map(v => parseInt(v, 10));
+                        setWidth(w);
+                        setHeight(h);
+                    }}
+                >
+                    <option value="640x360">640x360</option>
+                    <option value="1280x720">1280x720</option>
+                    <option value="1920x1080">1920x1080</option>
                 </select>
             </div>
             <div className="row">

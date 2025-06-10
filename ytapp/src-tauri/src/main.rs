@@ -36,6 +36,8 @@ struct GenerateParams {
     background: Option<String>,
     intro: Option<String>,
     outro: Option<String>,
+    width: Option<u32>,
+    height: Option<u32>,
 }
 
 #[derive(Serialize, Deserialize, Default, Clone)]
@@ -113,7 +115,7 @@ fn run_with_progress(mut cmd: Command, duration: f64, window: &Window) -> Result
     if status.success() { Ok(()) } else { Err(format!("ffmpeg exited with status {:?}", status.code())) }
 }
 
-fn convert_media(path: &str, duration: Option<f64>) -> Result<PathBuf, String> {
+fn convert_media(path: &str, duration: Option<f64>, width: u32, height: u32) -> Result<PathBuf, String> {
     let out = temp_file("segment");
     let mut cmd = Command::new("ffmpeg");
     cmd.arg("-y");
@@ -123,7 +125,17 @@ fn convert_media(path: &str, duration: Option<f64>) -> Result<PathBuf, String> {
     } else {
         cmd.args(["-i", path]);
     }
-    cmd.args(["-pix_fmt", "yuv420p", "-c:v", "libx264", "-c:a", "aac", out.to_str().unwrap()]);
+    cmd.args([
+        "-vf",
+        &format!("scale={}x{}", width, height),
+        "-pix_fmt",
+        "yuv420p",
+        "-c:v",
+        "libx264",
+        "-c:a",
+        "aac",
+        out.to_str().unwrap(),
+    ]);
     let status = cmd.status().map_err(|e| e.to_string())?;
     if status.success() { Ok(out) } else { Err("ffmpeg failed".into()) }
 }
@@ -132,6 +144,9 @@ fn build_main_section(window: Option<&Window>, params: &GenerateParams, duration
     let out = temp_file("main");
     let mut cmd = Command::new("ffmpeg");
     cmd.arg("-y");
+
+    let width = params.width.unwrap_or(1280);
+    let height = params.height.unwrap_or(720);
 
     match params.background.as_deref() {
         Some(bg) if is_image(bg) => {
@@ -145,7 +160,7 @@ fn build_main_section(window: Option<&Window>, params: &GenerateParams, duration
                 "-f",
                 "lavfi",
                 "-i",
-                "color=c=black:s=1280x720:r=25",
+                &format!("color=c=black:s={}x{}:r=25", width, height),
                 "-t",
                 &duration.to_string(),
             ]);
@@ -153,6 +168,7 @@ fn build_main_section(window: Option<&Window>, params: &GenerateParams, duration
     }
 
     cmd.args(["-i", &params.file, "-shortest", "-pix_fmt", "yuv420p", "-c:v", "libx264", "-c:a", "aac"]);
+    let mut filter_chain = format!("scale={}x{}", width, height);
 
     if let Some(ref caption_file) = params.captions {
         let opts = params.caption_options.clone().unwrap_or_default();
@@ -163,12 +179,13 @@ fn build_main_section(window: Option<&Window>, params: &GenerateParams, duration
             "center" => "5",
             _ => "2",
         };
-        let filter = format!(
-            "subtitles={}:force_style='FontName={},FontSize={},Alignment={}'",
-            caption_file, font, size, alignment
+        filter_chain = format!(
+            "{} ,subtitles={}:force_style='FontName={},FontSize={},Alignment={}'",
+            filter_chain, caption_file, font, size, alignment
         );
-        cmd.args(["-vf", &filter]);
     }
+
+    cmd.args(["-vf", &filter_chain]);
 
     cmd.arg(out.to_str().unwrap());
     if let Some(w) = window {
@@ -189,17 +206,20 @@ fn generate_video(window: Window, params: GenerateParams) -> Result<String, Stri
         .clone()
         .unwrap_or_else(|| "output.mp4".to_string());
 
+    let width = params.width.unwrap_or(1280);
+    let height = params.height.unwrap_or(720);
+
     let duration = audio_duration(&params.file)?;
     let _ = window.emit("generate_progress", 0f64);
     let main = build_main_section(Some(&window), &params, duration)?;
 
     let mut segments = Vec::new();
     if let Some(ref intro) = params.intro {
-        segments.push(convert_media(intro, Some(5.0))?);
+        segments.push(convert_media(intro, Some(5.0), width, height)?);
     }
     segments.push(main);
     if let Some(ref outro) = params.outro {
-        segments.push(convert_media(outro, Some(5.0))?);
+        segments.push(convert_media(outro, Some(5.0), width, height)?);
     }
 
     if segments.len() == 1 {
@@ -342,6 +362,8 @@ struct BatchGenerateParams {
     background: Option<String>,
     intro: Option<String>,
     outro: Option<String>,
+    width: Option<u32>,
+    height: Option<u32>,
 }
 
 #[command]
@@ -365,6 +387,8 @@ async fn generate_batch_upload(window: Window, params: BatchGenerateParams) -> R
             background: params.background.clone(),
             intro: params.intro.clone(),
             outro: params.outro.clone(),
+            width: params.width,
+            height: params.height,
         })?;
         let res = upload_video_impl(video.clone()).await?;
         let _ = fs::remove_file(video);

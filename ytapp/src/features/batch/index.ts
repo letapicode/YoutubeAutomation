@@ -20,6 +20,8 @@ export async function generateBatch(files: string[], options: BatchOptions): Pro
             background: options.background,
             intro: options.intro,
             outro: options.outro,
+            width: options.width,
+            height: options.height,
         });
         results.push(res);
     }
@@ -42,6 +44,8 @@ export async function generateBatchWithProgress(files: string[], options: BatchO
             background: options.background,
             intro: options.intro,
             outro: options.outro,
+            width: options.width,
+            height: options.height,
         });
         results.push(res);
     }

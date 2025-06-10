@@ -21,6 +21,7 @@
     * Burn captions into video via FFmpeg
   * Optional Outro (user-provided video or image)
   * Output: Final video (H.264 MP4)
+  * Configurable resolution via `--width`/`--height` or UI dropdown
 
 ---
 
