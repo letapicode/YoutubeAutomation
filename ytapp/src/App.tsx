@@ -152,6 +152,8 @@ const App: React.FC = () => {
                     <option value="hi">हिन्दी</option>
                     <option value="es">Español</option>
                     <option value="fr">Français</option>
+                    <option value="zh">中文</option>
+                    <option value="ar">العربية</option>
                 </select>
                 <button onClick={toggleTheme}>{t('toggle_theme')}</button>
             </div>

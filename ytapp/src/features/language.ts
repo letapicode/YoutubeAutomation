@@ -5,6 +5,8 @@ export const languageOptions = [
   { value: 'en', label: 'English' },
   { value: 'es', label: 'Spanish' },
   { value: 'fr', label: 'French' },
+  { value: 'zh', label: 'Chinese' },
+  { value: 'ar', label: 'Arabic' },
 ] as const;
 
 export type Language = typeof languageOptions[number]['value'];
