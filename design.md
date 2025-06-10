@@ -8,10 +8,12 @@ This project follows a minimalist approach inspired by the principle **"Less but
 
 ## Colors
 - Prefer a neutral palette: light backgrounds (`#f5f5f5`) and dark text (`#333`).
+- Use the CSS variables defined in `theme.css` to support light and dark themes.
 - Avoid excessive decoration and keep iconography minimal.
 
 ## Components
 - Only present controls that are necessary for the task.
 - Display selected file paths as plain text instead of editable inputs.
+- File inputs should support drag & drop via the `DropZone` component.
 
 Following these guidelines keeps the UI clear and purposeful.
