@@ -9,6 +9,8 @@ interface CaptionOptions {
   style?: string;
   size?: number;
   position?: string;
+  color?: string;
+  outline?: string;
 }
 
 interface GenerateParams {
@@ -106,6 +108,8 @@ program
   .option('--style <style>', 'caption font style')
   .option('--size <size>', 'caption font size', (v) => parseInt(v, 10))
   .option('--position <pos>', 'caption position (top|center|bottom)')
+  .option('--color <color>', 'caption text color')
+  .option('--outline <color>', 'caption outline color')
   .option('-b, --background <file>', 'background image or video')
   .option('--intro <file>', 'intro video or image')
   .option('--outro <file>', 'outro video or image')
@@ -127,6 +131,8 @@ program
           style: options.style,
           size: options.size,
           position: options.position,
+          color: options.color,
+          outline: options.outline,
         },
         background: options.background,
         intro: options.intro,
@@ -157,6 +163,8 @@ program
   .option('--style <style>', 'caption font style')
   .option('--size <size>', 'caption font size', (v) => parseInt(v, 10))
   .option('--position <pos>', 'caption position (top|center|bottom)')
+  .option('--color <color>', 'caption text color')
+  .option('--outline <color>', 'caption outline color')
   .option('-b, --background <file>', 'background image or video')
   .option('--intro <file>', 'intro video or image')
   .option('--outro <file>', 'outro video or image')
@@ -174,6 +182,8 @@ program
           style: options.style,
           size: options.size,
           position: options.position,
+          color: options.color,
+          outline: options.outline,
         },
         background: options.background,
         intro: options.intro,
@@ -200,6 +210,8 @@ program
   .option('--style <style>', 'caption font style')
   .option('--size <size>', 'caption font size', (v) => parseInt(v, 10))
   .option('--position <pos>', 'caption position (top|center|bottom)')
+  .option('--color <color>', 'caption text color')
+  .option('--outline <color>', 'caption outline color')
   .option('-b, --background <file>', 'background image or video')
   .option('--intro <file>', 'intro video or image')
   .option('--outro <file>', 'outro video or image')
@@ -221,6 +233,8 @@ program
           style: options.style,
           size: options.size,
           position: options.position,
+          color: options.color,
+          outline: options.outline,
         },
         background: options.background,
         intro: options.intro,
@@ -248,6 +262,8 @@ program
   .option('--font <font>', 'caption font')
   .option('--size <size>', 'caption font size', (v) => parseInt(v, 10))
   .option('--position <pos>', 'caption position (top|center|bottom)')
+  .option('--color <color>', 'caption text color')
+  .option('--outline <color>', 'caption outline color')
   .option('-b, --background <file>', 'background image or video')
   .option('--intro <file>', 'intro video or image')
   .option('--outro <file>', 'outro video or image')
@@ -265,12 +281,14 @@ program
           output,
           captions: options.captions,
           captionOptions: {
-            font: options.font,
-            fontPath: options.fontPath,
-            style: options.style,
-            size: options.size,
-            position: options.position,
-          },
+          font: options.font,
+          fontPath: options.fontPath,
+          style: options.style,
+          size: options.size,
+          position: options.position,
+          color: options.color,
+          outline: options.outline,
+        },
           background: options.background,
           intro: options.intro,
           outro: options.outro,

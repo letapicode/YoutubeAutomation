@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import FilePicker from './FilePicker';
 import FontSelector from './FontSelector';
 import SizeSlider from './SizeSlider';
+import ColorPicker from './ColorPicker';
 import { BatchOptions } from '../features/batch';
 
 interface BatchOptionsFormProps {
@@ -60,6 +61,10 @@ const BatchOptionsForm: React.FC<BatchOptionsFormProps> = ({ value, onChange }) 
                     } : null}
                     onChange={(f) => update({ captionOptions: { font: f?.name, fontPath: f?.path, style: f?.style } })}
                 />
+            </div>
+            <div className="row">
+                <ColorPicker label={t('color')} value={value.captionOptions?.color || '#ffffff'} onChange={c => update({ captionOptions: { color: c } })} />
+                <ColorPicker label={t('outline')} value={value.captionOptions?.outline || '#000000'} onChange={o => update({ captionOptions: { outline: o } })} />
             </div>
             <div className="row">
                 <SizeSlider value={value.captionOptions?.size || 24} onChange={(s) => update({ captionOptions: { size: s } })} />

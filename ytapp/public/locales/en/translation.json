@@ -43,5 +43,7 @@
   "description": "Description",
   "tags": "Tags",
   "publish_date": "Publish Date"
+  ,"color": "Color"
+  ,"outline": "Outline Color"
 
 }

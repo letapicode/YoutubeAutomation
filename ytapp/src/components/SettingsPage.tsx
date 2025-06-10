@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import FilePicker from './FilePicker';
 import FontSelector from './FontSelector';
 import SizeSlider from './SizeSlider';
+import ColorPicker from './ColorPicker';
 import { loadSettings, saveSettings } from '../features/settings';
 
 const SettingsPage: React.FC = () => {
@@ -14,6 +15,8 @@ const SettingsPage: React.FC = () => {
     const [fontPath, setFontPath] = useState('');
     const [fontStyle, setFontStyle] = useState('');
     const [size, setSize] = useState(24);
+    const [color, setColor] = useState('#ffffff');
+    const [outline, setOutline] = useState('#000000');
     const [guide, setGuide] = useState(true);
 
     useEffect(() => {
@@ -25,6 +28,8 @@ const SettingsPage: React.FC = () => {
             setFontPath(s.captionFontPath || '');
             setFontStyle(s.captionStyle || '');
             setSize(s.captionSize || 24);
+            setColor(s.captionColor || '#ffffff');
+            setOutline(s.captionOutline || '#000000');
             setGuide(s.showGuide !== false);
         });
     }, []);
@@ -38,6 +43,8 @@ const SettingsPage: React.FC = () => {
             captionFontPath: fontPath || undefined,
             captionStyle: fontStyle || undefined,
             captionSize: size,
+            captionColor: color,
+            captionOutline: outline,
             showGuide: guide,
         });
     };
@@ -87,6 +94,10 @@ const SettingsPage: React.FC = () => {
                         setFontStyle(f?.style || '');
                     }}
                 />
+            </div>
+            <div>
+                <ColorPicker label={t('color')} value={color} onChange={setColor} />
+                <ColorPicker label={t('outline')} value={outline} onChange={setOutline} />
             </div>
             <div>
                 <SizeSlider value={size} onChange={setSize} />

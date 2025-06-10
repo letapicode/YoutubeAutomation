@@ -12,6 +12,7 @@ import BatchPage from './components/BatchPage';
 import SettingsPage from './components/SettingsPage';
 import FontSelector from './components/FontSelector';
 import SizeSlider from './components/SizeSlider';
+import ColorPicker from './components/ColorPicker';
 import { languageOptions, Language } from './features/language';
 import TranscribeButton from './components/TranscribeButton';
 import { loadSettings, saveSettings } from './features/settings';
@@ -34,6 +35,8 @@ const App: React.FC = () => {
     const [fontStyle, setFontStyle] = useState('');
     const [size, setSize] = useState(24);
     const [position, setPosition] = useState('bottom');
+    const [color, setColor] = useState('#ffffff');
+    const [outline, setOutline] = useState('#000000');
     const [language, setLanguage] = useState<Language>('auto');
     const [width, setWidth] = useState(1280);
     const [height, setHeight] = useState(720);
@@ -61,6 +64,8 @@ const App: React.FC = () => {
             if (s.captionFontPath) setFontPath(s.captionFontPath);
             if (s.captionStyle) setFontStyle(s.captionStyle);
             if (s.captionSize) setSize(s.captionSize);
+            if (s.captionColor) setColor(s.captionColor);
+            if (s.captionOutline) setOutline(s.captionOutline);
             if (s.showGuide !== false) setShowGuide(true);
         });
     }, []);
@@ -89,6 +94,8 @@ const App: React.FC = () => {
                 style: fontStyle || undefined,
                 size,
                 position,
+                color,
+                outline,
             },
             background: background || undefined,
             intro: intro || undefined,
@@ -109,6 +116,8 @@ const App: React.FC = () => {
             style: fontStyle || undefined,
             size,
             position,
+            color,
+            outline,
         },
         background: background || undefined,
         intro: intro || undefined,
@@ -142,6 +151,8 @@ const App: React.FC = () => {
             outro: outro || undefined,
             background: background || undefined,
             captionFont: font || undefined,
+            captionColor: color,
+            captionOutline: outline,
             captionSize: size,
             showGuide: false,
         });
@@ -273,6 +284,10 @@ const App: React.FC = () => {
                         setFontStyle(f?.style || '');
                     }}
                 />
+            </div>
+            <div className="row">
+                <ColorPicker label={t('color')} value={color} onChange={setColor} />
+                <ColorPicker label={t('outline')} value={outline} onChange={setOutline} />
             </div>
             <div className="row">
                 <SizeSlider value={size} onChange={setSize} />

@@ -36,6 +36,8 @@ struct CaptionOptions {
     style: Option<String>,
     size: Option<u32>,
     position: Option<String>,
+    color: Option<String>,
+    outline: Option<String>,
 }
 
 #[derive(Deserialize, Clone)]
@@ -72,6 +74,8 @@ struct AppSettings {
     caption_font_path: Option<String>,
     caption_style: Option<String>,
     caption_size: Option<u32>,
+    caption_color: Option<String>,
+    caption_outline: Option<String>,
     show_guide: Option<bool>,
 }
 
@@ -83,6 +87,8 @@ impl Default for AppSettings {
             background: None,
             caption_font: None,
             caption_size: None,
+            caption_color: None,
+            caption_outline: None,
             show_guide: Some(true),
         }
     }
@@ -131,6 +137,18 @@ fn temp_file(name: &str) -> PathBuf {
         .unwrap()
         .as_nanos();
     std::env::temp_dir().join(format!("{}_{}.mp4", name, ts))
+}
+
+fn ass_color(hex: &str) -> String {
+    let h = hex.trim_start_matches('#');
+    if h.len() == 6 {
+        let r = &h[0..2];
+        let g = &h[2..4];
+        let b = &h[4..6];
+        format!("&H00{}{}{}&", b, g, r)
+    } else {
+        hex.to_string()
+    }
 }
 
 fn run_with_progress(mut cmd: Command, duration: f64, window: &Window) -> Result<(), String> {
@@ -223,6 +241,12 @@ fn build_main_section(window: Option<&Window>, params: &GenerateParams, duration
         }
         if style.to_lowercase().contains("italic") {
             style_parts.push("Italic=1".into());
+        }
+        if let Some(col) = opts.color {
+            style_parts.push(format!("PrimaryColour={}", ass_color(&col)));
+        }
+        if let Some(out) = opts.outline {
+            style_parts.push(format!("OutlineColour={}", ass_color(&out)));
         }
         if let Some(ref path) = opts.font_path {
             let dir = Path::new(path).parent().and_then(|p| p.to_str()).unwrap_or("");

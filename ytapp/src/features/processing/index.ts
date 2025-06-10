@@ -7,6 +7,8 @@ export interface CaptionOptions {
     style?: string;
     size?: number;
     position?: string;
+    color?: string;
+    outline?: string;
 }
 
 export interface GenerateParams {

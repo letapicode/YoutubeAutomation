@@ -49,6 +49,8 @@
   * Font (user-selectable)
   * Size (user-selectable)
   * Position (top / center / bottom)
+  * Color
+  * Outline Color
 
 ---
 

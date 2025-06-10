@@ -8,6 +8,8 @@ export interface Settings {
     captionFontPath?: string;
     captionStyle?: string;
     captionSize?: number;
+    captionColor?: string;
+    captionOutline?: string;
     showGuide?: boolean;
 }
 
