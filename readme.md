@@ -30,24 +30,9 @@
 
 * OpenAI Whisper ([https://github.com/openai/whisper](https://github.com/openai/whisper)), local model
 * Transcribe input audio
-* Supported languages (with automatic detection when "Auto" is selected):
-
-  * Nepali
-  * Hindi
-  * English
-  * Spanish
-  * French
-  * Chinese
-  * Arabic
-  * Portuguese
-  * Russian
-  * Japanese
-  * German
-  * Italian
-  * Korean
-  * Vietnamese
-  * Turkish
-  * Indonesian
+* Supported languages (with automatic detection when "Auto" is selected)
+  are defined in `shared/languages.json`. Whisper currently supports 99
+  languages so captions and transcripts can be generated worldwide.
 * Output `.srt` file
 * Burn `.srt` captions into video using FFmpeg:
 
@@ -109,7 +94,8 @@
 * Settings page with persistent defaults
 * Interface translations (English, Nepali, Hindi, Spanish, French, Chinese,
   Arabic, Portuguese, Russian, Japanese, German, Italian, Korean,
-  Vietnamese, Turkish, Indonesian)
+  Vietnamese, Turkish, Indonesian) with additional languages easily
+  extendable via `public/locales`.
 * Video preview modal after generation
 
 ---

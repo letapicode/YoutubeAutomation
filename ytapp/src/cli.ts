@@ -2,6 +2,9 @@ import { program } from 'commander';
 import { invoke } from '@tauri-apps/api/core';
 import path from 'path';
 import { spawn } from 'child_process';
+import languages from '../shared/languages.json';
+
+const codes = languages.map(l => l.code).join('|');
 
 interface CaptionOptions {
   font?: string;
@@ -349,7 +352,7 @@ program
   .command('transcribe')
   .description('Transcribe audio to SRT')
   .argument('<file>', 'audio file path')
-  .option('-l, --language <lang>', 'language code (auto|ne|hi|en)', 'auto')
+  .option('-l, --language <lang>', `language code (auto|${codes})`, 'auto')
   // Specify one or more target language codes using multiple -t options
   .option('-t, --translate <lang...>', 'translate subtitles to languages')
   .action(async (file: string, options: any) => {

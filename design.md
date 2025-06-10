@@ -36,6 +36,8 @@ This project follows a minimalist approach inspired by the principle **"Less but
 - Action buttons may include small SVG icons for clarity.
 - Components should remain visually quiet, leaving generous whitespace around elements.
 - Typography scales in small increments (1.25x) for harmony.
+- When localizing the interface, allow generous horizontal space so text
+  expansion in other languages does not break layouts.
 
 Inspired by the work of Dieter Rams and Jony Ive, these rules emphasize clarity, restrained color use and quiet motion.
 Always strive for "as little design as possible".
