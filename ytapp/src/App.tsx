@@ -16,6 +16,8 @@ import { languageOptions, Language } from './features/language';
 import TranscribeButton from './components/TranscribeButton';
 import { loadSettings } from './features/settings';
 import Modal from './components/Modal';
+import UploadIcon from './components/UploadIcon';
+import SettingsIcon from './components/SettingsIcon';
 
 const App: React.FC = () => {
     const { t, i18n } = useTranslation();
@@ -184,6 +186,8 @@ const App: React.FC = () => {
                 />
                 {captions && <span>{captions}</span>}
             </div>
+            <details>
+                <summary>{t('advanced_settings')}</summary>
             <div className="row">
                 <FilePicker
                     useDropZone
@@ -239,6 +243,7 @@ const App: React.FC = () => {
                     <option value="1080x1920">1080x1920</option>
                 </select>
             </div>
+            </details>
             <div className="row">
                 <select value={language} onChange={(e) => setLanguage(e.target.value as Language)}>
                     {languageOptions.map(opt => (
@@ -266,9 +271,15 @@ const App: React.FC = () => {
             <div className="row">
                 <YouTubeAuthButton />
                 <button onClick={handleGenerate}>{t('generate')}</button>
-                <button onClick={handleGenerateUpload}>{t('generate_upload')}</button>
+                <button onClick={handleGenerateUpload}>
+                    <UploadIcon />
+                    {t('generate_upload')}
+                </button>
                 <button onClick={() => setPage('batch')}>{t('batch_tools')}</button>
-                <button onClick={() => setPage('settings')}>{t('settings')}</button>
+                <button onClick={() => setPage('settings')}>
+                    <SettingsIcon />
+                    {t('settings')}
+                </button>
             </div>
             {generating && (
                 <div className="row">

@@ -31,5 +31,6 @@
   "toggle_theme": "Changer le thème",
   "settings": "Paramètres",
   "save": "Sauvegarder",
-  "preview": "Aperçu"
+  "preview": "Aperçu",
+  "advanced_settings": "Paramètres avancés"
 }

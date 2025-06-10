@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import FilePicker from './FilePicker';
 import { uploadVideo } from '../features/youtube';
+import UploadIcon from './UploadIcon';
 
 const BatchUploader: React.FC = () => {
     const { t } = useTranslation();
@@ -30,13 +31,20 @@ const BatchUploader: React.FC = () => {
     };
 
     return (
-        <div>
+        <div className="batch-uploader">
             <h3>{t('batch_upload')}</h3>
-            <FilePicker multiple onSelect={handleSelect} label={t('select_videos')} filters={[{ name: 'Videos', extensions: ['mp4'] }]} />
-            {files.length > 0 && <p>{t('files_selected', { count: files.length })}</p>}
-            <button onClick={startUpload} disabled={running || !files.length}>{t('upload')}</button>
+            <div className="row">
+                <FilePicker multiple onSelect={handleSelect} label={t('select_videos')} filters={[{ name: 'Videos', extensions: ['mp4'] }]} />
+                {files.length > 0 && <p>{t('files_selected', { count: files.length })}</p>}
+            </div>
+            <div className="row">
+                <button onClick={startUpload} disabled={running || !files.length}>
+                    <UploadIcon />
+                    {t('upload')}
+                </button>
+            </div>
             {files.map(f => (
-                <div key={f}>
+                <div className="row" key={f}>
                     <span>{f}</span>
                     {running && <progress value={progressMap[f] || 0} max={100} />}
                     {!running && progressMap[f] === 100 && <span>{t('done')}</span>}
