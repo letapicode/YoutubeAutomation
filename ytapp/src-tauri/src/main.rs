@@ -408,11 +408,14 @@ async fn build_authenticator() -> Result<Authenticator<HttpsConnector<HttpConnec
         .map_err(|e| format!("Failed to read client secret: {}", e))?;
 
     let token_path = std::env::var("YOUTUBE_TOKEN_FILE").unwrap_or_else(|_| "youtube_tokens.enc".into());
-    let key_env = std::env::var("YOUTUBE_TOKEN_KEY").unwrap_or_else(|_| "0123456789abcdef0123456789abcdef".into());
-    let mut key = [0u8; 32];
-    for (i, b) in key_env.as_bytes().iter().take(32).enumerate() {
-        key[i] = *b;
+    let key_env = std::env::var("YOUTUBE_TOKEN_KEY")
+        .map_err(|_| "Missing YOUTUBE_TOKEN_KEY environment variable".to_string())?;
+    let key_bytes = key_env.as_bytes();
+    if key_bytes.len() != 32 {
+        return Err("YOUTUBE_TOKEN_KEY must be exactly 32 bytes long".into());
     }
+    let mut key = [0u8; 32];
+    key.copy_from_slice(key_bytes);
     let store = EncryptedTokenStorage::new(token_path, key)
         .await
         .map_err(|e| format!("Token storage error: {}", e))?;

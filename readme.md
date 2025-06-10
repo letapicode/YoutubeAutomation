@@ -131,6 +131,7 @@
   * Implemented in Rust backend using google-youtube3 crate
   * Requires `client_secret.json` path via `YOUTUBE_CLIENT_SECRET` env variable
   * Tokens stored in `youtube_tokens.json`
+  * Encryption key via `YOUTUBE_TOKEN_KEY` env variable (32 bytes)
 * Publish dates entered in the UI use your local time zone and are converted to UTC on upload
 * Batch upload support
 
