@@ -16,6 +16,26 @@ import ko from '../public/locales/ko/translation.json';
 import vi from '../public/locales/vi/translation.json';
 import tr from '../public/locales/tr/translation.json';
 import id from '../public/locales/id/translation.json';
+import nl from '../public/locales/nl/translation.json';
+import th from '../public/locales/th/translation.json';
+import pl from '../public/locales/pl/translation.json';
+import sv from '../public/locales/sv/translation.json';
+import fi from '../public/locales/fi/translation.json';
+import he from '../public/locales/he/translation.json';
+import uk from '../public/locales/uk/translation.json';
+import el from '../public/locales/el/translation.json';
+import ms from '../public/locales/ms/translation.json';
+import cs from '../public/locales/cs/translation.json';
+import ro from '../public/locales/ro/translation.json';
+import da from '../public/locales/da/translation.json';
+import hu from '../public/locales/hu/translation.json';
+import no from '../public/locales/no/translation.json';
+import ur from '../public/locales/ur/translation.json';
+import hr from '../public/locales/hr/translation.json';
+import bg from '../public/locales/bg/translation.json';
+import lt from '../public/locales/lt/translation.json';
+import lv from '../public/locales/lv/translation.json';
+import sk from '../public/locales/sk/translation.json';
 import { languages } from './features/languages';
 
 const translations: Record<string, any> = {
@@ -35,6 +55,26 @@ const translations: Record<string, any> = {
   vi,
   tr,
   id,
+  nl,
+  th,
+  pl,
+  sv,
+  fi,
+  he,
+  uk,
+  el,
+  ms,
+  cs,
+  ro,
+  da,
+  hu,
+  no,
+  ur,
+  hr,
+  bg,
+  lt,
+  lv,
+  sk,
 };
 
 const resources = languages.reduce<Record<string, { translation: any }>>((acc, l) => {

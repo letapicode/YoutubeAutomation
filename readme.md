@@ -129,7 +129,9 @@
 * Settings page with persistent defaults
 * Interface translations (English, Nepali, Hindi, Spanish, French, Chinese,
   Arabic, Portuguese, Russian, Japanese, German, Italian, Korean,
-  Vietnamese, Turkish, Indonesian)
+  Vietnamese, Turkish, Indonesian, plus many more). Translations
+  for the newer languages may be incomplete – contributions are
+  very welcome.
 * Video preview modal after generation
 
 ---
