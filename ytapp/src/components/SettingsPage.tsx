@@ -14,6 +14,7 @@ const SettingsPage: React.FC = () => {
     const [fontPath, setFontPath] = useState('');
     const [fontStyle, setFontStyle] = useState('');
     const [size, setSize] = useState(24);
+    const [guide, setGuide] = useState(true);
 
     useEffect(() => {
         loadSettings().then(s => {
@@ -24,6 +25,7 @@ const SettingsPage: React.FC = () => {
             setFontPath(s.captionFontPath || '');
             setFontStyle(s.captionStyle || '');
             setSize(s.captionSize || 24);
+            setGuide(s.showGuide !== false);
         });
     }, []);
 
@@ -36,6 +38,7 @@ const SettingsPage: React.FC = () => {
             captionFontPath: fontPath || undefined,
             captionStyle: fontStyle || undefined,
             captionSize: size,
+            showGuide: guide,
         });
     };
 

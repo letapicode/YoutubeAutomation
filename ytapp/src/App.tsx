@@ -14,10 +14,11 @@ import FontSelector from './components/FontSelector';
 import SizeSlider from './components/SizeSlider';
 import { languageOptions, Language } from './features/language';
 import TranscribeButton from './components/TranscribeButton';
-import { loadSettings } from './features/settings';
+import { loadSettings, saveSettings } from './features/settings';
 import Modal from './components/Modal';
 import UploadIcon from './components/UploadIcon';
 import SettingsIcon from './components/SettingsIcon';
+import OnboardingModal from './components/OnboardingModal';
 
 const App: React.FC = () => {
     const { t, i18n } = useTranslation();
@@ -43,10 +44,12 @@ const App: React.FC = () => {
     const [generating, setGenerating] = useState(false);
     const [outputs, setOutputs] = useState<string[]>([]);
     const [preview, setPreview] = useState('');
+    const [showGuide, setShowGuide] = useState(false);
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [tags, setTags] = useState('');
     const [publishDate, setPublishDate] = useState('');
+
 
 
     useEffect(() => {
@@ -58,6 +61,7 @@ const App: React.FC = () => {
             if (s.captionFontPath) setFontPath(s.captionFontPath);
             if (s.captionStyle) setFontStyle(s.captionStyle);
             if (s.captionSize) setSize(s.captionSize);
+            if (s.showGuide !== false) setShowGuide(true);
         });
     }, []);
 
@@ -129,6 +133,18 @@ const App: React.FC = () => {
             }
         }
         setPreview('');
+    };
+
+    const dismissGuide = async () => {
+        setShowGuide(false);
+        await saveSettings({
+            intro: intro || undefined,
+            outro: outro || undefined,
+            background: background || undefined,
+            captionFont: font || undefined,
+            captionSize: size,
+            showGuide: false,
+        });
     };
 
     const handleGenerateUpload = async () => {
@@ -345,6 +361,7 @@ const App: React.FC = () => {
                     />
                 )}
             </Modal>
+            <OnboardingModal open={showGuide} onClose={dismissGuide} />
         </div>
     );
 };

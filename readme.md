@@ -168,6 +168,16 @@ cargo check          # run inside ytapp/src-tauri
 npx ts-node src/cli.ts --help
 ```
 
+### Onboarding
+
+The first time you start the app a short guide appears explaining how to:
+
+1. Select an audio file.
+2. Generate the video.
+3. Upload directly to YouTube.
+
+The guide only shows once and the preference is stored in `settings.json`.
+
 ### Design Guidelines
 
 See [design.md](design.md) for the updated design approach. The interface now uses generous whitespace, consistent grid spacing and subtle transitions in the spirit of Dieter Rams and Jony Ive.

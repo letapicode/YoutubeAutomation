@@ -8,6 +8,7 @@ export interface Settings {
     captionFontPath?: string;
     captionStyle?: string;
     captionSize?: number;
+    showGuide?: boolean;
 }
 
 export async function loadSettings(): Promise<Settings> {

@@ -63,7 +63,7 @@ struct UploadOptions {
     publish_at: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Default, Clone)]
+#[derive(Serialize, Deserialize, Clone)]
 struct AppSettings {
     intro: Option<String>,
     outro: Option<String>,
@@ -72,6 +72,20 @@ struct AppSettings {
     caption_font_path: Option<String>,
     caption_style: Option<String>,
     caption_size: Option<u32>,
+    show_guide: Option<bool>,
+}
+
+impl Default for AppSettings {
+    fn default() -> Self {
+        AppSettings {
+            intro: None,
+            outro: None,
+            background: None,
+            caption_font: None,
+            caption_size: None,
+            show_guide: Some(true),
+        }
+    }
 }
 
 fn settings_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
@@ -475,7 +489,11 @@ fn load_settings(app: tauri::AppHandle) -> Result<AppSettings, String> {
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(AppSettings::default()),
         Err(e) => return Err(e.to_string()),
     };
-    serde_json::from_str(&data).map_err(|e| e.to_string())
+    let mut settings: AppSettings = serde_json::from_str(&data).map_err(|e| e.to_string())?;
+    if settings.show_guide.is_none() {
+        settings.show_guide = Some(true);
+    }
+    Ok(settings)
 }
 
 #[command]
