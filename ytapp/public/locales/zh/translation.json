@@ -32,5 +32,9 @@
   "settings": "\u8bbe\u7f6e",
   "save": "\u4fdd\u5b58",
   "preview": "\u9884\u89c8",
-  "advanced_settings": "\u9ad8\u7ea7\u8bbe\u7f6e"
+  "advanced_settings": "\u9ad8\u7ea7\u8bbe\u7f6e",
+  "welcome_title": "Welcome",
+  "guide_select_audio": "Select an audio file",
+  "guide_generate": "Click Generate to create your video",
+  "guide_upload": "Use Generate & Upload to post to YouTube"
 }

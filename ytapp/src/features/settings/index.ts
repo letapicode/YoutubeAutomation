@@ -6,6 +6,7 @@ export interface Settings {
     background?: string;
     captionFont?: string;
     captionSize?: number;
+    showGuide?: boolean;
 }
 
 export async function loadSettings(): Promise<Settings> {

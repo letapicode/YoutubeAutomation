@@ -12,6 +12,7 @@ const SettingsPage: React.FC = () => {
     const [outro, setOutro] = useState('');
     const [font, setFont] = useState('');
     const [size, setSize] = useState(24);
+    const [guide, setGuide] = useState(true);
 
     useEffect(() => {
         loadSettings().then(s => {
@@ -20,6 +21,7 @@ const SettingsPage: React.FC = () => {
             setOutro(s.outro || '');
             setFont(s.captionFont || '');
             setSize(s.captionSize || 24);
+            setGuide(s.showGuide !== false);
         });
     }, []);
 
@@ -30,6 +32,7 @@ const SettingsPage: React.FC = () => {
             outro: outro || undefined,
             captionFont: font || undefined,
             captionSize: size,
+            showGuide: guide,
         });
     };
 

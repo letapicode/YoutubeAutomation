@@ -32,5 +32,9 @@
   "settings": "Ajustes",
   "save": "Guardar",
   "preview": "Vista previa",
-  "advanced_settings": "Configuraci\u00f3n avanzada"
+  "advanced_settings": "Configuraci\u00f3n avanzada",
+  "welcome_title": "Welcome",
+  "guide_select_audio": "Select an audio file",
+  "guide_generate": "Click Generate to create your video",
+  "guide_upload": "Use Generate & Upload to post to YouTube"
 }
