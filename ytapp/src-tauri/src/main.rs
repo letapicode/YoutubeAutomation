@@ -36,6 +36,8 @@ struct CaptionOptions {
     style: Option<String>,
     size: Option<u32>,
     position: Option<String>,
+    color: Option<String>,
+    background: Option<String>,
 }
 
 #[derive(Deserialize, Clone)]
@@ -72,6 +74,8 @@ struct AppSettings {
     caption_font_path: Option<String>,
     caption_style: Option<String>,
     caption_size: Option<u32>,
+    caption_color: Option<String>,
+    caption_bg: Option<String>,
     show_guide: Option<bool>,
 }
 
@@ -82,7 +86,11 @@ impl Default for AppSettings {
             outro: None,
             background: None,
             caption_font: None,
+            caption_font_path: None,
+            caption_style: None,
             caption_size: None,
+            caption_color: None,
+            caption_bg: None,
             show_guide: Some(true),
         }
     }
@@ -93,6 +101,20 @@ fn settings_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
     fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
     dir.push("settings.json");
     Ok(dir)
+}
+
+fn ass_color(hex: &str) -> Option<String> {
+    let h = hex.strip_prefix('#').unwrap_or(hex);
+    if h.len() == 6 {
+        if let (Ok(r), Ok(g), Ok(b)) = (
+            u8::from_str_radix(&h[0..2], 16),
+            u8::from_str_radix(&h[2..4], 16),
+            u8::from_str_radix(&h[4..6], 16),
+        ) {
+            return Some(format!("&H{:02X}{:02X}{:02X}&", b, g, r));
+        }
+    }
+    None
 }
 
 fn is_image(p: &str) -> bool {
@@ -223,6 +245,13 @@ fn build_main_section(window: Option<&Window>, params: &GenerateParams, duration
         }
         if style.to_lowercase().contains("italic") {
             style_parts.push("Italic=1".into());
+        }
+        if let Some(ref c) = opts.color.as_deref().and_then(ass_color) {
+            style_parts.push(format!("PrimaryColour={}", c));
+        }
+        if let Some(ref b) = opts.background.as_deref().and_then(ass_color) {
+            style_parts.push(format!("BackColour={}", b));
+            style_parts.push("BorderStyle=3".into());
         }
         if let Some(ref path) = opts.font_path {
             let dir = Path::new(path).parent().and_then(|p| p.to_str()).unwrap_or("");

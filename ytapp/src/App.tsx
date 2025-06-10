@@ -37,9 +37,12 @@ const App: React.FC = () => {
     const [language, setLanguage] = useState<Language>('auto');
     const [width, setWidth] = useState(1280);
     const [height, setHeight] = useState(720);
-    const [theme, setTheme] = useState<'light' | 'dark'>(() =>
-        localStorage.getItem('theme') === 'dark' ? 'dark' : 'light'
-    );
+    const [theme, setTheme] = useState<'light' | 'dark' | 'high'>(() => {
+        const t = localStorage.getItem('theme');
+        return t === 'dark' || t === 'high' ? (t as any) : 'light';
+    });
+    const [captionColor, setCaptionColor] = useState('#ffffff');
+    const [captionBg, setCaptionBg] = useState('#000000');
     const [progress, setProgress] = useState(0);
     const [generating, setGenerating] = useState(false);
     const [outputs, setOutputs] = useState<string[]>([]);
@@ -61,6 +64,8 @@ const App: React.FC = () => {
             if (s.captionFontPath) setFontPath(s.captionFontPath);
             if (s.captionStyle) setFontStyle(s.captionStyle);
             if (s.captionSize) setSize(s.captionSize);
+            if (s.captionColor) setCaptionColor(s.captionColor);
+            if (s.captionBg) setCaptionBg(s.captionBg);
             if (s.showGuide !== false) setShowGuide(true);
         });
     }, []);
@@ -70,7 +75,14 @@ const App: React.FC = () => {
         localStorage.setItem('theme', theme);
     }, [theme]);
 
-    const toggleTheme = () => setTheme(theme === 'light' ? 'dark' : 'light');
+    useEffect(() => {
+        const rtl = ['ar', 'he', 'fa', 'ur'].includes(i18n.language);
+        document.documentElement.dir = rtl ? 'rtl' : 'ltr';
+    }, [i18n.language]);
+
+    const toggleTheme = () =>
+        setTheme(theme === 'light' ? 'dark' : theme === 'dark' ? 'high' : 'light');
+
 
     const handleTranscriptionComplete = (srts: string[]) => {
         if (srts.length) setCaptions(srts[0]);
@@ -89,6 +101,8 @@ const App: React.FC = () => {
                 style: fontStyle || undefined,
                 size,
                 position,
+                color: captionColor,
+                background: captionBg,
             },
             background: background || undefined,
             intro: intro || undefined,
@@ -109,6 +123,8 @@ const App: React.FC = () => {
             style: fontStyle || undefined,
             size,
             position,
+            color: captionColor,
+            background: captionBg,
         },
         background: background || undefined,
         intro: intro || undefined,
@@ -142,7 +158,11 @@ const App: React.FC = () => {
             outro: outro || undefined,
             background: background || undefined,
             captionFont: font || undefined,
+            captionFontPath: fontPath || undefined,
+            captionStyle: fontStyle || undefined,
             captionSize: size,
+            captionColor: captionColor,
+            captionBg: captionBg,
             showGuide: false,
         });
     };
@@ -158,6 +178,25 @@ const App: React.FC = () => {
         unlisten();
         setGenerating(false);
     };
+
+    useEffect(() => {
+        const handler = (e: KeyboardEvent) => {
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === 'g') {
+                    handleGenerate();
+                    e.preventDefault();
+                } else if (e.key === 'u') {
+                    handleGenerateUpload();
+                    e.preventDefault();
+                } else if (e.key === 's') {
+                    setPage('settings');
+                    e.preventDefault();
+                }
+            }
+        };
+        window.addEventListener('keydown', handler);
+        return () => window.removeEventListener('keydown', handler);
+    }, [handleGenerateUpload, handleGenerate, setPage]);
 
     if (page === 'batch') {
         return (
@@ -193,6 +232,15 @@ const App: React.FC = () => {
                     <option value="fr">Français</option>
                     <option value="zh">中文</option>
                     <option value="ar">العربية</option>
+                    <option value="pt">Português</option>
+                    <option value="ru">Русский</option>
+                    <option value="ja">日本語</option>
+                    <option value="de">Deutsch</option>
+                    <option value="it">Italiano</option>
+                    <option value="ko">한국어</option>
+                    <option value="vi">Tiếng Việt</option>
+                    <option value="tr">Türkçe</option>
+                    <option value="id">Bahasa Indonesia</option>
                 </select>
                 <button onClick={toggleTheme}>{t('toggle_theme')}</button>
             </div>
@@ -277,6 +325,12 @@ const App: React.FC = () => {
             <div className="row">
                 <SizeSlider value={size} onChange={setSize} />
                 <span>{size}</span>
+            </div>
+            <div className="row">
+                <label>{t('caption_color')}</label>
+                <input type="color" value={captionColor} onChange={e => setCaptionColor(e.target.value)} />
+                <label>{t('caption_bg')}</label>
+                <input type="color" value={captionBg} onChange={e => setCaptionBg(e.target.value)} />
             </div>
             <div className="row">
                 <select value={position} onChange={(e) => setPosition(e.target.value)}>
