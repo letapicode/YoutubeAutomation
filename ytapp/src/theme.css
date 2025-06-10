@@ -5,6 +5,8 @@
   --button-text: #333;
   --button-radius: 4px;
   --button-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --spacing: 1.5rem;
+  --transition: 0.2s ease;
 }
 [data-theme="dark"] {
   --bg-color: #333;
@@ -12,4 +14,6 @@
   --button-bg: #444;
   --button-text: #f5f5f5;
   --button-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --spacing: 1.5rem;
+  --transition: 0.2s ease;
 }

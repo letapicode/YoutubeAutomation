@@ -170,7 +170,7 @@ npx ts-node src/cli.ts --help
 
 ### Design Guidelines
 
-See [design.md](design.md) for the UI style guide based on the principle "Less but better".
+See [design.md](design.md) for the updated design approach. The interface now uses generous whitespace, consistent grid spacing and subtle transitions in the spirit of Dieter Rams and Jony Ive.
 
 Finally, start the Tauri application:
 

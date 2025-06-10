@@ -1,13 +1,14 @@
 body {
   margin: 0;
-  font-family: sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.6;
   background-color: var(--bg-color);
   color: var(--text-color);
 }
 
 .app {
   display: grid;
-  gap: 1.5rem;
+  gap: 2rem;
   padding: 2rem;
   max-width: 900px;
   margin: 0 auto;
@@ -15,7 +16,7 @@ body {
 
 .row {
   display: flex;
-  gap: 1rem;
+  gap: var(--spacing);
   align-items: center;
 }
 
@@ -26,6 +27,7 @@ button {
   border: 1px solid var(--text-color);
   border-radius: var(--button-radius);
   box-shadow: var(--button-shadow);
+  transition: background-color var(--transition), box-shadow var(--transition), transform var(--transition);
 }
 
 button svg {
@@ -40,6 +42,7 @@ button svg {
   border: 2px dashed var(--text-color);
   text-align: center;
   cursor: pointer;
+  transition: background-color var(--transition), box-shadow var(--transition);
 }
 
 .modal-overlay {
@@ -61,8 +64,20 @@ button svg {
   max-width: 90%;
   max-height: 90%;
   overflow: auto;
+  transition: opacity var(--transition), transform var(--transition);
 }
 
 .modal .close {
   float: right;
+}
+
+[dir="rtl"] .row {
+  flex-direction: row-reverse;
+}
+
+@media (max-width: 600px) {
+  .row {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
