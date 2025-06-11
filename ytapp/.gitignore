@@ -25,4 +25,3 @@ dist-ssr
 
 # Rust
 src-tauri/target
-src-tauri/Cargo.lock

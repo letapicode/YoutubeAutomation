@@ -1,6 +1,6 @@
 use std::{
     fs::{self, File},
-    io::{BufReader, Write, Read},
+    io::{BufReader, Write, Read, Seek, SeekFrom},
     path::{Path, PathBuf},
     process::Command,
 };
@@ -24,7 +24,7 @@ mod language;
 mod token_store;
 use token_store::EncryptedTokenStorage;
 use tauri::api::dialog::{blocking::MessageDialogBuilder, MessageDialogKind};
-use notify::{RecommendedWatcher, RecursiveMode, Watcher, Config, EventKind};
+use notify::{RecommendedWatcher, RecursiveMode, Watcher, Config, EventKind, Event, Error as NotifyError};
 use once_cell::sync::Lazy;
 use std::sync::{Mutex, Arc};
 use std::process::Child;
@@ -216,7 +216,7 @@ fn run_with_progress(mut cmd: Command, duration: f64, window: &Window) -> Result
     if status.success() { Ok(()) } else { Err(format!("ffmpeg exited with status {:?}", status.code())) }
 }
 
-struct ProgressReader<R: Read> {
+struct ProgressReader<R: Read + Seek> {
     inner: R,
     window: Window,
     total: u64,
@@ -224,13 +224,13 @@ struct ProgressReader<R: Read> {
     last: u64,
 }
 
-impl<R: Read> ProgressReader<R> {
+impl<R: Read + Seek> ProgressReader<R> {
     fn new(inner: R, window: Window, total: u64) -> Self {
         Self { inner, window, total, sent: 0, last: 0 }
     }
 }
 
-impl<R: Read> Read for ProgressReader<R> {
+impl<R: Read + Seek> Read for ProgressReader<R> {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         let n = self.inner.read(buf)?;
         if n > 0 && self.total > 0 {
@@ -242,6 +242,12 @@ impl<R: Read> Read for ProgressReader<R> {
             }
         }
         Ok(n)
+    }
+}
+
+impl<R: Read + Seek> Seek for ProgressReader<R> {
+    fn seek(&mut self, pos: SeekFrom) -> std::io::Result<u64> {
+        self.inner.seek(pos)
     }
 }
 
@@ -664,7 +670,7 @@ fn watch_directory(window: Window, params: WatchDirectoryParams) -> Result<(), S
     let auto = params.auto_upload;
     let win = window.clone();
     let mut watcher = RecommendedWatcher::new(
-        move |res| {
+        move |res: Result<Event, NotifyError>| {
             if let Ok(event) = res {
                 if matches!(event.kind, EventKind::Create(_)) {
                     for p in event.paths {
