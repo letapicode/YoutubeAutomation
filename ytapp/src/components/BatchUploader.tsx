@@ -28,15 +28,19 @@ const BatchUploader: React.FC = () => {
         for (const file of files) {
             prog[file] = 0;
             setProgressMap({ ...prog });
-            await uploadVideo({
-                file,
-                title: title || undefined,
-                description: description || undefined,
-                tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : undefined,
-                publishAt: publishDate ? new Date(publishDate).toISOString() : undefined,
-            });
-            prog[file] = 100;
-            setProgressMap({ ...prog });
+            await uploadVideo(
+                {
+                    file,
+                    title: title || undefined,
+                    description: description || undefined,
+                    tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : undefined,
+                    publishAt: publishDate ? new Date(publishDate).toISOString() : undefined,
+                },
+                (p) => {
+                    prog[file] = Math.round(p);
+                    setProgressMap({ ...prog });
+                },
+            );
         }
         setRunning(false);
     };

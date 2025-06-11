@@ -25,6 +25,23 @@ async function callWithProgress<T>(
   }
 }
 
+async function callWithUploadProgress<T>(
+  fn: () => Promise<T>,
+  onProgress?: (p: number) => void,
+): Promise<T> {
+  let unlisten: (() => void) | undefined;
+  if (onProgress) {
+    unlisten = await listen<number>('upload_progress', (e) => {
+      if (typeof e.payload === 'number') onProgress(e.payload);
+    });
+  }
+  try {
+    return await fn();
+  } finally {
+    if (unlisten) unlisten();
+  }
+}
+
 function showProgress(p: number): void {
   const pct = Math.round(p);
   process.stdout.write(`\r${pct}%`);
@@ -85,15 +102,27 @@ interface UploadBatchParams extends Omit<UploadParams, 'file'> {
 /**
  * Upload a single video file to YouTube.
  */
-async function uploadVideo(params: UploadParams): Promise<any> {
-  return await invoke('upload_video', params as any);
+async function uploadVideo(
+  params: UploadParams,
+  onProgress?: (p: number) => void,
+): Promise<any> {
+  return await callWithUploadProgress(
+    () => invoke('upload_video', params as any),
+    onProgress,
+  );
 }
 
 /**
  * Upload multiple videos to YouTube sequentially.
  */
-async function uploadVideos(params: UploadBatchParams): Promise<any> {
-  return await invoke('upload_videos', params as any);
+async function uploadVideos(
+  params: UploadBatchParams,
+  onProgress?: (p: number) => void,
+): Promise<any> {
+  return await callWithUploadProgress(
+    () => invoke('upload_videos', params as any),
+    onProgress,
+  );
 }
 
 /**
@@ -121,11 +150,22 @@ async function transcribeAudio(params: { file: string; language?: string; transl
 async function generateAndUpload(
   params: GenerateParams,
   onProgress?: (p: number) => void,
+  onUploadProgress?: (p: number) => void,
 ): Promise<any> {
-  return await callWithProgress(
-    () => invoke('generate_upload', params as any),
-    onProgress,
-  );
+  let unlisten: (() => void) | undefined;
+  if (onUploadProgress) {
+    unlisten = await listen<number>('upload_progress', (e) => {
+      if (typeof e.payload === 'number') onUploadProgress(e.payload);
+    });
+  }
+  try {
+    return await callWithProgress(
+      () => invoke('generate_upload', params as any),
+      onProgress,
+    );
+  } finally {
+    if (unlisten) unlisten();
+  }
 }
 
 /**
@@ -246,7 +286,11 @@ program
         width: options.width,
         height: options.height,
       };
-      const result = await generateAndUpload(params, showProgress);
+      const result = await generateAndUpload(
+        params,
+        showProgress,
+        showProgress,
+      );
       console.log(result);
     } catch (err) {
       console.error('Error generating and uploading video:', err);
@@ -282,8 +326,9 @@ program
     try {
       if (options.color && !options.captionColor) options.captionColor = options.color;
       if (options.bgColor && !options.captionBg) options.captionBg = options.bgColor;
-      const result = await callWithProgress(
-        () => invoke('generate_batch_upload', {
+      const result = await callWithUploadProgress(
+        () => callWithProgress(
+          () => invoke('generate_batch_upload', {
         files,
         outputDir: options.outputDir,
         captions: options.captions,
@@ -305,7 +350,9 @@ program
         description: options.description,
         tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
         publishAt: options.publishAt,
-      } as any),
+        } as any),
+          showProgress,
+        ),
         showProgress,
       );
       console.log(result);
@@ -381,13 +428,16 @@ program
   .option('--publish-at <date>', 'schedule publish date (ISO)')
   .action(async (file: string, options: any) => {
     try {
-      const result = await uploadVideo({
-        file,
-        title: options.title,
-        description: options.description,
-        tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
-        publishAt: options.publishAt,
-      });
+      const result = await uploadVideo(
+        {
+          file,
+          title: options.title,
+          description: options.description,
+          tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
+          publishAt: options.publishAt,
+        },
+        showProgress,
+      );
       console.log(result);
     } catch (err) {
       console.error('Error uploading video:', err);
@@ -405,13 +455,16 @@ program
   .option('--publish-at <date>', 'schedule publish date (ISO)')
   .action(async (files: string[], options: any) => {
     try {
-      const results = await uploadVideos({
-        files,
-        title: options.title,
-        description: options.description,
-        tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
-        publishAt: options.publishAt,
-      }) as any[];
+      const results = await uploadVideos(
+        {
+          files,
+          title: options.title,
+          description: options.description,
+          tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
+          publishAt: options.publishAt,
+        },
+        showProgress,
+      ) as any[];
       results.forEach((res: any) => console.log(res));
     } catch (err) {
       console.error('Error uploading videos:', err);
