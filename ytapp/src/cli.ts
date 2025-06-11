@@ -10,6 +10,7 @@ import { translateSrt } from './utils/translate';
 import { parseCsv, CsvRow } from './utils/csv';
 import { watchDirectory } from './features/watch';
 import { generateBatchWithProgress } from './features/batch';
+import { GenerateParams } from './types/generateParams';
 
 async function callWithProgress<T>(
   fn: () => Promise<T>,
@@ -71,23 +72,6 @@ interface CaptionOptions {
   background?: string;
 }
 
-interface GenerateParams {
-  file: string;
-  output?: string;
-  captions?: string;
-  captionOptions?: CaptionOptions;
-  background?: string;
-  intro?: string;
-  outro?: string;
-  watermark?: string;
-  watermarkPosition?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
-  width?: number;
-  height?: number;
-  title?: string;
-  description?: string;
-  tags?: string[];
-  publishAt?: string;
-}
 
 /**
  * Invoke the backend to generate a single video.

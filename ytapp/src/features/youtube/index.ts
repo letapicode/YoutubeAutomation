@@ -1,8 +1,7 @@
 // Functions that interact with the Tauri backend to upload videos.
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
-import { GenerateParams } from '../processing';
-export type { GenerateParams } from '../processing';
+import { GenerateParams } from '../types/generateParams';
 
 export interface UploadOptions {
     file: string;
