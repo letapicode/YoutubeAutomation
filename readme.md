@@ -199,54 +199,31 @@
 
 ### Setup
 
-Run the helper script to install required system packages on Ubuntu/Debian.
-The script creates `.env.tauri` which sets `PKG_CONFIG_PATH`:
+Clone the repository and bootstrap the development environment:
 
 ```bash
-./scripts/install_tauri_deps.sh
-source .env.tauri   # sets PKG_CONFIG_PATH for cargo
+git clone <repo-url>
+./scripts/bootstrap.sh && make dev
 ```
-This prevents “glib-2.0” or similar errors when running `cargo check`.
 
-Install Tauri's system dependencies (Ubuntu/Debian):
+The script installs system dependencies, runs `npm install`, and writes
+`PKG_CONFIG_PATH` to `.env.tauri`. This file is sourced automatically so Cargo
+finds the correct libraries.
+
+You can also spin up the optional container for an isolated setup. It runs the
+same bootstrap script and mounts your working directory so no packages are
+installed locally.
+
+Pre-commit hooks should execute the standard checks before each commit:
 
 ```bash
-sudo apt-get update
-sudo apt-get install -y libgtk-3-dev libglib2.0-dev libsoup2.4-dev \
-    libwebkit2gtk-4.1-dev libjavascriptcoregtk-4.1-dev build-essential \
-    pkg-config libssl-dev
+cd ytapp && npm install
+cd src-tauri && cargo check
+cd .. && npx ts-node src/cli.ts --help
 ```
 
-Ubuntu 24.04 only provides the `webkit2gtk-4.1` and `javascriptcoregtk-4.1` packages.
-Create compatibility links so Cargo can find the expected `*-4.0.pc` files:
-
-```bash
-sudo ln -s /usr/lib/x86_64-linux-gnu/pkgconfig/webkit2gtk-4.1.pc \
-    /usr/lib/x86_64-linux-gnu/pkgconfig/webkit2gtk-4.0.pc
-sudo ln -s /usr/lib/x86_64-linux-gnu/pkgconfig/webkit2gtk-web-extension-4.1.pc \
-    /usr/lib/x86_64-linux-gnu/pkgconfig/webkit2gtk-web-extension-4.0.pc
-sudo ln -s /usr/lib/x86_64-linux-gnu/pkgconfig/javascriptcoregtk-4.1.pc \
-    /usr/lib/x86_64-linux-gnu/pkgconfig/javascriptcoregtk-4.0.pc
-```
-
-`PKG_CONFIG_PATH` must include `/usr/lib/x86_64-linux-gnu/pkgconfig` when running
-`cargo check`. The install script places this value in `.env.tauri`. For example:
-
-```bash
-export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig
-```
-
-Install Node dependencies and run checks:
-
-```bash
-cd ytapp
-npm install
-cargo check          # run inside ytapp/src-tauri
-npx ts-node src/cli.ts --help
-```
-
-To automatically process files placed in a folder set the **Watch Directory**
-and enable **Auto Upload** in the settings page or use the CLI `watch` command.
+The CI workflow runs these commands as well, so commits are expected to pass
+them.
 
 ### Contribution
 
