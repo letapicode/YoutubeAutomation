@@ -112,6 +112,7 @@
   * Maori
   * Gujarati
 * Output `.srt` file
+* Translations use the transcription language as the source when specified
 * Burn `.srt` captions into video using FFmpeg:
 
   * Font (user-selectable)
