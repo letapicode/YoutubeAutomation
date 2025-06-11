@@ -61,6 +61,8 @@ struct GenerateParams {
     background: Option<String>,
     intro: Option<String>,
     outro: Option<String>,
+    watermark: Option<String>,
+    watermark_position: Option<String>,
     width: Option<u32>,
     height: Option<u32>,
     title: Option<String>,
@@ -88,6 +90,8 @@ struct AppSettings {
     caption_size: Option<u32>,
     caption_color: Option<String>,
     caption_bg: Option<String>,
+    watermark: Option<String>,
+    watermark_position: Option<String>,
     show_guide: Option<bool>,
     watch_dir: Option<String>,
     auto_upload: Option<bool>,
@@ -105,6 +109,8 @@ impl Default for AppSettings {
             caption_size: None,
             caption_color: None,
             caption_bg: None,
+            watermark: None,
+            watermark_position: None,
             show_guide: Some(true),
             watch_dir: None,
             auto_upload: Some(false),
@@ -358,6 +364,27 @@ fn build_main_section(window: Option<&Window>, params: &GenerateParams, duration
         }
     }
 
+    if let Some(ref wm) = params.watermark {
+        if Path::new(wm).exists() {
+            let pos = match params
+                .watermark_position
+                .as_deref()
+                .unwrap_or("top-right")
+            {
+                "top-left" => "10:10",
+                "top-right" => "W-w-10:10",
+                "bottom-left" => "10:H-h-10",
+                _ => "W-w-10:H-h-10",
+            };
+            filter_chain = format!(
+                "{},movie={},scale=iw/5:-1[wm];[in][wm]overlay={}",
+                filter_chain,
+                wm,
+                pos
+            );
+        }
+    }
+
     cmd.args(["-vf", &filter_chain]);
 
     cmd.arg(out.to_str().unwrap());
@@ -586,6 +613,8 @@ struct BatchGenerateParams {
     background: Option<String>,
     intro: Option<String>,
     outro: Option<String>,
+    watermark: Option<String>,
+    watermark_position: Option<String>,
     width: Option<u32>,
     height: Option<u32>,
     title: Option<String>,
@@ -601,6 +630,8 @@ struct WatchOptions {
     background: Option<String>,
     intro: Option<String>,
     outro: Option<String>,
+    watermark: Option<String>,
+    watermark_position: Option<String>,
     width: Option<u32>,
     height: Option<u32>,
     title: Option<String>,
@@ -635,6 +666,8 @@ async fn generate_batch_upload(window: Window, params: BatchGenerateParams) -> R
             captions: params.captions.clone(),
             caption_options: params.caption_options.clone(),
             background: params.background.clone(),
+            watermark: params.watermark.clone(),
+            watermark_position: params.watermark_position.clone(),
             intro: params.intro.clone(),
             outro: params.outro.clone(),
             width: params.width,
@@ -684,6 +717,8 @@ fn watch_directory(window: Window, params: WatchDirectoryParams) -> Result<(), S
                                         captions: opts.captions.clone(),
                                         caption_options: opts.caption_options.clone(),
                                         background: opts.background.clone(),
+                                        watermark: opts.watermark.clone(),
+                                        watermark_position: opts.watermark_position.clone(),
                                         intro: opts.intro.clone(),
                                         outro: opts.outro.clone(),
                                         width: opts.width,

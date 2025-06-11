@@ -32,6 +32,26 @@ const BatchOptionsForm: React.FC<BatchOptionsFormProps> = ({ value, onChange }) 
             </div>
             <div className="row">
                 <FilePicker
+                    label={t('watermark')}
+                    onSelect={(p) => {
+                        if (typeof p === 'string') update({ watermark: p });
+                        else if (Array.isArray(p) && p.length) update({ watermark: p[0] });
+                    }}
+                    filters={[{ name: 'Image', extensions: ['png', 'jpg', 'jpeg'] }]}
+                />
+                {value.watermark && <span>{value.watermark}</span>}
+            </div>
+            <div className="row">
+                <label>{t('watermark_position')}</label>
+                <select value={value.watermarkPosition || 'top-right'} onChange={e => update({ watermarkPosition: e.target.value as any })}>
+                    <option value="top-left">{t('top_left')}</option>
+                    <option value="top-right">{t('top_right')}</option>
+                    <option value="bottom-left">{t('bottom_left')}</option>
+                    <option value="bottom-right">{t('bottom_right')}</option>
+                </select>
+            </div>
+            <div className="row">
+                <FilePicker
                     label={t('intro')}
                     onSelect={(p) => {
                         if (typeof p === 'string') update({ intro: p });
