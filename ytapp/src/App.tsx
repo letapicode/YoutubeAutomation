@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { generateVideo } from './features/processing';
 import { listen } from '@tauri-apps/api/event';
 import { convertFileSrc, invoke } from '@tauri-apps/api/core';
-import { removeFile } from '@tauri-apps/api/fs';
+import { remove } from '@tauri-apps/plugin-fs';
 import { tempDir } from '@tauri-apps/api/path';
 import YouTubeAuthButton from './components/YouTubeAuthButton';
 import { generateUpload, GenerateParams } from './features/youtube';
@@ -154,7 +154,7 @@ const App: React.FC = () => {
             try {
                 const tmp = await tempDir();
                 if (preview.startsWith(tmp)) {
-                    await removeFile(preview);
+                    await remove(preview);
                 }
             } catch {
                 // ignore cleanup errors
