@@ -13,8 +13,8 @@ use model_check::ensure_whisper_model;
 use google_youtube3::{api::Video, YouTube};
 use yup_oauth2::{InstalledFlowAuthenticator, InstalledFlowReturnMethod};
 use yup_oauth2::authenticator::Authenticator;
-use hyper_rustls::HttpsConnectorBuilder;
-use hyper_util::{client::legacy::Client, rt::TokioExecutor};
+use hyper_rustls::{HttpsConnectorBuilder, HttpsConnector};
+use hyper_util::{client::legacy::{Client, connect::HttpConnector}, rt::TokioExecutor};
 use chrono::prelude::*;
 mod language;
 mod token_store;
@@ -359,6 +359,7 @@ async fn upload_video_impl(file: String, opts: UploadOptions) -> Result<String, 
         .build(
             HttpsConnectorBuilder::new()
                 .with_native_roots()
+                .map_err(|e| e.to_string())?
                 .https_or_http()
                 .enable_http1()
                 .build(),
@@ -545,6 +546,16 @@ fn save_settings(app: tauri::AppHandle, settings: AppSettings) -> Result<(), Str
     fs::write(path, data).map_err(|e| e.to_string())
 }
 
+#[command]
+fn load_srt(path: String) -> Result<String, String> {
+    fs::read_to_string(path).map_err(|e| e.to_string())
+}
+
+#[command]
+fn save_srt(path: String, data: String) -> Result<(), String> {
+    fs::write(path, data).map_err(|e| e.to_string())
+}
+
 #[derive(Deserialize)]
 struct TranscribeParams {
     file: String,
@@ -652,7 +663,21 @@ fn install_tauri_deps() -> Result<(), String> {
 fn main() {
     ensure_whisper_model();
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, youtube_sign_in, youtube_is_signed_in, load_settings, save_settings, verify_dependencies, install_tauri_deps, list_fonts])
+        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, youtube_sign_in, youtube_is_signed_in, load_settings, save_settings, load_srt, save_srt, verify_dependencies, install_tauri_deps, list_fonts])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn load_and_save_srt() {
+        let dir = tempfile::tempdir().unwrap();
+        let file = dir.path().join("test.srt");
+        save_srt(file.to_string_lossy().to_string(), "hello".into()).unwrap();
+        let data = load_srt(file.to_string_lossy().to_string()).unwrap();
+        assert_eq!(data, "hello");
+    }
 }
