@@ -6,6 +6,7 @@ use std::{
 };
 use tauri::{command, Window, Manager};
 use serde::{Deserialize, Serialize};
+use mime_guess;
 mod schema;
 use schema::{CaptionOptions, GenerateParams};
 use tauri::api::path::app_config_dir;
@@ -52,6 +53,7 @@ struct UploadOptions {
     description: Option<String>,
     tags: Option<Vec<String>>,
     publish_at: Option<String>,
+    thumbnail: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -494,6 +496,18 @@ async fn upload_video_impl(window: Window, file: String, opts: UploadOptions) ->
         Ok(Ok(response)) => {
             let _ = window.emit("upload_progress", 100f64);
             let id = response.1.id.unwrap_or_default();
+            if let Some(th) = opts.thumbnail.as_ref() {
+                if Path::new(th).exists() {
+                    if let Ok(mut tf) = File::open(th) {
+                        let mime = mime_guess::from_path(th).first_or_octet_stream();
+                        let _ = hub
+                            .thumbnails()
+                            .set(&id)
+                            .upload(&mut tf, mime)
+                            .await;
+                    }
+                }
+            }
             Ok(format!("Uploaded video ID: {}", id))
         }
         Ok(Err(e)) => Err(e),
@@ -564,6 +578,7 @@ async fn generate_upload(window: Window, params: GenerateParams) -> Result<Strin
         description: params.description,
         tags: params.tags,
         publish_at: params.publish_at,
+        thumbnail: params.thumbnail,
     }).await?;
     let _ = fs::remove_file(output);
     Ok(result)
@@ -596,6 +611,7 @@ struct BatchGenerateParams {
     description: Option<String>,
     tags: Option<Vec<String>>,
     publish_at: Option<String>,
+    thumbnail: Option<String>,
 }
 
 #[derive(Deserialize, Clone, Default)]
@@ -613,6 +629,7 @@ struct WatchOptions {
     description: Option<String>,
     tags: Option<Vec<String>>,
     publish_at: Option<String>,
+    thumbnail: Option<String>,
 }
 
 #[derive(Deserialize, Clone)]
@@ -651,12 +668,14 @@ async fn generate_batch_upload(window: Window, params: BatchGenerateParams) -> R
             description: params.description.clone(),
             tags: params.tags.clone(),
             publish_at: params.publish_at.clone(),
+            thumbnail: params.thumbnail.clone(),
         })?;
         let res = upload_video_impl(window.clone(), video.clone(), UploadOptions {
             title: params.title.clone(),
             description: params.description.clone(),
             tags: params.tags.clone(),
             publish_at: params.publish_at.clone(),
+            thumbnail: params.thumbnail.clone(),
         }).await?;
         let _ = fs::remove_file(video);
         results.push(res);
@@ -703,10 +722,11 @@ fn watch_directory(window: Window, params: WatchDirectoryParams) -> Result<(), S
                                         description: opts.description.clone(),
                                         tags: opts.tags.clone(),
                                         publish_at: opts.publish_at.clone(),
+                                        thumbnail: opts.thumbnail.clone(),
                                     };
                                     let dest = p.with_extension("mp4").to_string_lossy().to_string();
                                     let job = if auto {
-                                        Job::GenerateUpload { params: gp, dest }
+                                        Job::GenerateUpload { params: gp, dest, thumbnail: opts.thumbnail.clone() }
                                     } else {
                                         Job::Generate { params: gp, dest }
                                     };
@@ -800,8 +820,11 @@ async fn queue_process(window: Window) -> Result<(), String> {
                 params.output = Some(dest);
                 let _ = generate_video(window.clone(), params);
             }
-            Job::GenerateUpload { mut params, dest } => {
+            Job::GenerateUpload { mut params, dest, thumbnail } => {
                 params.output = Some(dest);
+                if params.thumbnail.is_none() {
+                    params.thumbnail = thumbnail.clone();
+                }
                 let _ = generate_upload(window.clone(), params).await?;
             }
         }

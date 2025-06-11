@@ -313,6 +313,7 @@ Press `Ctrl-C` at any time to cancel the current operation.
 shorter `--color` and `--bg-color` aliases.
 `--watermark` adds an overlay image. Use `--watermark-position` to place it in
 any corner (top-left, top-right, bottom-left or bottom-right).
+`--thumbnail` uploads a custom thumbnail image after the video finishes uploading.
 
 Batch commands (`generate-batch`, `generate-upload-batch` and `upload-batch`) accept `--csv <file>`
 to provide per-file metadata. The CSV must contain `file,title,description,tags,publish_at`

@@ -24,4 +24,5 @@ export interface GenerateParams {
   description?: string;
   tags?: string[];
   publishAt?: string;
+  thumbnail?: string;
 }
