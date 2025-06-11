@@ -1,34 +1,8 @@
 // Wrapper around Tauri commands related to video generation.
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
-
-export interface CaptionOptions {
-    font?: string;
-    fontPath?: string;
-    style?: string;
-    size?: number;
-    position?: string;
-    color?: string;
-    background?: string;
-}
-
-export interface GenerateParams {
-    file: string;
-    output?: string;
-    captions?: string;
-    captionOptions?: CaptionOptions;
-    background?: string;
-    intro?: string;
-    outro?: string;
-    watermark?: string;
-    watermarkPosition?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
-    width?: number;
-    height?: number;
-    title?: string;
-    description?: string;
-    tags?: string[];
-    publishAt?: string;
-}
+import type { CaptionOptions, GenerateParams } from '../../schema';
+export type { CaptionOptions, GenerateParams } from '../../schema';
 
 export type ProgressCallback = (progress: number) => void;
 export type CancelCallback = () => void;
