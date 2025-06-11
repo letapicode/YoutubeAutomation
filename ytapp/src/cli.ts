@@ -9,6 +9,7 @@ import os from 'os';
 import { translateSrt } from './utils/translate';
 import { parseCsv, CsvRow } from './utils/csv';
 import { watchDirectory } from './features/watch';
+import { generateBatchWithProgress } from './features/batch';
 
 async function callWithProgress<T>(
   fn: () => Promise<T>,
@@ -446,12 +447,16 @@ program
   });
 
 program
-  .command('batch')
+  .command('generate-batch')
+  .alias('batch')
   .description('Generate multiple videos')
-  .argument('<files...>', 'list of audio files')
+  .argument('[files...]', 'audio files')
+  .option('--csv <file>', 'CSV metadata file')
   .option('-d, --output-dir <dir>', 'output directory', '.')
   .option('--captions <srt>', 'captions file path')
   .option('--font <font>', 'caption font')
+  .option('--font-path <path>', 'caption font file')
+  .option('--style <style>', 'caption font style')
   .option('--size <size>', 'caption font size', (v) => parseInt(v, 10))
   .option('--caption-color <color>', 'caption text color (hex)')
   .option('--color <color>', 'alias for --caption-color')
@@ -463,19 +468,32 @@ program
   .option('--outro <file>', 'outro video or image')
   .option('--width <width>', 'output width', (v) => parseInt(v, 10))
   .option('--height <height>', 'output height', (v) => parseInt(v, 10))
+  .option('--title <title>', 'video title')
+  .option('--description <desc>', 'video description')
+  .option('--tags <tags>', 'comma separated tags')
+  .option('--publish-at <date>', 'schedule publish date (ISO)')
   .action(async (files: string[], options: any) => {
-    if (options.color && !options.captionColor) options.captionColor = options.color;
-    if (options.bgColor && !options.captionBg) options.captionBg = options.bgColor;
-    for (const file of files) {
-      const output = path.join(
-        options.outputDir,
-        path.basename(file, path.extname(file)) + '.mp4'
-      );
-      try {
-        await generateVideo(
-          {
+    try {
+      if (options.color && !options.captionColor) options.captionColor = options.color;
+      if (options.bgColor && !options.captionBg) options.captionBg = options.bgColor;
+
+      let csvMap: Record<string, CsvRow> = {};
+      if (options.csv) {
+        const rows = await parseCsv(options.csv);
+        csvMap = Object.fromEntries(rows.map(r => [r.file, r]));
+        if (!files.length) files = rows.map(r => r.file);
+      }
+
+      if (options.csv) {
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          const meta = csvMap[file] || {};
+          const params: GenerateParams = {
             file,
-            output,
+            output: path.join(
+              options.outputDir,
+              path.basename(file, path.extname(file)) + '.mp4'
+            ),
             captions: options.captions,
             captionOptions: {
               font: options.font,
@@ -491,13 +509,55 @@ program
             outro: options.outro,
             width: options.width,
             height: options.height,
-          },
-          showProgress,
+            title: meta.title ?? options.title,
+            description: meta.description ?? options.description,
+            tags: meta.tags ?? (options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined),
+            publishAt: meta.publishAt ?? options.publishAt,
+          } as any;
+          await withInterrupt(
+            () => invoke('cancel_generate'),
+            () => generateVideo(
+              params,
+              (p) => showProgress(((i + p / 100) / files.length) * 100),
+            )
+          );
+        }
+        showProgress(100);
+      } else {
+        const results = await withInterrupt(
+          () => invoke('cancel_generate'),
+          () => generateBatchWithProgress(
+            files,
+            {
+              outputDir: options.outputDir,
+              captions: options.captions,
+              captionOptions: {
+                font: options.font,
+                fontPath: options.fontPath,
+                style: options.style,
+                size: options.size,
+                position: options.position,
+                color: options.captionColor,
+                background: options.captionBg,
+              },
+              background: options.background,
+              intro: options.intro,
+              outro: options.outro,
+              width: options.width,
+              height: options.height,
+              title: options.title,
+              description: options.description,
+              tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
+              publishAt: options.publishAt,
+            },
+            (cur, total) => showProgress((cur / total) * 100),
+          )
         );
-        console.log('Generated', output);
-      } catch (err) {
-        console.error('Error generating', file, err);
+        results.forEach(r => console.log(r));
       }
+    } catch (err) {
+      console.error('Error generating batch:', err);
+      process.exitCode = 1;
     }
   });
 
