@@ -216,8 +216,13 @@ and WebKit packages.
 You may also use the provided devcontainer which automatically executes the
 bootstrap script when first created.
 
-Pre-commit hooks run the same checks locally and CI builds with the devcontainer
-image.
+Pre-commit hooks should run the standard checks:
+```bash
+cd ytapp && npm install
+cd src-tauri && cargo check
+cd .. && npx ts-node src/cli.ts --help
+```
+These same commands are executed in CI using the devcontainer image.
 
 To automatically process files placed in a folder set the **Watch Directory**
 and enable **Auto Upload** in the settings page or use the CLI `watch` command.
