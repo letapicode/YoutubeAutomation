@@ -1,7 +1,7 @@
 // Helpers for generating SRT subtitles with optional translation.
 import { invoke } from '@tauri-apps/api/core';
 import { Language } from '../language';
-import { translateSrt } from '../utils/translate';
+import { translateSrt } from '../../utils/translate';
 
 export interface TranscribeParams {
     file: string;
@@ -34,4 +34,12 @@ export async function transcribeAudio(params: TranscribeParams): Promise<string[
         }
     }
     return outputs;
+}
+
+export async function loadSrt(path: string): Promise<string> {
+    return await invoke('load_srt', { path });
+}
+
+export async function saveSrt(path: string, data: string): Promise<void> {
+    await invoke('save_srt', { path, data });
 }

@@ -20,6 +20,7 @@ import Modal from './components/Modal';
 import UploadIcon from './components/UploadIcon';
 import SettingsIcon from './components/SettingsIcon';
 import OnboardingModal from './components/OnboardingModal';
+import SubtitleEditor from './components/SubtitleEditor';
 
 const App: React.FC = () => {
     const { t, i18n } = useTranslation();
@@ -53,6 +54,7 @@ const App: React.FC = () => {
     const [description, setDescription] = useState('');
     const [tags, setTags] = useState('');
     const [publishDate, setPublishDate] = useState('');
+    const [showEditor, setShowEditor] = useState(false);
 
 
 
@@ -260,7 +262,20 @@ const App: React.FC = () => {
                     targets={translations}
                     onComplete={handleTranscriptionComplete}
                 />
-                {captions && <span>{captions}</span>}
+                <FilePicker
+                    label="Captions"
+                    onSelect={p => {
+                        if (typeof p === 'string') setCaptions(p);
+                        else if (Array.isArray(p) && p.length) setCaptions(p[0]);
+                    }}
+                    filters={[{ name: 'Subtitles', extensions: ['srt'] }]}
+                />
+                {captions && (
+                    <>
+                        <span>{captions}</span>
+                        <button onClick={() => setShowEditor(true)}>{t('edit_captions')}</button>
+                    </>
+                )}
             </div>
             <div className="row">
                 <input type="text" placeholder={t('video_title')} value={title} onChange={e => setTitle(e.target.value)} />
@@ -400,6 +415,15 @@ const App: React.FC = () => {
                         src={convertFileSrc(preview)}
                         controls
                         style={{ maxWidth: '100%', maxHeight: '80vh' }}
+                    />
+                )}
+            </Modal>
+            <Modal open={showEditor} onClose={() => setShowEditor(false)}>
+                {captions && (
+                    <SubtitleEditor
+                        file={captions}
+                        onClose={() => setShowEditor(false)}
+                        onSaved={(p) => { setCaptions(p); setShowEditor(false); }}
                     />
                 )}
             </Modal>

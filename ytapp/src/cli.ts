@@ -3,6 +3,9 @@ import { program } from 'commander';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import path from 'path';
+import { spawn } from 'child_process';
+import fs from 'fs/promises';
+import os from 'os';
 import { translateSrt } from './utils/translate';
 
 async function callWithProgress<T>(
@@ -448,6 +451,24 @@ program
       console.error('Error transcribing audio:', err);
       process.exitCode = 1;
     }
+  });
+
+program
+  .command('edit-srt')
+  .description('Edit an SRT file using $EDITOR')
+  .argument('<file>', 'subtitle file')
+  .action(async (file: string) => {
+    const editor = process.env.EDITOR || 'vi';
+    const tmp = path.join(os.tmpdir(), `edit-${Date.now()}.srt`);
+    await fs.copyFile(file, tmp);
+    await new Promise<void>((resolve, reject) => {
+      const child = spawn(editor, [tmp], { stdio: 'inherit' });
+      child.on('exit', () => resolve());
+      child.on('error', reject);
+    });
+    const data = await fs.readFile(tmp, 'utf-8');
+    await fs.writeFile(file, data);
+    await fs.unlink(tmp);
   });
 
 program.parseAsync(process.argv);
