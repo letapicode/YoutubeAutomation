@@ -1,5 +1,6 @@
 // Functions that interact with the Tauri backend to upload videos.
 import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
 import { GenerateParams } from '../processing';
 export type { GenerateParams } from '../processing';
 
@@ -15,17 +16,52 @@ export interface UploadBatchOptions extends Omit<UploadOptions, 'file'> {
     files: string[];
 }
 
+export type ProgressCallback = (p: number) => void;
+
+export async function uploadVideoWithProgress(
+    opts: UploadOptions,
+    onProgress: ProgressCallback,
+): Promise<string> {
+    const unlisten = await listen<number>('upload_progress', e => {
+        if (typeof e.payload === 'number') onProgress(e.payload);
+    });
+    try {
+        return await invoke('upload_video', opts);
+    } finally {
+        unlisten();
+    }
+}
+
 /**
  * Upload a single video file via the backend.
  */
-export async function uploadVideo(opts: UploadOptions): Promise<string> {
+export async function uploadVideo(
+    opts: UploadOptions,
+    onProgress?: ProgressCallback,
+): Promise<string> {
+    if (onProgress) {
+        return uploadVideoWithProgress(opts, onProgress);
+    }
     return await invoke('upload_video', opts);
 }
 
 /**
  * Upload multiple video files sequentially.
  */
-export async function uploadVideos(opts: UploadBatchOptions): Promise<string[]> {
+export async function uploadVideos(
+    opts: UploadBatchOptions,
+    onProgress?: ProgressCallback,
+): Promise<string[]> {
+    if (onProgress) {
+        const unlisten = await listen<number>('upload_progress', e => {
+            if (typeof e.payload === 'number') onProgress(e.payload);
+        });
+        try {
+            return await invoke('upload_videos', opts);
+        } finally {
+            unlisten();
+        }
+    }
     return await invoke('upload_videos', opts);
 }
 

@@ -1,6 +1,6 @@
 use std::{
     fs::{self, File},
-    io::{BufReader, Write},
+    io::{BufReader, Write, Read},
     path::{Path, PathBuf},
     process::Command,
 };
@@ -173,6 +173,35 @@ fn run_with_progress(mut cmd: Command, duration: f64, window: &Window) -> Result
     }
     let status = child.wait().map_err(|e| format!("ffmpeg error: {}", e))?;
     if status.success() { Ok(()) } else { Err(format!("ffmpeg exited with status {:?}", status.code())) }
+}
+
+struct ProgressReader<R: Read> {
+    inner: R,
+    window: Window,
+    total: u64,
+    sent: u64,
+    last: u64,
+}
+
+impl<R: Read> ProgressReader<R> {
+    fn new(inner: R, window: Window, total: u64) -> Self {
+        Self { inner, window, total, sent: 0, last: 0 }
+    }
+}
+
+impl<R: Read> Read for ProgressReader<R> {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        let n = self.inner.read(buf)?;
+        if n > 0 && self.total > 0 {
+            self.sent += n as u64;
+            let pct = ((self.sent as f64 / self.total as f64) * 100.0).floor() as u64;
+            if pct != self.last {
+                let _ = self.window.emit("upload_progress", pct as f64);
+                self.last = pct;
+            }
+        }
+        Ok(n)
+    }
 }
 
 fn parse_publish_at(s: &str) -> Option<DateTime<Utc>> {
@@ -352,7 +381,7 @@ fn generate_video(window: Window, params: GenerateParams) -> Result<String, Stri
     Ok(output_path)
 }
 
-async fn upload_video_impl(file: String, opts: UploadOptions) -> Result<String, String> {
+async fn upload_video_impl(window: Window, file: String, opts: UploadOptions) -> Result<String, String> {
     let auth = build_authenticator().await?;
 
     let client = Client::builder(TokioExecutor::new())
@@ -388,7 +417,10 @@ async fn upload_video_impl(file: String, opts: UploadOptions) -> Result<String, 
     }
 
     let f = std::fs::File::open(&file).map_err(|e| format!("Failed to open file: {}", e))?;
-    let mut reader = std::io::BufReader::new(f);
+    let size = f.metadata().map_err(|e| e.to_string())?.len();
+    let reader = ProgressReader::new(f, window.clone(), size);
+    let mut reader = std::io::BufReader::new(reader);
+    let _ = window.emit("upload_progress", 0f64);
 
     let response = hub
         .videos()
@@ -397,6 +429,8 @@ async fn upload_video_impl(file: String, opts: UploadOptions) -> Result<String, 
         .upload_resumable(&mut reader, "video/mp4".parse().unwrap())
         .await
         .map_err(|e| format!("Upload failed: {}", e))?;
+
+    let _ = window.emit("upload_progress", 100f64);
 
     let id = response.1.id.unwrap_or_default();
     Ok(format!("Uploaded video ID: {}", id))
@@ -429,8 +463,8 @@ async fn build_authenticator() -> Result<Authenticator<HttpsConnector<HttpConnec
 }
 
 #[command]
-async fn upload_video(file: String, opts: Option<UploadOptions>) -> Result<String, String> {
-    upload_video_impl(file, opts.unwrap_or_default()).await
+async fn upload_video(window: Window, file: String, opts: Option<UploadOptions>) -> Result<String, String> {
+    upload_video_impl(window, file, opts.unwrap_or_default()).await
 }
 
 #[command]
@@ -447,7 +481,7 @@ async fn youtube_is_signed_in() -> bool {
 #[command]
 async fn generate_upload(window: Window, params: GenerateParams) -> Result<String, String> {
     let output = generate_video(window.clone(), params.clone())?;
-    let result = upload_video_impl(output.clone(), UploadOptions {
+    let result = upload_video_impl(window.clone(), output.clone(), UploadOptions {
         title: params.title,
         description: params.description,
         tags: params.tags,
@@ -458,11 +492,11 @@ async fn generate_upload(window: Window, params: GenerateParams) -> Result<Strin
 }
 
 #[command]
-async fn upload_videos(files: Vec<String>, opts: Option<UploadOptions>) -> Result<Vec<String>, String> {
+async fn upload_videos(window: Window, files: Vec<String>, opts: Option<UploadOptions>) -> Result<Vec<String>, String> {
     let mut results = Vec::new();
     let o = opts.unwrap_or_default();
     for file in files {
-        results.push(upload_video_impl(file, o.clone()).await?);
+        results.push(upload_video_impl(window.clone(), file, o.clone()).await?);
     }
     Ok(results)
 }
@@ -512,7 +546,7 @@ async fn generate_batch_upload(window: Window, params: BatchGenerateParams) -> R
             tags: params.tags.clone(),
             publish_at: params.publish_at.clone(),
         })?;
-        let res = upload_video_impl(video.clone(), UploadOptions {
+        let res = upload_video_impl(window.clone(), video.clone(), UploadOptions {
             title: params.title.clone(),
             description: params.description.clone(),
             tags: params.tags.clone(),

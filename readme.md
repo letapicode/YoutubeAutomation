@@ -167,6 +167,7 @@
 * Generate & upload to YouTube button
 * Generation progress bar
 * Batch process progress UI
+* Upload progress bar
 * Drag & drop support for file inputs
 * Theme toggle (light/dark)
 * Accessible labels and full keyboard navigation
@@ -288,6 +289,8 @@ Upload an existing video with metadata:
 ```bash
 npx ts-node src/cli.ts upload video.mp4 --title "My Video"
 ```
+
+During uploads the CLI prints progress percentages similar to video generation.
 
 `--caption-color` and `--caption-bg` accept hex colors. You may also use the
 shorter `--color` and `--bg-color` aliases.
