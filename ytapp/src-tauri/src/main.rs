@@ -13,8 +13,11 @@ use model_check::ensure_whisper_model;
 use google_youtube3::{api::Video, YouTube};
 use yup_oauth2::{InstalledFlowAuthenticator, InstalledFlowReturnMethod};
 use yup_oauth2::authenticator::Authenticator;
-use hyper_rustls::{HttpsConnectorBuilder, HttpsConnector};
-use hyper_util::{client::legacy::{Client, connect::HttpConnector}, rt::TokioExecutor};
+use google_youtube3::hyper_util::{
+    client::legacy::{Client, connect::HttpConnector},
+    rt::TokioExecutor,
+};
+use google_youtube3::hyper_rustls::{HttpsConnector, HttpsConnectorBuilder};
 use chrono::prelude::*;
 use walkdir::WalkDir;
 mod language;
