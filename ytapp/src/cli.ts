@@ -5,6 +5,29 @@ import { listen } from '@tauri-apps/api/event';
 import path from 'path';
 import { translateSrt } from './utils/translate';
 
+async function callWithProgress<T>(
+  fn: () => Promise<T>,
+  onProgress?: (p: number) => void,
+): Promise<T> {
+  let unlisten: (() => void) | undefined;
+  if (onProgress) {
+    unlisten = await listen<number>('generate_progress', (e) => {
+      if (typeof e.payload === 'number') onProgress(e.payload);
+    });
+  }
+  try {
+    return await fn();
+  } finally {
+    if (unlisten) unlisten();
+  }
+}
+
+function showProgress(p: number): void {
+  const pct = Math.round(p);
+  process.stdout.write(`\r${pct}%`);
+  if (pct >= 100) process.stdout.write('\n');
+}
+
 interface CaptionOptions {
   font?: string;
   fontPath?: string;
@@ -34,24 +57,14 @@ interface GenerateParams {
 /**
  * Invoke the backend to generate a single video.
  */
-async function generateVideo(params: GenerateParams): Promise<any> {
-  let unlisten: (() => void) | undefined;
-  try {
-    unlisten = await listen<number>('generate_progress', e => {
-      if (typeof e.payload === 'number') {
-        const pct = Math.round(e.payload);
-        process.stdout.write(`\rProgress: ${pct}%`);
-        if (pct === 100) process.stdout.write('\n');
-      }
-    });
-  } catch {
-    // ignore event subscription errors
-  }
-  try {
-    return await invoke('generate_video', params as any);
-  } finally {
-    if (unlisten) unlisten();
-  }
+async function generateVideo(
+  params: GenerateParams,
+  onProgress?: (p: number) => void,
+): Promise<any> {
+  return await callWithProgress(
+    () => invoke('generate_video', params as any),
+    onProgress,
+  );
 }
 
 interface UploadParams {
@@ -102,24 +115,14 @@ async function transcribeAudio(params: { file: string; language?: string; transl
 /**
  * Convenience helper that generates a video and uploads it in a single step.
  */
-async function generateAndUpload(params: GenerateParams): Promise<any> {
-  let unlisten: (() => void) | undefined;
-  try {
-    unlisten = await listen<number>('generate_progress', e => {
-      if (typeof e.payload === 'number') {
-        const pct = Math.round(e.payload);
-        process.stdout.write(`\rProgress: ${pct}%`);
-        if (pct === 100) process.stdout.write('\n');
-      }
-    });
-  } catch {
-    // ignore event subscription errors
-  }
-  try {
-    return await invoke('generate_upload', params as any);
-  } finally {
-    if (unlisten) unlisten();
-  }
+async function generateAndUpload(
+  params: GenerateParams,
+  onProgress?: (p: number) => void,
+): Promise<any> {
+  return await callWithProgress(
+    () => invoke('generate_upload', params as any),
+    onProgress,
+  );
 }
 
 /**
@@ -145,7 +148,9 @@ program
   .option('--style <style>', 'caption font style')
   .option('--size <size>', 'caption font size', (v) => parseInt(v, 10))
   .option('--caption-color <color>', 'caption text color (hex)')
+  .option('--color <color>', 'alias for --caption-color')
   .option('--caption-bg <color>', 'caption background color (hex)')
+  .option('--bg-color <color>', 'alias for --caption-bg')
   .option('--position <pos>', 'caption position (top|center|bottom)')
   .option('-b, --background <file>', 'background image or video')
   .option('--intro <file>', 'intro video or image')
@@ -156,8 +161,11 @@ program
   .option('--description <desc>', 'video description')
   .option('--tags <tags>', 'comma separated tags')
   .option('--publish-at <date>', 'schedule publish date (ISO)')
+  .option('-q, --quiet', 'suppress progress output')
   .action(async (file: string, options: any) => {
     try {
+      if (options.color && !options.captionColor) options.captionColor = options.color;
+      if (options.bgColor && !options.captionBg) options.captionBg = options.bgColor;
       const params: GenerateParams = {
         file,
         output: options.output,
@@ -181,7 +189,10 @@ program
         tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
         publishAt: options.publishAt,
       };
-      const result = await generateVideo(params);
+      const result = await generateVideo(
+        params,
+        options.quiet ? undefined : showProgress,
+      );
       console.log(result);
     } catch (err) {
       console.error('Error generating video:', err);
@@ -200,7 +211,9 @@ program
   .option('--style <style>', 'caption font style')
   .option('--size <size>', 'caption font size', (v) => parseInt(v, 10))
   .option('--caption-color <color>', 'caption text color (hex)')
+  .option('--color <color>', 'alias for --caption-color')
   .option('--caption-bg <color>', 'caption background color (hex)')
+  .option('--bg-color <color>', 'alias for --caption-bg')
   .option('--position <pos>', 'caption position (top|center|bottom)')
   .option('-b, --background <file>', 'background image or video')
   .option('--intro <file>', 'intro video or image')
@@ -209,6 +222,8 @@ program
   .option('--height <height>', 'output height', (v) => parseInt(v, 10))
   .action(async (file: string, options: any) => {
     try {
+      if (options.color && !options.captionColor) options.captionColor = options.color;
+      if (options.bgColor && !options.captionBg) options.captionBg = options.bgColor;
       const params: GenerateParams = {
         file,
         output: options.output,
@@ -228,7 +243,7 @@ program
         width: options.width,
         height: options.height,
       };
-      const result = await generateAndUpload(params);
+      const result = await generateAndUpload(params, showProgress);
       console.log(result);
     } catch (err) {
       console.error('Error generating and uploading video:', err);
@@ -247,7 +262,9 @@ program
   .option('--style <style>', 'caption font style')
   .option('--size <size>', 'caption font size', (v) => parseInt(v, 10))
   .option('--caption-color <color>', 'caption text color (hex)')
+  .option('--color <color>', 'alias for --caption-color')
   .option('--caption-bg <color>', 'caption background color (hex)')
+  .option('--bg-color <color>', 'alias for --caption-bg')
   .option('--position <pos>', 'caption position (top|center|bottom)')
   .option('-b, --background <file>', 'background image or video')
   .option('--intro <file>', 'intro video or image')
@@ -260,19 +277,10 @@ program
   .option('--publish-at <date>', 'schedule publish date (ISO)')
   .action(async (files: string[], options: any) => {
     try {
-      let unlisten: (() => void) | undefined;
-      try {
-        unlisten = await listen<number>('generate_progress', e => {
-          if (typeof e.payload === 'number') {
-            const pct = Math.round(e.payload);
-            process.stdout.write(`\rProgress: ${pct}%`);
-            if (pct === 100) process.stdout.write('\n');
-          }
-        });
-      } catch {
-        // ignore
-      }
-      const result = await invoke('generate_batch_upload', {
+      if (options.color && !options.captionColor) options.captionColor = options.color;
+      if (options.bgColor && !options.captionBg) options.captionBg = options.bgColor;
+      const result = await callWithProgress(
+        () => invoke('generate_batch_upload', {
         files,
         outputDir: options.outputDir,
         captions: options.captions,
@@ -294,8 +302,9 @@ program
         description: options.description,
         tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
         publishAt: options.publishAt,
-      } as any);
-      if (unlisten) unlisten();
+      } as any),
+        showProgress,
+      );
       console.log(result);
     } catch (err) {
       console.error('Error generating and uploading batch:', err);
@@ -312,7 +321,9 @@ program
   .option('--font <font>', 'caption font')
   .option('--size <size>', 'caption font size', (v) => parseInt(v, 10))
   .option('--caption-color <color>', 'caption text color (hex)')
+  .option('--color <color>', 'alias for --caption-color')
   .option('--caption-bg <color>', 'caption background color (hex)')
+  .option('--bg-color <color>', 'alias for --caption-bg')
   .option('--position <pos>', 'caption position (top|center|bottom)')
   .option('-b, --background <file>', 'background image or video')
   .option('--intro <file>', 'intro video or image')
@@ -320,31 +331,36 @@ program
   .option('--width <width>', 'output width', (v) => parseInt(v, 10))
   .option('--height <height>', 'output height', (v) => parseInt(v, 10))
   .action(async (files: string[], options: any) => {
+    if (options.color && !options.captionColor) options.captionColor = options.color;
+    if (options.bgColor && !options.captionBg) options.captionBg = options.bgColor;
     for (const file of files) {
       const output = path.join(
         options.outputDir,
         path.basename(file, path.extname(file)) + '.mp4'
       );
       try {
-        await generateVideo({
-          file,
-          output,
-          captions: options.captions,
-          captionOptions: {
-          font: options.font,
-          fontPath: options.fontPath,
-          style: options.style,
-          size: options.size,
-          position: options.position,
-          color: options.captionColor,
-          background: options.captionBg,
-        },
-          background: options.background,
-          intro: options.intro,
-          outro: options.outro,
-          width: options.width,
-          height: options.height,
-        });
+        await generateVideo(
+          {
+            file,
+            output,
+            captions: options.captions,
+            captionOptions: {
+              font: options.font,
+              fontPath: options.fontPath,
+              style: options.style,
+              size: options.size,
+              position: options.position,
+              color: options.captionColor,
+              background: options.captionBg,
+            },
+            background: options.background,
+            intro: options.intro,
+            outro: options.outro,
+            width: options.width,
+            height: options.height,
+          },
+          showProgress,
+        );
         console.log('Generated', output);
       } catch (err) {
         console.error('Error generating', file, err);

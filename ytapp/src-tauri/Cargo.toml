@@ -2,9 +2,10 @@
 name = "ytapp"
 version = "0.1.0"
 edition = "2021"
+build = "build.rs"
 
 [dependencies]
-tauri = { version = "1", features = ["api-all"] }
+tauri = { version = "1" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 whisper_cli = "0.1.5"
@@ -17,3 +18,6 @@ chacha20poly1305 = { version = "0.10", features = ["std"] }
 rand_core = "0.6"
 async-trait = "0.1"
 chrono = { version = "0.4", features = ["serde"] }
+
+[build-dependencies]
+tauri-build = "1"
