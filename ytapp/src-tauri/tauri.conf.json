@@ -5,7 +5,8 @@
   },
   "tauri": {
     "bundle": {
-      "identifier": "com.example.ytapp"
+      "identifier": "com.example.ytapp",
+      "icon": ["icons/icon.png"]
     }
   }
 }
