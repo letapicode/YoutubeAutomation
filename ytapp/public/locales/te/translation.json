@@ -5,5 +5,6 @@
   "watching": "Watching",
   "not_watching": "Not Watching",
   "start_watch": "Start Watching",
-  "stop_watch": "Stop Watching"
+  "stop_watch": "Stop Watching",
+  "sign_out": "Sign Out"
 }

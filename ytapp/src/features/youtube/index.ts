@@ -92,6 +92,13 @@ export async function signIn(): Promise<void> {
 }
 
 /**
+ * Sign out and remove stored YouTube tokens.
+ */
+export async function signOut(): Promise<void> {
+    await invoke('youtube_sign_out');
+}
+
+/**
  * Check whether a valid YouTube session exists.
  */
 export async function isSignedIn(): Promise<boolean> {
