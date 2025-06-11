@@ -17,6 +17,8 @@ const SettingsPage: React.FC = () => {
     const [size, setSize] = useState(24);
     const [captionColor, setCaptionColor] = useState('#ffffff');
     const [captionBg, setCaptionBg] = useState('#000000');
+    const [watermark, setWatermark] = useState('');
+    const [watermarkPos, setWatermarkPos] = useState<'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'>('top-right');
     const [guide, setGuide] = useState(true);
     const [watchDir, setWatchDir] = useState('');
     const [autoUpload, setAutoUpload] = useState(false);
@@ -32,6 +34,8 @@ const SettingsPage: React.FC = () => {
             setSize(s.captionSize || 24);
             if (s.captionColor) setCaptionColor(s.captionColor);
             if (s.captionBg) setCaptionBg(s.captionBg);
+            if (s.watermark) setWatermark(s.watermark);
+            if (s.watermarkPosition) setWatermarkPos(s.watermarkPosition as any);
             setGuide(s.showGuide !== false);
             setWatchDir(s.watchDir || '');
             setAutoUpload(!!s.autoUpload);
@@ -49,6 +53,8 @@ const SettingsPage: React.FC = () => {
             captionSize: size,
             captionColor,
             captionBg,
+            watermark: watermark || undefined,
+            watermarkPosition: watermarkPos,
             showGuide: guide,
             watchDir: watchDir || undefined,
             autoUpload,
@@ -90,6 +96,26 @@ const SettingsPage: React.FC = () => {
                     filters={[{ name: 'Media', extensions: ['mp4', 'mov', 'mkv', 'png', 'jpg', 'jpeg'] }]}
                 />
                 {outro && <span>{outro}</span>}
+            </div>
+            <div>
+                <FilePicker
+                    label={t('watermark')}
+                    onSelect={p => {
+                        if (typeof p === 'string') setWatermark(p);
+                        else if (Array.isArray(p) && p.length) setWatermark(p[0]);
+                    }}
+                    filters={[{ name: 'Image', extensions: ['png', 'jpg', 'jpeg'] }]}
+                />
+                {watermark && <span>{watermark}</span>}
+            </div>
+            <div>
+                <label>{t('watermark_position')}</label>
+                <select value={watermarkPos} onChange={e => setWatermarkPos(e.target.value as any)}>
+                    <option value="top-left">{t('top_left')}</option>
+                    <option value="top-right">{t('top_right')}</option>
+                    <option value="bottom-left">{t('bottom_left')}</option>
+                    <option value="bottom-right">{t('bottom_right')}</option>
+                </select>
             </div>
             <div>
                 <FontSelector

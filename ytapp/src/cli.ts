@@ -79,6 +79,8 @@ interface GenerateParams {
   background?: string;
   intro?: string;
   outro?: string;
+  watermark?: string;
+  watermarkPosition?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
   width?: number;
   height?: number;
   title?: string;
@@ -226,6 +228,8 @@ program
   .option('--bg-color <color>', 'alias for --caption-bg')
   .option('--position <pos>', 'caption position (top|center|bottom)')
   .option('-b, --background <file>', 'background image or video')
+  .option('--watermark <file>', 'watermark image')
+  .option('--watermark-position <pos>', 'watermark position (top-left|top-right|bottom-left|bottom-right)')
   .option('--intro <file>', 'intro video or image')
   .option('--outro <file>', 'outro video or image')
   .option('--width <width>', 'output width', (v) => parseInt(v, 10))
@@ -255,6 +259,8 @@ program
         background: options.background,
         intro: options.intro,
         outro: options.outro,
+        watermark: options.watermark,
+        watermarkPosition: options.watermarkPosition,
         width: options.width,
         height: options.height,
         title: options.title,
@@ -292,6 +298,8 @@ program
   .option('--bg-color <color>', 'alias for --caption-bg')
   .option('--position <pos>', 'caption position (top|center|bottom)')
   .option('-b, --background <file>', 'background image or video')
+  .option('--watermark <file>', 'watermark image')
+  .option('--watermark-position <pos>', 'watermark position (top-left|top-right|bottom-left|bottom-right)')
   .option('--intro <file>', 'intro video or image')
   .option('--outro <file>', 'outro video or image')
   .option('--width <width>', 'output width', (v) => parseInt(v, 10))
@@ -314,6 +322,8 @@ program
           background: options.captionBg,
         },
         background: options.background,
+        watermark: options.watermark,
+        watermarkPosition: options.watermarkPosition,
         intro: options.intro,
         outro: options.outro,
         width: options.width,
@@ -351,6 +361,8 @@ program
   .option('--bg-color <color>', 'alias for --caption-bg')
   .option('--position <pos>', 'caption position (top|center|bottom)')
   .option('-b, --background <file>', 'background image or video')
+  .option('--watermark <file>', 'watermark image')
+  .option('--watermark-position <pos>', 'watermark position (top-left|top-right|bottom-left|bottom-right)')
   .option('--intro <file>', 'intro video or image')
   .option('--outro <file>', 'outro video or image')
   .option('--width <width>', 'output width', (v) => parseInt(v, 10))
@@ -391,6 +403,8 @@ program
               background: options.captionBg,
             },
             background: options.background,
+            watermark: options.watermark,
+            watermarkPosition: options.watermarkPosition,
             intro: options.intro,
             outro: options.outro,
             width: options.width,
@@ -424,6 +438,8 @@ program
                   background: options.captionBg,
                 },
                 background: options.background,
+                watermark: options.watermark,
+                watermarkPosition: options.watermarkPosition,
                 intro: options.intro,
                 outro: options.outro,
                 width: options.width,
@@ -464,6 +480,8 @@ program
   .option('--bg-color <color>', 'alias for --caption-bg')
   .option('--position <pos>', 'caption position (top|center|bottom)')
   .option('-b, --background <file>', 'background image or video')
+  .option('--watermark <file>', 'watermark image')
+  .option('--watermark-position <pos>', 'watermark position (top-left|top-right|bottom-left|bottom-right)')
   .option('--intro <file>', 'intro video or image')
   .option('--outro <file>', 'outro video or image')
   .option('--width <width>', 'output width', (v) => parseInt(v, 10))
@@ -708,6 +726,8 @@ program
   .option('--bg-color <color>', 'alias for --caption-bg')
   .option('--position <pos>', 'caption position (top|center|bottom)')
   .option('-b, --background <file>', 'background image or video')
+  .option('--watermark <file>', 'watermark image')
+  .option('--watermark-position <pos>', 'watermark position (top-left|top-right|bottom-left|bottom-right)')
   .option('--intro <file>', 'intro video or image')
   .option('--outro <file>', 'outro video or image')
   .option('--width <width>', 'output width', (v) => parseInt(v, 10))
@@ -732,6 +752,8 @@ program
         background: options.captionBg,
       },
       background: options.background,
+      watermark: options.watermark,
+      watermarkPosition: options.watermarkPosition,
       intro: options.intro,
       outro: options.outro,
       width: options.width,

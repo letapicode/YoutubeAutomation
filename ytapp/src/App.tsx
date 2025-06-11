@@ -31,6 +31,8 @@ const App: React.FC = () => {
     const [captions, setCaptions] = useState('');
     const [intro, setIntro] = useState('');
     const [outro, setOutro] = useState('');
+    const [watermark, setWatermark] = useState('');
+    const [watermarkPos, setWatermarkPos] = useState<'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'>('top-right');
     const [translations, setTranslations] = useState<string[]>([]);
     const [font, setFont] = useState('');
     const [fontPath, setFontPath] = useState('');
@@ -70,6 +72,8 @@ const App: React.FC = () => {
             if (s.captionSize) setSize(s.captionSize);
             if (s.captionColor) setCaptionColor(s.captionColor);
             if (s.captionBg) setCaptionBg(s.captionBg);
+            if (s.watermark) setWatermark(s.watermark);
+            if (s.watermarkPosition) setWatermarkPos(s.watermarkPosition as any);
             if (s.showGuide !== false) setShowGuide(true);
         });
     }, []);
@@ -109,6 +113,8 @@ const App: React.FC = () => {
                 background: captionBg,
             },
             background: background || undefined,
+            watermark: watermark || undefined,
+            watermarkPosition: watermarkPos,
             intro: intro || undefined,
             outro: outro || undefined,
             width,
@@ -131,6 +137,8 @@ const App: React.FC = () => {
             background: captionBg,
         },
         background: background || undefined,
+        watermark: watermark || undefined,
+        watermarkPosition: watermarkPos,
         intro: intro || undefined,
         outro: outro || undefined,
         width,
@@ -167,6 +175,8 @@ const App: React.FC = () => {
             captionSize: size,
             captionColor: captionColor,
             captionBg: captionBg,
+            watermark: watermark || undefined,
+            watermarkPosition: watermarkPos,
             showGuide: false,
         });
     };
@@ -263,6 +273,26 @@ const App: React.FC = () => {
                     ]}
                 />
                 {background && <span>{background}</span>}
+            </div>
+            <div className="row">
+                <FilePicker
+                    label={t('watermark')}
+                    onSelect={(p) => {
+                        if (typeof p === 'string') setWatermark(p);
+                        else if (Array.isArray(p) && p.length) setWatermark(p[0]);
+                    }}
+                    filters={[{ name: 'Image', extensions: ['png', 'jpg', 'jpeg'] }]}
+                />
+                {watermark && <span>{watermark}</span>}
+            </div>
+            <div className="row">
+                <label>{t('watermark_position')}</label>
+                <select value={watermarkPos} onChange={e => setWatermarkPos(e.target.value as any)}>
+                    <option value="top-left">{t('top_left')}</option>
+                    <option value="top-right">{t('top_right')}</option>
+                    <option value="bottom-left">{t('bottom_left')}</option>
+                    <option value="bottom-right">{t('bottom_right')}</option>
+                </select>
             </div>
             <div className="row">
                 <TranscribeButton

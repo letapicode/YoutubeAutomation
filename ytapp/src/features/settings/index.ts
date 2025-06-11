@@ -11,6 +11,8 @@ export interface Settings {
     captionSize?: number;
     captionColor?: string;
     captionBg?: string;
+    watermark?: string;
+    watermarkPosition?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
     showGuide?: boolean;
     watchDir?: string;
     autoUpload?: boolean;

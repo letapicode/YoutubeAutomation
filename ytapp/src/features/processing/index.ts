@@ -20,6 +20,8 @@ export interface GenerateParams {
     background?: string;
     intro?: string;
     outro?: string;
+    watermark?: string;
+    watermarkPosition?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
     width?: number;
     height?: number;
     title?: string;

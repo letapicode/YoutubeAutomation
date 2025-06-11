@@ -9,6 +9,8 @@ export interface BatchOptions extends Omit<GenerateParams, 'file' | 'output'> {
     /** Directory to place generated files. When omitted, `generateVideo` decides */
     outputDir?: string;
     background?: string;
+    watermark?: string;
+    watermarkPosition?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 }
 
 // Derive an output file path based on the input file and optional directory.
@@ -25,6 +27,8 @@ async function generateOne(file: string, options: BatchOptions): Promise<string>
         captions: options.captions,
         captionOptions: options.captionOptions,
         background: options.background,
+        watermark: options.watermark,
+        watermarkPosition: options.watermarkPosition,
         intro: options.intro,
         outro: options.outro,
         width: options.width,
