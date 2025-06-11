@@ -236,6 +236,20 @@ sudo ln -s /usr/lib/x86_64-linux-gnu/pkgconfig/javascriptcoregtk-4.1.pc \
 export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig
 ```
 
+You can bootstrap the project in one step using the helper script:
+
+```bash
+./.codex/bootstrap.sh
+```
+
+Common development tasks are available via the Makefile:
+
+```bash
+make dev     # install Node dependencies and run checks
+make test    # execute TypeScript and Rust tests
+make package # build release installers
+```
+
 Install Node dependencies and run checks:
 
 ```bash
