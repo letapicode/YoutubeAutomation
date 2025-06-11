@@ -17,22 +17,27 @@ git fetch upstream
 ## 2. List Open Pull Requests
 
 You can list pull requests either with the GitHub CLI (`gh`) or by calling the
-API with `curl`.
+API with `curl`. Because the repository is public, authentication tokens are
+optional. If you omit them, the commands still work but may be rate-limited.
 
 ### Using `gh`
 
 ```bash
-# Requires the gh CLI. Authentication is read from $GH_TOKEN or $GITHUB_TOKEN
+# Requires the gh CLI. If $GH_TOKEN or $GITHUB_TOKEN is set it will be used,
+# otherwise unauthenticated requests are made.
 gh pr list --limit 20
 ```
 
 ### Using `curl`
 
 ```bash
-# Reads the token from $GH_TOKEN or $GITHUB_TOKEN
+# Optional token for higher rate limits
 token="${GH_TOKEN:-$GITHUB_TOKEN}"
 repo="letapicode/YoutubeAutomation"
-curl -H "Authorization: Bearer $token" \
+if [ -n "$token" ]; then
+  auth_header="-H 'Authorization: Bearer $token'"
+fi
+curl $auth_header \
   "https://api.github.com/repos/$repo/pulls?state=open"
 ```
 
