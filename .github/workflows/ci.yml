@@ -6,10 +6,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: ./scripts/install_tauri_deps.sh
-      - run: echo "PKG_CONFIG_PATH=$(cut -d= -f2 .env.tauri)" >> $GITHUB_ENV
-      - run: cd ytapp && npm ci
-      - run: |
-          cd ytapp/src-tauri
-          cargo generate-lockfile
-          cargo check --all-targets
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: devcontainers/ci@v0.3
+        with:
+          imageName: ghcr.io/${{ github.repository }}/devcontainer
+          cacheFrom: ghcr.io/${{ github.repository }}/devcontainer
+          push: filter
+          runCmd: ./scripts/bootstrap.sh
+

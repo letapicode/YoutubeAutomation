@@ -1,0 +1,8 @@
+{
+    "name": "YoutubeAutomation",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "context": ".."
+    },
+    "onCreateCommand": "./scripts/bootstrap.sh"
+}
