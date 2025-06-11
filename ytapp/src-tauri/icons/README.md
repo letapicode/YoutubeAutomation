@@ -1,6 +1,6 @@
 # Application Icon
 
-The default icon is not included in version control. You can recreate it with:
+The default icon is now included in version control. If you need to recreate it you can run:
 
 ```bash
 # from repository root
