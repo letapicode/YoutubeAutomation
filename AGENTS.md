@@ -20,6 +20,7 @@ cd .. && npx ts-node src/cli.ts --help
 ```
 
 `cargo check` may require system packages; run `./scripts/install_tauri_deps.sh` if needed.
+After running the script, source the generated `.env.tauri` file (or export the `PKG_CONFIG_PATH` it contains) before running cargo.
 
 ## Additional Notes
 - Do not commit `.env.tauri` or build artifacts.
