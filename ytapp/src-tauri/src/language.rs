@@ -80,14 +80,14 @@ mod tests {
 
     #[test]
     fn parses_known_codes() {
-        assert_eq!(parse_language(Some("en".into())), Some(Language::English));
-        assert_eq!(parse_language(Some("ne".into())), Some(Language::Nepali));
+        assert!(matches!(parse_language(Some("en".into())), Some(Language::English)));
+        assert!(matches!(parse_language(Some("ne".into())), Some(Language::Nepali)));
     }
 
     #[test]
     fn handles_auto_and_unknown() {
-        assert_eq!(parse_language(Some("auto".into())), None);
-        assert_eq!(parse_language(Some("xx".into())), None);
-        assert_eq!(parse_language(None), None);
+        assert!(parse_language(Some("auto".into())).is_none());
+        assert!(parse_language(Some("xx".into())).is_none());
+        assert!(parse_language(None).is_none());
     }
 }
