@@ -21,6 +21,8 @@
   "batch_processor": "Batch Processor",
   "files_selected": "{{count}} files selected",
   "start": "Start",
+  "import_csv": "Import CSV",
+  "missing_in_csv": "File not listed in CSV",
   "batch_upload": "Batch Upload",
   "upload": "Upload",
   "done": "Done",
@@ -39,14 +41,12 @@
   "welcome_title": "Welcome",
   "guide_select_audio": "Select an audio file",
   "guide_generate": "Click Generate to create your video",
-  "guide_upload": "Use Generate & Upload to post to YouTube"
+  "guide_upload": "Use Generate & Upload to post to YouTube",
 
   "video_title": "Title",
   "description": "Description",
   "tags": "Tags",
-  "publish_date": "Publish Date"
-
-  ,"captions": "Captions"
-  ,"edit_captions": "Edit Captions"
-
+  "publish_date": "Publish Date",
+  "captions": "Captions",
+  "edit_captions": "Edit Captions"
 }
