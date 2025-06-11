@@ -197,11 +197,14 @@
 
 ### Setup
 
-Run the helper script to install required system packages on Ubuntu/Debian:
+Run the helper script to install required system packages on Ubuntu/Debian.
+The script creates `.env.tauri` which sets `PKG_CONFIG_PATH`:
 
 ```bash
 ./scripts/install_tauri_deps.sh
+source .env.tauri   # sets PKG_CONFIG_PATH for cargo
 ```
+This prevents “glib-2.0” or similar errors when running `cargo check`.
 
 Install Tauri's system dependencies (Ubuntu/Debian):
 
@@ -225,7 +228,7 @@ sudo ln -s /usr/lib/x86_64-linux-gnu/pkgconfig/javascriptcoregtk-4.1.pc \
 ```
 
 `PKG_CONFIG_PATH` must include `/usr/lib/x86_64-linux-gnu/pkgconfig` when running
-`cargo check`. For example:
+`cargo check`. The install script places this value in `.env.tauri`. For example:
 
 ```bash
 export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig
