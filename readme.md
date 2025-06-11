@@ -324,5 +324,23 @@ Watch a directory and automatically process new audio files:
 npx ts-node src/cli.ts watch ./incoming --auto-upload
 ```
 
+Queue up a file for later processing:
+
+```bash
+npx ts-node src/cli.ts queue-add input.wav --title "My Queued Video"
+```
+
+Show queued jobs:
+
+```bash
+npx ts-node src/cli.ts queue-list
+```
+
+Process all queued jobs:
+
+```bash
+npx ts-node src/cli.ts queue-run
+```
+
 
 

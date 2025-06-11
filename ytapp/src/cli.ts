@@ -11,6 +11,7 @@ import { translateSrt } from './utils/translate';
 import { parseCsv, CsvRow } from './utils/csv';
 import { watchDirectory } from './features/watch';
 import { generateBatchWithProgress } from './features/batch';
+import { addJob, listJobs, runQueue } from './features/queue';
 
 async function callWithProgress<T>(
   fn: () => Promise<T>,
@@ -314,6 +315,69 @@ program
       console.log(result);
     } catch (err) {
       console.error('Error generating and uploading video:', err);
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command('queue-add')
+  .description('Add a job to the processing queue')
+  .argument('<file>', 'audio file path')
+  .option('-o, --output <output>', 'output video path')
+  .option('--captions <srt>', 'captions file path')
+  .option('--font <font>', 'caption font')
+  .option('--font-path <path>', 'caption font file')
+  .option('--style <style>', 'caption font style')
+  .option('--size <size>', 'caption font size', (v) => parseInt(v, 10))
+  .option('--caption-color <color>', 'caption text color (hex)')
+  .option('--color <color>', 'alias for --caption-color')
+  .option('--caption-bg <color>', 'caption background color (hex)')
+  .option('--bg-color <color>', 'alias for --caption-bg')
+  .option('--position <pos>', 'caption position (top|center|bottom)')
+  .option('-b, --background <file>', 'background image or video')
+  .option('--watermark <file>', 'watermark image')
+  .option('--watermark-position <pos>', 'watermark position (top-left|top-right|bottom-left|bottom-right)')
+  .option('--intro <file>', 'intro video or image')
+  .option('--outro <file>', 'outro video or image')
+  .option('--width <width>', 'output width', (v) => parseInt(v, 10))
+  .option('--height <height>', 'output height', (v) => parseInt(v, 10))
+  .option('--title <title>', 'video title')
+  .option('--description <desc>', 'video description')
+  .option('--tags <tags>', 'comma separated tags')
+  .option('--publish-at <date>', 'schedule publish date (ISO)')
+  .action(async (file: string, options: any) => {
+    try {
+      if (options.color && !options.captionColor) options.captionColor = options.color;
+      if (options.bgColor && !options.captionBg) options.captionBg = options.bgColor;
+      const params: GenerateParams = {
+        file,
+        output: options.output,
+        captions: options.captions,
+        captionOptions: {
+          font: options.font,
+          fontPath: options.fontPath,
+          style: options.style,
+          size: options.size,
+          position: options.position,
+          color: options.captionColor,
+          background: options.captionBg,
+        },
+        background: options.background,
+        watermark: options.watermark,
+        watermarkPosition: options.watermarkPosition,
+        intro: options.intro,
+        outro: options.outro,
+        width: options.width,
+        height: options.height,
+        title: options.title,
+        description: options.description,
+        tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
+        publishAt: options.publishAt,
+      } as any;
+      const dest = options.output || path.basename(file, path.extname(file)) + '.mp4';
+      await addJob({ GenerateUpload: { params, dest } } as any);
+    } catch (err) {
+      console.error('Error adding job:', err);
       process.exitCode = 1;
     }
   });
@@ -738,6 +802,31 @@ program
       publishAt: options.publishAt,
       autoUpload: options.autoUpload,
     } as any);
+  });
+
+program
+  .command('queue-list')
+  .description('List pending queue jobs')
+  .action(async () => {
+    try {
+      const jobs = await listJobs();
+      console.log(JSON.stringify(jobs, null, 2));
+    } catch (err) {
+      console.error('Error listing queue:', err);
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command('queue-run')
+  .description('Process queued jobs')
+  .action(async () => {
+    try {
+      await runQueue();
+    } catch (err) {
+      console.error('Error running queue:', err);
+      process.exitCode = 1;
+    }
   });
 
 program

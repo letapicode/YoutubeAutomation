@@ -4,7 +4,7 @@ use std::{
     path::{Path, PathBuf},
     process::Command,
 };
-use tauri::{command, Window};
+use tauri::{command, Window, Manager};
 use serde::{Deserialize, Serialize};
 mod schema;
 use schema::{CaptionOptions, GenerateParams};
@@ -25,6 +25,8 @@ use walkdir::WalkDir;
 mod language;
 mod token_store;
 use token_store::EncryptedTokenStorage;
+mod job_queue;
+use job_queue::{Job, enqueue, dequeue, peek_all, load_queue};
 use tauri::api::dialog::{blocking::MessageDialogBuilder, MessageDialogKind};
 use notify::{RecommendedWatcher, RecursiveMode, Watcher, Config, EventKind, Event, Error as NotifyError};
 use once_cell::sync::Lazy;
@@ -675,6 +677,7 @@ fn watch_directory(window: Window, params: WatchDirectoryParams) -> Result<(), S
     let opts = params.options.clone().unwrap_or_default();
     let auto = params.auto_upload;
     let win = window.clone();
+    let app_handle = window.app_handle();
     let mut watcher = RecommendedWatcher::new(
         move |res: Result<Event, NotifyError>| {
             if let Ok(event) = res {
@@ -701,14 +704,13 @@ fn watch_directory(window: Window, params: WatchDirectoryParams) -> Result<(), S
                                         tags: opts.tags.clone(),
                                         publish_at: opts.publish_at.clone(),
                                     };
-                                    let w = win.clone();
-                                    tauri::async_runtime::spawn(async move {
-                                        if auto {
-                                            let _ = generate_upload(w, gp).await;
-                                        } else {
-                                            let _ = generate_video(w, gp);
-                                        }
-                                    });
+                                    let dest = p.with_extension("mp4").to_string_lossy().to_string();
+                                    let job = if auto {
+                                        Job::GenerateUpload { params: gp, dest }
+                                    } else {
+                                        Job::Generate { params: gp, dest }
+                                    };
+                                    let _ = enqueue(&app_handle, job);
                                 }
                             }
                         }
@@ -772,6 +774,37 @@ fn cancel_upload(window: Window) -> Result<(), String> {
     if let Some(handle) = ACTIVE_UPLOAD.lock().unwrap().take() {
         handle.abort();
         let _ = window.emit("upload_canceled", ());
+    }
+    Ok(())
+}
+
+#[command]
+fn queue_add(app: tauri::AppHandle, job: Job) -> Result<(), String> {
+    load_queue(&app).ok();
+    enqueue(&app, job)
+}
+
+#[command]
+fn queue_list(app: tauri::AppHandle) -> Result<Vec<Job>, String> {
+    load_queue(&app).ok();
+    Ok(peek_all())
+}
+
+#[command]
+async fn queue_process(window: Window) -> Result<(), String> {
+    let app = window.app_handle();
+    load_queue(&app).ok();
+    while let Some(job) = dequeue(&app)? {
+        match job {
+            Job::Generate { mut params, dest } => {
+                params.output = Some(dest);
+                let _ = generate_video(window.clone(), params);
+            }
+            Job::GenerateUpload { mut params, dest } => {
+                params.output = Some(dest);
+                let _ = generate_upload(window.clone(), params).await?;
+            }
+        }
     }
     Ok(())
 }
@@ -956,7 +989,7 @@ fn install_tauri_deps() -> Result<(), String> {
 fn main() {
     ensure_whisper_model();
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, watch_directory, youtube_sign_in, youtube_sign_out, youtube_is_signed_in, load_settings, save_settings, load_srt, save_srt, cancel_generate, cancel_upload, verify_dependencies, install_tauri_deps, list_fonts])
+        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, watch_directory, youtube_sign_in, youtube_sign_out, youtube_is_signed_in, load_settings, save_settings, load_srt, save_srt, cancel_generate, cancel_upload, queue_add, queue_list, queue_process, verify_dependencies, install_tauri_deps, list_fonts])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

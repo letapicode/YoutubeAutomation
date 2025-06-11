@@ -1,6 +1,6 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Clone, Default)]
+#[derive(Serialize, Deserialize, Clone, Default)]
 pub struct CaptionOptions {
     pub font: Option<String>,
     #[serde(rename = "fontPath")]
@@ -12,7 +12,7 @@ pub struct CaptionOptions {
     pub background: Option<String>,
 }
 
-#[derive(Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct GenerateParams {
     pub file: String,
     pub output: Option<String>,

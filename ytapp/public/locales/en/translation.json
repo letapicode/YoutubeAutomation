@@ -60,4 +60,6 @@
   "not_watching": "Not Watching",
   "start_watch": "Start Watching",
   "stop_watch": "Stop Watching"
+  ,"queue": "Queue"
+  ,"process_queue": "Process Queue"
 }
