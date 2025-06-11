@@ -2,4 +2,4 @@
 . "$(dirname "$0")/_/husky.sh"
 
 npm run lint || exit 1
-( cd src-tauri && cargo check --quiet ) || exit 1
+(cd src-tauri && cargo check --quiet) || exit 1

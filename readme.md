@@ -219,6 +219,7 @@ bootstrap script when first created.
 Pre-commit hooks should run the standard checks:
 ```bash
 cd ytapp && npm install
+npm run lint
 cd src-tauri && cargo check
 cd .. && npx ts-node src/cli.ts --help
 ```
