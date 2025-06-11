@@ -163,7 +163,7 @@
   * Font selector
   * Size slider
   * Position (top / center / bottom)
-* YouTube sign-in button + status
+* YouTube sign-in/sign-out buttons
 * Generate video button
 * Generate & upload to YouTube button
 * Generation progress bar
@@ -280,6 +280,18 @@ file. The selected font and style are stored in the application settings and
 passed to FFmpeg so subtitles render with your custom font.
 
 ### CLI Usage
+
+Authenticate with YouTube:
+
+```bash
+npx ts-node src/cli.ts sign-in
+```
+
+Sign out again:
+
+```bash
+npx ts-node src/cli.ts sign-out
+```
 
 Generate and schedule an upload:
 

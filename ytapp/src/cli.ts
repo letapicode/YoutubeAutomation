@@ -177,6 +177,13 @@ async function signIn(): Promise<void> {
   await invoke('youtube_sign_in');
 }
 
+/**
+ * Remove stored YouTube tokens.
+ */
+async function signOut(): Promise<void> {
+  await invoke('youtube_sign_out');
+}
+
 program
   .name('ytcli')
   .description('CLI for generating and uploading videos')
@@ -550,6 +557,19 @@ program
       console.log('Sign-in complete');
     } catch (err) {
       console.error('Error during sign-in:', err);
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command('sign-out')
+  .description('Remove stored YouTube credentials')
+  .action(async () => {
+    try {
+      await signOut();
+      console.log('Signed out');
+    } catch (err) {
+      console.error('Error during sign-out:', err);
       process.exitCode = 1;
     }
   });

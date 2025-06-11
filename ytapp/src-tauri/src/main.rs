@@ -489,6 +489,16 @@ async fn youtube_is_signed_in() -> bool {
 }
 
 #[command]
+async fn youtube_sign_out() -> Result<(), String> {
+    let token_path = std::env::var("YOUTUBE_TOKEN_FILE").unwrap_or_else(|_| "youtube_tokens.enc".into());
+    match tokio::fs::remove_file(&token_path).await {
+        Ok(_) => Ok(()),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        Err(e) => Err(e.to_string()),
+    }
+}
+
+#[command]
 async fn generate_upload(window: Window, params: GenerateParams) -> Result<String, String> {
     let output = generate_video(window.clone(), params.clone())?;
     let result = upload_video_impl(window.clone(), output.clone(), UploadOptions {
@@ -864,7 +874,7 @@ fn install_tauri_deps() -> Result<(), String> {
 fn main() {
     ensure_whisper_model();
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, watch_directory, youtube_sign_in, youtube_is_signed_in, load_settings, save_settings, load_srt, save_srt, verify_dependencies, install_tauri_deps, list_fonts])
+        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, watch_directory, youtube_sign_in, youtube_sign_out, youtube_is_signed_in, load_settings, save_settings, load_srt, save_srt, verify_dependencies, install_tauri_deps, list_fonts])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
