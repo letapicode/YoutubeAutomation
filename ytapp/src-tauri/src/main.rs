@@ -23,7 +23,9 @@ use token_store::EncryptedTokenStorage;
 use tauri::api::dialog::{blocking::MessageDialogBuilder, MessageDialogKind};
 use notify::{RecommendedWatcher, RecursiveMode, Watcher, Config, EventKind};
 use once_cell::sync::Lazy;
-use std::sync::Mutex;
+use std::sync::{Mutex, Arc};
+use std::process::Child;
+use futures::future::{AbortHandle, Abortable};
 
 #[derive(Serialize)]
 struct SystemFont {
@@ -33,6 +35,8 @@ struct SystemFont {
 }
 
 static WATCHER: Lazy<Mutex<Option<RecommendedWatcher>>> = Lazy::new(|| Mutex::new(None));
+static ACTIVE_FFMPEG: Lazy<Mutex<Option<Arc<Mutex<Child>>>>> = Lazy::new(|| Mutex::new(None));
+static ACTIVE_UPLOAD: Lazy<Mutex<Option<AbortHandle>>> = Lazy::new(|| Mutex::new(None));
 
 #[derive(Deserialize, Default, Clone)]
 struct CaptionOptions {
@@ -164,12 +168,32 @@ fn temp_file(name: &str) -> PathBuf {
     std::env::temp_dir().join(format!("{}_{}.mp4", name, ts))
 }
 
+fn run_ffmpeg(mut cmd: Command) -> Result<(), String> {
+    let mut child = cmd.spawn().map_err(|e| e.to_string())?;
+    let child = Arc::new(Mutex::new(child));
+    {
+        let mut active = ACTIVE_FFMPEG.lock().unwrap();
+        *active = Some(child.clone());
+    }
+    let status = child.lock().unwrap().wait().map_err(|e| e.to_string())?;
+    {
+        let mut active = ACTIVE_FFMPEG.lock().unwrap();
+        *active = None;
+    }
+    if status.success() { Ok(()) } else { Err("ffmpeg failed".into()) }
+}
+
 fn run_with_progress(mut cmd: Command, duration: f64, window: &Window) -> Result<(), String> {
     use std::io::{BufRead, BufReader};
     cmd.args(["-progress", "pipe:1", "-nostats"]);
     cmd.stdout(std::process::Stdio::piped());
     let mut child = cmd.spawn().map_err(|e| format!("failed to start ffmpeg: {}", e))?;
     let stdout = child.stdout.take().ok_or("failed to capture stdout")?;
+    let child = Arc::new(Mutex::new(child));
+    {
+        let mut active = ACTIVE_FFMPEG.lock().unwrap();
+        *active = Some(child.clone());
+    }
     let reader = BufReader::new(stdout);
     for line in reader.lines() {
         if let Ok(l) = line {
@@ -181,7 +205,11 @@ fn run_with_progress(mut cmd: Command, duration: f64, window: &Window) -> Result
             }
         }
     }
-    let status = child.wait().map_err(|e| format!("ffmpeg error: {}", e))?;
+    let status = child.lock().unwrap().wait().map_err(|e| format!("ffmpeg error: {}", e))?;
+    {
+        let mut active = ACTIVE_FFMPEG.lock().unwrap();
+        *active = None;
+    }
     if status.success() { Ok(()) } else { Err(format!("ffmpeg exited with status {:?}", status.code())) }
 }
 
@@ -246,8 +274,8 @@ fn convert_media(path: &str, duration: Option<f64>, width: u32, height: u32) -> 
         "aac",
         out.to_str().unwrap(),
     ]);
-    let status = cmd.status().map_err(|e| e.to_string())?;
-    if status.success() { Ok(out) } else { Err("ffmpeg failed".into()) }
+    run_ffmpeg(cmd)?;
+    Ok(out)
 }
 
 fn build_main_section(window: Option<&Window>, params: &GenerateParams, duration: f64, width: u32, height: u32) -> Result<PathBuf, String> {
@@ -327,10 +355,7 @@ fn build_main_section(window: Option<&Window>, params: &GenerateParams, duration
     if let Some(w) = window {
         run_with_progress(cmd, duration, w)?;
     } else {
-        let status = cmd.status().map_err(|e| format!("failed to start ffmpeg: {}", e))?;
-        if !status.success() {
-            return Err(format!("ffmpeg exited with status {:?}", status.code()));
-        }
+        run_ffmpeg(cmd)?;
     }
     Ok(out)
 }
@@ -432,18 +457,40 @@ async fn upload_video_impl(window: Window, file: String, opts: UploadOptions) ->
     let mut reader = std::io::BufReader::new(reader);
     let _ = window.emit("upload_progress", 0f64);
 
-    let response = hub
-        .videos()
-        .insert(video)
-        .add_part("snippet")
-        .upload_resumable(&mut reader, "video/mp4".parse().unwrap())
-        .await
-        .map_err(|e| format!("Upload failed: {}", e))?;
+    let (handle, reg) = AbortHandle::new_pair();
+    {
+        let mut active = ACTIVE_UPLOAD.lock().unwrap();
+        *active = Some(handle);
+    }
 
-    let _ = window.emit("upload_progress", 100f64);
+    let fut = async {
+        let response = hub
+            .videos()
+            .insert(video)
+            .add_part("snippet")
+            .upload_resumable(&mut reader, "video/mp4".parse().unwrap())
+            .await
+            .map_err(|e| format!("Upload failed: {}", e))?;
+        Ok::<_, String>(response)
+    };
 
-    let id = response.1.id.unwrap_or_default();
-    Ok(format!("Uploaded video ID: {}", id))
+    let result = Abortable::new(fut, reg).await;
+    {
+        let mut active = ACTIVE_UPLOAD.lock().unwrap();
+        *active = None;
+    }
+    match result {
+        Ok(Ok(response)) => {
+            let _ = window.emit("upload_progress", 100f64);
+            let id = response.1.id.unwrap_or_default();
+            Ok(format!("Uploaded video ID: {}", id))
+        }
+        Ok(Err(e)) => Err(e),
+        Err(_) => {
+            let _ = window.emit("upload_canceled", ());
+            Err("upload canceled".into())
+        }
+    }
 }
 
 async fn build_authenticator() -> Result<Authenticator<HttpsConnector<HttpConnector>>, String> {
@@ -694,6 +741,24 @@ fn save_srt(path: String, data: String) -> Result<(), String> {
     fs::write(path, data).map_err(|e| e.to_string())
 }
 
+#[command]
+fn cancel_generate(window: Window) -> Result<(), String> {
+    if let Some(child) = ACTIVE_FFMPEG.lock().unwrap().take() {
+        let _ = child.lock().unwrap().kill();
+        let _ = window.emit("generate_canceled", ());
+    }
+    Ok(())
+}
+
+#[command]
+fn cancel_upload(window: Window) -> Result<(), String> {
+    if let Some(handle) = ACTIVE_UPLOAD.lock().unwrap().take() {
+        handle.abort();
+        let _ = window.emit("upload_canceled", ());
+    }
+    Ok(())
+}
+
 #[derive(Deserialize)]
 struct TranscribeParams {
     file: String,
@@ -874,7 +939,7 @@ fn install_tauri_deps() -> Result<(), String> {
 fn main() {
     ensure_whisper_model();
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, watch_directory, youtube_sign_in, youtube_sign_out, youtube_is_signed_in, load_settings, save_settings, load_srt, save_srt, verify_dependencies, install_tauri_deps, list_fonts])
+        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, watch_directory, youtube_sign_in, youtube_sign_out, youtube_is_signed_in, load_settings, save_settings, load_srt, save_srt, cancel_generate, cancel_upload, verify_dependencies, install_tauri_deps, list_fonts])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

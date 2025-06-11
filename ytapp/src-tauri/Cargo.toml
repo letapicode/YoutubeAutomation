@@ -21,6 +21,7 @@ chrono = { version = "0.4", features = ["serde"] }
 walkdir = "2"
 notify = "8"
 once_cell = "1"
+futures = "0.3"
 
 [build-dependencies]
 tauri-build = "1"

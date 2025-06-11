@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { generateVideo } from './features/processing';
 import { listen } from '@tauri-apps/api/event';
-import { convertFileSrc } from '@tauri-apps/api/core';
+import { convertFileSrc, invoke } from '@tauri-apps/api/core';
 import { removeFile } from '@tauri-apps/api/fs';
 import { tempDir } from '@tauri-apps/api/path';
 import YouTubeAuthButton from './components/YouTubeAuthButton';
@@ -113,7 +113,7 @@ const App: React.FC = () => {
             outro: outro || undefined,
             width,
             height,
-        }, p => setProgress(Math.round(p)));
+        }, p => setProgress(Math.round(p)), () => setGenerating(false));
         setOutputs(o => [...o, out]);
         setGenerating(false);
     };
@@ -178,9 +178,17 @@ const App: React.FC = () => {
         const unlisten = await listen<number>('generate_progress', e => {
             if (typeof e.payload === 'number') setProgress(Math.round(e.payload));
         });
-        await generateUpload(buildParams());
+        await generateUpload(buildParams(), () => setGenerating(false));
         unlisten();
         setGenerating(false);
+    };
+
+    const cancelGenerate = async () => {
+        await invoke('cancel_generate');
+    };
+
+    const cancelUpload = async () => {
+        await invoke('cancel_upload');
     };
 
     useEffect(() => {
@@ -402,6 +410,7 @@ const App: React.FC = () => {
                 <div className="row">
                     <progress value={progress} max={100} />
                     <span>{progress}%</span>
+                    <button onClick={() => { cancelGenerate(); cancelUpload(); }}>{t('cancel')}</button>
                 </div>
             )}
             {outputs.map((o, i) => (
