@@ -13,16 +13,13 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
+            ~/.rustup
           key: ${{ runner.os }}-cargo-${{ hashFiles('ytapp/src-tauri/Cargo.lock') }}
       - uses: actions/cache@v3
         with:
-          path: ytapp/node_modules
+          path: |
+            ~/.npm
+            ytapp/node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('ytapp/package-lock.json') }}
-      - uses: devcontainers/ci@v0.3
-        with:
-          imageName: devcontainer-image
-          cacheFrom: ghcr.io/${{ github.repository_owner }}/ytapp-devcontainer:latest
-          push: false
-          runCmd: |
-            make dev
-            make test
+      - run: ./scripts/setup.sh
+      - run: make verify

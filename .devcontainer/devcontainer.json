@@ -4,8 +4,8 @@
     "dockerfile": "Dockerfile",
     "context": ".."
   },
-  "postCreateCommand": "./scripts/bootstrap.sh",
-  "updateContentCommand": "./scripts/bootstrap.sh",
+  "postCreateCommand": "./scripts/setup.sh && make verify",
+  "updateContentCommand": "./scripts/setup.sh",
   "customizations": {
     "vscode": {
       "settings": {
