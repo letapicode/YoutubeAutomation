@@ -289,5 +289,8 @@ Upload an existing video with metadata:
 npx ts-node src/cli.ts upload video.mp4 --title "My Video"
 ```
 
+`--caption-color` and `--caption-bg` accept hex colors. You may also use the
+shorter `--color` and `--bg-color` aliases.
+
 
 
