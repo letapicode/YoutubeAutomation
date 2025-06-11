@@ -22,7 +22,9 @@ use chrono::prelude::*;
 use walkdir::WalkDir;
 mod language;
 mod token_store;
+mod schema;
 use token_store::EncryptedTokenStorage;
+use schema::GenerateParams;
 use tauri::api::dialog::{blocking::MessageDialogBuilder, MessageDialogKind};
 use notify::{RecommendedWatcher, RecursiveMode, Watcher, Config, EventKind, Event, Error as NotifyError};
 use once_cell::sync::Lazy;
@@ -52,24 +54,6 @@ struct CaptionOptions {
     background: Option<String>,
 }
 
-#[derive(Deserialize, Clone)]
-struct GenerateParams {
-    file: String,
-    output: Option<String>,
-    captions: Option<String>,
-    caption_options: Option<CaptionOptions>,
-    background: Option<String>,
-    intro: Option<String>,
-    outro: Option<String>,
-    watermark: Option<String>,
-    watermark_position: Option<String>,
-    width: Option<u32>,
-    height: Option<u32>,
-    title: Option<String>,
-    description: Option<String>,
-    tags: Option<Vec<String>>,
-    publish_at: Option<String>,
-}
 
 #[derive(Deserialize, Clone, Default)]
 struct UploadOptions {

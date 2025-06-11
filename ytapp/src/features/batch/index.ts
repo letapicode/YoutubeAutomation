@@ -2,7 +2,8 @@
 // These functions wrap `generateVideo` from the processing module and optionally
 // report progress back to the caller.
 
-import { GenerateParams, generateVideo } from '../processing';
+import { generateVideo } from '../processing';
+import { GenerateParams } from '../types/generateParams';
 export type ProgressCallback = (current: number, total: number, file: string) => void;
 
 export interface BatchOptions extends Omit<GenerateParams, 'file' | 'output'> {

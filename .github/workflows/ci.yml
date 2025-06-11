@@ -9,6 +9,7 @@ jobs:
       - run: ./scripts/install_tauri_deps.sh
       - run: echo "PKG_CONFIG_PATH=$(cut -d= -f2 .env.tauri)" >> $GITHUB_ENV
       - run: cd ytapp && npm ci
+      - run: cd ytapp && npm run generate-schema
       - run: |
           cd ytapp/src-tauri
           cargo generate-lockfile

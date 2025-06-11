@@ -1,6 +1,6 @@
 // Start or stop directory watching via the backend.
 import { invoke } from '@tauri-apps/api/core';
-import { GenerateParams } from './processing';
+import { GenerateParams } from '../types/generateParams';
 
 export interface WatchParams extends Omit<GenerateParams, 'file' | 'output'> {
   autoUpload?: boolean;
