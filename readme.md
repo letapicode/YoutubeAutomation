@@ -311,13 +311,19 @@ Upload an existing video with metadata:
 npx ts-node src/cli.ts upload video.mp4 --title "My Video"
 ```
 
+Generate multiple videos without uploading:
+
+```bash
+npx ts-node src/cli.ts generate-batch a.wav b.wav -d ./out --title "Batch Title"
+```
+
 During uploads the CLI prints progress percentages similar to video generation.
 Press `Ctrl-C` at any time to cancel the current operation.
 
 `--caption-color` and `--caption-bg` accept hex colors. You may also use the
 shorter `--color` and `--bg-color` aliases.
 
-Batch commands (`generate-upload-batch` and `upload-batch`) accept `--csv <file>`
+Batch commands (`generate-batch`, `generate-upload-batch` and `upload-batch`) accept `--csv <file>`
 to provide per-file metadata. The CSV must contain `file,title,description,tags,publish_at`
 columns, where `tags` is a comma-separated list.
 
