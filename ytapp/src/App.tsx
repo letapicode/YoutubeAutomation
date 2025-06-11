@@ -20,6 +20,7 @@ import Modal from './components/Modal';
 import UploadIcon from './components/UploadIcon';
 import SettingsIcon from './components/SettingsIcon';
 import OnboardingModal from './components/OnboardingModal';
+import WatchStatus from './components/WatchStatus';
 import SubtitleEditor from './components/SubtitleEditor';
 
 const App: React.FC = () => {
@@ -427,6 +428,7 @@ const App: React.FC = () => {
                     />
                 )}
             </Modal>
+            <WatchStatus />
             <OnboardingModal open={showGuide} onClose={dismissGuide} />
         </div>
     );

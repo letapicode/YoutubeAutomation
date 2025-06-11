@@ -8,6 +8,7 @@ import fs from 'fs/promises';
 import os from 'os';
 import { translateSrt } from './utils/translate';
 import { parseCsv, CsvRow } from './utils/csv';
+import { watchDirectory } from './features/watch';
 
 async function callWithProgress<T>(
   fn: () => Promise<T>,
@@ -572,6 +573,57 @@ program
       console.error('Error transcribing audio:', err);
       process.exitCode = 1;
     }
+  });
+
+program
+  .command('watch')
+  .description('Watch directory for new audio files')
+  .argument('<dir>', 'directory path')
+  .option('--captions <srt>', 'captions file path')
+  .option('--font <font>', 'caption font')
+  .option('--font-path <path>', 'caption font file')
+  .option('--style <style>', 'caption font style')
+  .option('--size <size>', 'caption font size', (v) => parseInt(v, 10))
+  .option('--caption-color <color>', 'caption text color (hex)')
+  .option('--color <color>', 'alias for --caption-color')
+  .option('--caption-bg <color>', 'caption background color (hex)')
+  .option('--bg-color <color>', 'alias for --caption-bg')
+  .option('--position <pos>', 'caption position (top|center|bottom)')
+  .option('-b, --background <file>', 'background image or video')
+  .option('--intro <file>', 'intro video or image')
+  .option('--outro <file>', 'outro video or image')
+  .option('--width <width>', 'output width', (v) => parseInt(v, 10))
+  .option('--height <height>', 'output height', (v) => parseInt(v, 10))
+  .option('--title <title>', 'video title')
+  .option('--description <desc>', 'video description')
+  .option('--tags <tags>', 'comma separated tags')
+  .option('--publish-at <date>', 'schedule publish date (ISO)')
+  .option('--auto-upload', 'upload after generating')
+  .action(async (dir: string, options: any) => {
+    if (options.color && !options.captionColor) options.captionColor = options.color;
+    if (options.bgColor && !options.captionBg) options.captionBg = options.bgColor;
+    await watchDirectory(dir, {
+      captions: options.captions,
+      captionOptions: {
+        font: options.font,
+        fontPath: options.fontPath,
+        style: options.style,
+        size: options.size,
+        position: options.position,
+        color: options.captionColor,
+        background: options.captionBg,
+      },
+      background: options.background,
+      intro: options.intro,
+      outro: options.outro,
+      width: options.width,
+      height: options.height,
+      title: options.title,
+      description: options.description,
+      tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
+      publishAt: options.publishAt,
+      autoUpload: options.autoUpload,
+    } as any);
   });
 
 program

@@ -21,6 +21,9 @@ mod language;
 mod token_store;
 use token_store::EncryptedTokenStorage;
 use tauri::api::dialog::{blocking::MessageDialogBuilder, MessageDialogKind};
+use notify::{RecommendedWatcher, RecursiveMode, Watcher, Config, EventKind};
+use once_cell::sync::Lazy;
+use std::sync::Mutex;
 
 #[derive(Serialize)]
 struct SystemFont {
@@ -28,6 +31,8 @@ struct SystemFont {
     style: String,
     path: String,
 }
+
+static WATCHER: Lazy<Mutex<Option<RecommendedWatcher>>> = Lazy::new(|| Mutex::new(None));
 
 #[derive(Deserialize, Default, Clone)]
 struct CaptionOptions {
@@ -77,6 +82,8 @@ struct AppSettings {
     caption_color: Option<String>,
     caption_bg: Option<String>,
     show_guide: Option<bool>,
+    watch_dir: Option<String>,
+    auto_upload: Option<bool>,
 }
 
 impl Default for AppSettings {
@@ -92,6 +99,8 @@ impl Default for AppSettings {
             caption_color: None,
             caption_bg: None,
             show_guide: Some(true),
+            watch_dir: None,
+            auto_upload: Some(false),
         }
     }
 }
@@ -519,6 +528,28 @@ struct BatchGenerateParams {
     publish_at: Option<String>,
 }
 
+#[derive(Deserialize, Clone, Default)]
+struct WatchOptions {
+    captions: Option<String>,
+    caption_options: Option<CaptionOptions>,
+    background: Option<String>,
+    intro: Option<String>,
+    outro: Option<String>,
+    width: Option<u32>,
+    height: Option<u32>,
+    title: Option<String>,
+    description: Option<String>,
+    tags: Option<Vec<String>>,
+    publish_at: Option<String>,
+}
+
+#[derive(Deserialize, Clone)]
+struct WatchDirectoryParams {
+    dir: String,
+    options: Option<WatchOptions>,
+    auto_upload: bool,
+}
+
 #[command]
 async fn generate_batch_upload(window: Window, params: BatchGenerateParams) -> Result<Vec<String>, String> {
     let mut results = Vec::new();
@@ -560,6 +591,65 @@ async fn generate_batch_upload(window: Window, params: BatchGenerateParams) -> R
 }
 
 #[command]
+fn watch_directory(window: Window, params: WatchDirectoryParams) -> Result<(), String> {
+    let mut guard = WATCHER.lock().unwrap();
+    if let Some(mut w) = guard.take() {
+        let _ = w.unwatch(Path::new(&params.dir));
+    }
+    if params.dir.is_empty() {
+        return Ok(());
+    }
+    let dir = params.dir.clone();
+    let opts = params.options.clone().unwrap_or_default();
+    let auto = params.auto_upload;
+    let win = window.clone();
+    let mut watcher = RecommendedWatcher::new(
+        move |res| {
+            if let Ok(event) = res {
+                if matches!(event.kind, EventKind::Create(_)) {
+                    for p in event.paths {
+                        if p.is_file() {
+                            if let Some(ext) = p.extension().and_then(|s| s.to_str()) {
+                                let ext = ext.to_ascii_lowercase();
+                                if ["mp3", "wav", "m4a", "flac", "aac"].contains(&ext.as_str()) {
+                                    let mut gp = GenerateParams {
+                                        file: p.to_string_lossy().to_string(),
+                                        output: None,
+                                        captions: opts.captions.clone(),
+                                        caption_options: opts.caption_options.clone(),
+                                        background: opts.background.clone(),
+                                        intro: opts.intro.clone(),
+                                        outro: opts.outro.clone(),
+                                        width: opts.width,
+                                        height: opts.height,
+                                        title: opts.title.clone(),
+                                        description: opts.description.clone(),
+                                        tags: opts.tags.clone(),
+                                        publish_at: opts.publish_at.clone(),
+                                    };
+                                    let w = win.clone();
+                                    tauri::async_runtime::spawn(async move {
+                                        if auto {
+                                            let _ = generate_upload(w, gp).await;
+                                        } else {
+                                            let _ = generate_video(w, gp);
+                                        }
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        Config::default(),
+    ).map_err(|e| e.to_string())?;
+    watcher.watch(Path::new(&dir), RecursiveMode::NonRecursive).map_err(|e| e.to_string())?;
+    *guard = Some(watcher);
+    Ok(())
+}
+
+#[command]
 fn load_settings(app: tauri::AppHandle) -> Result<AppSettings, String> {
     let path = settings_path(&app)?;
     let data = match fs::read_to_string(&path) {
@@ -570,6 +660,9 @@ fn load_settings(app: tauri::AppHandle) -> Result<AppSettings, String> {
     let mut settings: AppSettings = serde_json::from_str(&data).map_err(|e| e.to_string())?;
     if settings.show_guide.is_none() {
         settings.show_guide = Some(true);
+    }
+    if settings.auto_upload.is_none() {
+        settings.auto_upload = Some(false);
     }
     Ok(settings)
 }
@@ -771,7 +864,7 @@ fn install_tauri_deps() -> Result<(), String> {
 fn main() {
     ensure_whisper_model();
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, youtube_sign_in, youtube_is_signed_in, load_settings, save_settings, load_srt, save_srt, verify_dependencies, install_tauri_deps, list_fonts])
+        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, watch_directory, youtube_sign_in, youtube_is_signed_in, load_settings, save_settings, load_srt, save_srt, verify_dependencies, install_tauri_deps, list_fonts])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

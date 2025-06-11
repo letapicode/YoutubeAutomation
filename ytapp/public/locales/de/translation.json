@@ -32,7 +32,13 @@
   "settings": "Einstellungen",
   "save": "Speichern",
   "preview": "Vorschau",
-  "advanced_settings": "Erweiterte Einstellungen"
+  "advanced_settings": "Erweiterte Einstellungen",
   "caption_color": "Caption Color",
   "caption_bg": "Caption Background",
+  "watch_directory": "Watch Directory",
+  "auto_upload": "Auto Upload",
+  "watching": "Watching",
+  "not_watching": "Not Watching",
+  "start_watch": "Start Watching",
+  "stop_watch": "Stop Watching"
 }

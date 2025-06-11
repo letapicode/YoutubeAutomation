@@ -18,6 +18,8 @@ const SettingsPage: React.FC = () => {
     const [captionColor, setCaptionColor] = useState('#ffffff');
     const [captionBg, setCaptionBg] = useState('#000000');
     const [guide, setGuide] = useState(true);
+    const [watchDir, setWatchDir] = useState('');
+    const [autoUpload, setAutoUpload] = useState(false);
 
     useEffect(() => {
         loadSettings().then(s => {
@@ -31,6 +33,8 @@ const SettingsPage: React.FC = () => {
             if (s.captionColor) setCaptionColor(s.captionColor);
             if (s.captionBg) setCaptionBg(s.captionBg);
             setGuide(s.showGuide !== false);
+            setWatchDir(s.watchDir || '');
+            setAutoUpload(!!s.autoUpload);
         });
     }, []);
 
@@ -46,6 +50,8 @@ const SettingsPage: React.FC = () => {
             captionColor,
             captionBg,
             showGuide: guide,
+            watchDir: watchDir || undefined,
+            autoUpload,
         });
     };
 
@@ -104,6 +110,12 @@ const SettingsPage: React.FC = () => {
                 <input type="color" value={captionColor} onChange={e => setCaptionColor(e.target.value)} />
                 <label>{t('caption_bg')}</label>
                 <input type="color" value={captionBg} onChange={e => setCaptionBg(e.target.value)} />
+            </div>
+            <div>
+                <label>{t('watch_directory')}</label>
+                <input type="text" value={watchDir} onChange={e => setWatchDir(e.target.value)} />
+                <label>{t('auto_upload')}</label>
+                <input type="checkbox" checked={autoUpload} onChange={e => setAutoUpload(e.target.checked)} />
             </div>
             <button onClick={handleSave}>{t('save')}</button>
         </div>

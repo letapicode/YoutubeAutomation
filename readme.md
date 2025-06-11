@@ -240,6 +240,9 @@ cargo check          # run inside ytapp/src-tauri
 npx ts-node src/cli.ts --help
 ```
 
+To automatically process files placed in a folder set the **Watch Directory**
+and enable **Auto Upload** in the settings page or use the CLI `watch` command.
+
 ### Contribution
 
 To add a new language create a JSON file in
@@ -300,6 +303,12 @@ shorter `--color` and `--bg-color` aliases.
 Batch commands (`generate-upload-batch` and `upload-batch`) accept `--csv <file>`
 to provide per-file metadata. The CSV must contain `file,title,description,tags,publish_at`
 columns, where `tags` is a comma-separated list.
+
+Watch a directory and automatically process new audio files:
+
+```bash
+npx ts-node src/cli.ts watch ./incoming --auto-upload
+```
 
 
 

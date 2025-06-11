@@ -32,18 +32,21 @@
   "settings": "Ajustes",
   "save": "Guardar",
   "preview": "Vista previa",
-  "advanced_settings": "Configuraci\u00f3n avanzada",
+  "advanced_settings": "Configuración avanzada",
   "caption_color": "Caption Color",
   "caption_bg": "Caption Background",
-
   "welcome_title": "Welcome",
   "guide_select_audio": "Select an audio file",
   "guide_generate": "Click Generate to create your video",
-  "guide_upload": "Use Generate & Upload to post to YouTube"
-
+  "guide_upload": "Use Generate & Upload to post to YouTube",
   "video_title": "Title",
   "description": "Description",
   "tags": "Tags",
-  "publish_date": "Publish Date"
-
+  "publish_date": "Publish Date",
+  "watch_directory": "Watch Directory",
+  "auto_upload": "Auto Upload",
+  "watching": "Watching",
+  "not_watching": "Not Watching",
+  "start_watch": "Start Watching",
+  "stop_watch": "Stop Watching"
 }
