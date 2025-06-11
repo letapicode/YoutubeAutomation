@@ -2,14 +2,51 @@ name: CI
 on: [push, pull_request]
 
 jobs:
-  linux-build:
+  build:
     runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/devcontainers/rust:1-bullseye
     steps:
       - uses: actions/checkout@v4
-      - run: ./scripts/install_tauri_deps.sh
-      - run: echo "PKG_CONFIG_PATH=$(cut -d= -f2 .env.tauri)" >> $GITHUB_ENV
-      - run: cd ytapp && npm ci
-      - run: |
-          cd ytapp/src-tauri
-          cargo generate-lockfile
-          cargo check --all-targets
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ytapp/package-lock.json
+
+      - name: Cache toolchains and modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ytapp/node_modules
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/Cargo.lock', 'ytapp/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-deps-
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install system dependencies
+        run: ./scripts/install_tauri_deps.sh
+
+      - name: Export PKG_CONFIG_PATH
+        run: echo "PKG_CONFIG_PATH=$(cut -d= -f2 .env.tauri)" >> $GITHUB_ENV
+
+      - name: Install NPM dependencies
+        run: cd ytapp && npm ci
+
+      - name: Dev build
+        run: make dev
+
+      - name: Rust tests
+        run: cd ytapp/src-tauri && cargo test --all-targets
+
+      - name: Node tests
+        run: |
+          cd ytapp
+          for f in tests/*.ts; do
+            npx ts-node "$f"
+          done
