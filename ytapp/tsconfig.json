@@ -10,7 +10,13 @@
     "types": ["vite/client", "node"],
     "resolveJsonModule": true
   },
+  "ts-node": {
+    "compilerOptions": {
+      "module": "CommonJS"
+    }
+  },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "src/vite-env.d.ts"
   ]
 }
