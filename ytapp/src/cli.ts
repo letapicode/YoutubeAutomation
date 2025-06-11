@@ -83,6 +83,7 @@ interface UploadParams {
   description?: string;
   tags?: string[];
   publishAt?: string;
+  thumbnail?: string;
 }
 
 interface UploadBatchParams extends Omit<UploadParams, 'file'> {
@@ -279,6 +280,7 @@ program
   .option('--outro <file>', 'outro video or image')
   .option('--width <width>', 'output width', (v) => parseInt(v, 10))
   .option('--height <height>', 'output height', (v) => parseInt(v, 10))
+  .option('--thumbnail <file>', 'thumbnail image')
   .action(async (file: string, options: any) => {
     try {
       if (options.color && !options.captionColor) options.captionColor = options.color;
@@ -303,6 +305,7 @@ program
         outro: options.outro,
         width: options.width,
         height: options.height,
+        thumbnail: options.thumbnail,
       };
       const result = await withInterrupt(
         () => { invoke('cancel_generate'); invoke('cancel_upload'); },
@@ -345,6 +348,7 @@ program
   .option('--description <desc>', 'video description')
   .option('--tags <tags>', 'comma separated tags')
   .option('--publish-at <date>', 'schedule publish date (ISO)')
+  .option('--thumbnail <file>', 'thumbnail image')
   .action(async (file: string, options: any) => {
     try {
       if (options.color && !options.captionColor) options.captionColor = options.color;
@@ -373,9 +377,10 @@ program
         description: options.description,
         tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
         publishAt: options.publishAt,
+        thumbnail: options.thumbnail,
       } as any;
       const dest = options.output || path.basename(file, path.extname(file)) + '.mp4';
-      await addJob({ GenerateUpload: { params, dest } } as any);
+      await addJob({ GenerateUpload: { params, dest, thumbnail: options.thumbnail } } as any);
     } catch (err) {
       console.error('Error adding job:', err);
       process.exitCode = 1;
@@ -409,6 +414,7 @@ program
   .option('--description <desc>', 'video description')
   .option('--tags <tags>', 'comma separated tags')
   .option('--publish-at <date>', 'schedule publish date (ISO)')
+  .option('--thumbnail <file>', 'thumbnail image')
   .action(async (files: string[], options: any) => {
     try {
       if (options.color && !options.captionColor) options.captionColor = options.color;
@@ -625,6 +631,7 @@ program
   .option('--description <desc>', 'video description')
   .option('--tags <tags>', 'comma separated tags')
   .option('--publish-at <date>', 'schedule publish date (ISO)')
+  .option('--thumbnail <file>', 'thumbnail image')
   .action(async (file: string, options: any) => {
     try {
       const result = await withInterrupt(
@@ -636,6 +643,7 @@ program
             description: options.description,
             tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
             publishAt: options.publishAt,
+            thumbnail: options.thumbnail,
           },
           showProgress,
         )
@@ -656,6 +664,7 @@ program
   .option('--description <desc>', 'video description')
   .option('--tags <tags>', 'comma separated tags')
   .option('--publish-at <date>', 'schedule publish date (ISO)')
+  .option('--thumbnail <file>', 'thumbnail image')
   .action(async (files: string[], options: any) => {
     try {
       let csvMap: Record<string, CsvRow> = {};
@@ -675,6 +684,7 @@ program
               description: meta.description ?? options.description,
               tags: meta.tags ?? (options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined),
               publishAt: meta.publishAt ?? options.publishAt,
+              thumbnail: options.thumbnail,
             },
             showProgress,
           );
@@ -690,6 +700,7 @@ program
               description: options.description,
               tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
               publishAt: options.publishAt,
+              thumbnail: options.thumbnail,
             },
             showProgress,
           )

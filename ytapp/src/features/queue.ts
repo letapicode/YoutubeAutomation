@@ -3,7 +3,7 @@ import { GenerateParams } from './processing';
 
 export type QueueJob =
   | { Generate: { params: GenerateParams; dest: string } }
-  | { GenerateUpload: { params: GenerateParams; dest: string } };
+  | { GenerateUpload: { params: GenerateParams; dest: string; thumbnail?: string } };
 
 export async function addJob(job: QueueJob): Promise<void> {
   await invoke('queue_add', { job });

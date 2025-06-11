@@ -9,7 +9,7 @@ use crate::schema::GenerateParams;
 #[derive(Serialize, Deserialize, Clone)]
 pub enum Job {
     Generate { params: GenerateParams, dest: String },
-    GenerateUpload { params: GenerateParams, dest: String },
+    GenerateUpload { params: GenerateParams, dest: String, thumbnail: Option<String> },
 }
 
 static QUEUE: Lazy<Mutex<Vec<Job>>> = Lazy::new(|| Mutex::new(Vec::new()));

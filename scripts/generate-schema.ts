@@ -36,6 +36,7 @@ const generateParams: Field[] = [
   { name: 'description', type: 'string', optional: true },
   { name: 'tags', type: 'string[]', optional: true },
   { name: 'publishAt', type: 'string', optional: true },
+  { name: 'thumbnail', type: 'string', optional: true },
 ];
 
 function tsType(f: Field): string {

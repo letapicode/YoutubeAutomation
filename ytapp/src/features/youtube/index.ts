@@ -10,6 +10,7 @@ export interface UploadOptions {
     description?: string;
     tags?: string[];
     publishAt?: string;
+    thumbnail?: string;
 }
 
 export interface UploadBatchOptions extends Omit<UploadOptions, 'file'> {

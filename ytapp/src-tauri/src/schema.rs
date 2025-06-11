@@ -32,4 +32,5 @@ pub struct GenerateParams {
     pub tags: Option<Vec<String>>,
     #[serde(rename = "publishAt")]
     pub publish_at: Option<String>,
+    pub thumbnail: Option<String>,
 }
