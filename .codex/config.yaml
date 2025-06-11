@@ -1,0 +1,8 @@
+bootstrap: .codex/bootstrap.sh
+workflow:
+  default:
+    - description: "Run unit & CLI tests"
+      run: |
+        cd ytapp
+        npx ts-node tests/csv.test.ts
+        npx ts-node tests/upload.test.ts

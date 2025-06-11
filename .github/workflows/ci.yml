@@ -1,0 +1,12 @@
+name: CI
+on: [push, pull_request]
+
+jobs:
+  linux-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./scripts/install_tauri_deps.sh
+      - run: echo "PKG_CONFIG_PATH=$(cat .env.tauri | cut -d= -f2)" >> $GITHUB_ENV
+      - run: cd ytapp && npm ci
+      - run: cd ytapp/src-tauri && cargo check --locked --all-targets
