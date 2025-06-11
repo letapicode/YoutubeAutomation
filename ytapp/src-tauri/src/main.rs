@@ -6,6 +6,8 @@ use std::{
 };
 use tauri::{command, Window};
 use serde::{Deserialize, Serialize};
+mod schema;
+use schema::{CaptionOptions, GenerateParams};
 use tauri::api::path::app_config_dir;
 use whisper_cli::{Language, Model, Size, Whisper};
 mod model_check;
@@ -41,35 +43,6 @@ static WATCHER: Lazy<Mutex<Option<RecommendedWatcher>>> = Lazy::new(|| Mutex::ne
 static ACTIVE_FFMPEG: Lazy<Mutex<Option<Arc<Mutex<Child>>>>> = Lazy::new(|| Mutex::new(None));
 static ACTIVE_UPLOAD: Lazy<Mutex<Option<AbortHandle>>> = Lazy::new(|| Mutex::new(None));
 
-#[derive(Deserialize, Default, Clone)]
-struct CaptionOptions {
-    font: Option<String>,
-    font_path: Option<String>,
-    style: Option<String>,
-    size: Option<u32>,
-    position: Option<String>,
-    color: Option<String>,
-    background: Option<String>,
-}
-
-#[derive(Deserialize, Clone)]
-struct GenerateParams {
-    file: String,
-    output: Option<String>,
-    captions: Option<String>,
-    caption_options: Option<CaptionOptions>,
-    background: Option<String>,
-    intro: Option<String>,
-    outro: Option<String>,
-    watermark: Option<String>,
-    watermark_position: Option<String>,
-    width: Option<u32>,
-    height: Option<u32>,
-    title: Option<String>,
-    description: Option<String>,
-    tags: Option<Vec<String>>,
-    publish_at: Option<String>,
-}
 
 #[derive(Deserialize, Clone, Default)]
 struct UploadOptions {

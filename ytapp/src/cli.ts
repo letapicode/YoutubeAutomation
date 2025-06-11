@@ -6,6 +6,7 @@ import path from 'path';
 import { spawn } from 'child_process';
 import fs from 'fs/promises';
 import os from 'os';
+import { CaptionOptions, GenerateParams } from './schema';
 import { translateSrt } from './utils/translate';
 import { parseCsv, CsvRow } from './utils/csv';
 import { watchDirectory } from './features/watch';
@@ -61,33 +62,6 @@ function showProgress(p: number): void {
   if (pct >= 100) process.stdout.write('\n');
 }
 
-interface CaptionOptions {
-  font?: string;
-  fontPath?: string;
-  style?: string;
-  size?: number;
-  position?: string;
-  color?: string;
-  background?: string;
-}
-
-interface GenerateParams {
-  file: string;
-  output?: string;
-  captions?: string;
-  captionOptions?: CaptionOptions;
-  background?: string;
-  intro?: string;
-  outro?: string;
-  watermark?: string;
-  watermarkPosition?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
-  width?: number;
-  height?: number;
-  title?: string;
-  description?: string;
-  tags?: string[];
-  publishAt?: string;
-}
 
 /**
  * Invoke the backend to generate a single video.
