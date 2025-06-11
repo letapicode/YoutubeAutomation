@@ -140,14 +140,24 @@ async function uploadVideos(
 /**
  * Transcribe an audio file and optionally translate the subtitles.
  */
-async function transcribeAudio(params: { file: string; language?: string; translate?: string[] }): Promise<string[]> {
+async function transcribeAudio(params: {
+  file: string;
+  language?: string;
+  translate?: string[];
+}): Promise<string[]> {
   const { file, language = 'auto', translate } = params;
   const result: string = await invoke('transcribe_audio', { file, language });
   const outputs: string[] = [result];
   if (translate) {
     for (const t of translate) {
       try {
-        outputs.push(await translateSrt(result, t));
+        outputs.push(
+          await translateSrt(
+            result,
+            t,
+            language !== 'auto' ? language : 'en',
+          ),
+        );
       } catch {
         // ignore translation errors
       }

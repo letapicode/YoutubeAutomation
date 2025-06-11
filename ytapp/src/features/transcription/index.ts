@@ -26,7 +26,11 @@ export async function transcribeAudio(params: TranscribeParams): Promise<string[
     if (translate && Array.isArray(translate)) {
         for (const target of translate) {
             try {
-                const out = await translateSrt(result, target);
+                const out = await translateSrt(
+                    result,
+                    target,
+                    language !== 'auto' ? language : 'en',
+                );
                 outputs.push(out);
             } catch {
                 // ignore translation errors
