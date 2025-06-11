@@ -44,6 +44,16 @@ async function callWithUploadProgress<T>(
   }
 }
 
+async function withInterrupt<T>(handler: () => void, fn: () => Promise<T>): Promise<T> {
+  const sig = () => { handler(); };
+  process.once('SIGINT', sig);
+  try {
+    return await fn();
+  } finally {
+    process.off('SIGINT', sig);
+  }
+}
+
 function showProgress(p: number): void {
   const pct = Math.round(p);
   process.stdout.write(`\r${pct}%`);
@@ -186,7 +196,7 @@ async function signOut(): Promise<void> {
 
 program
   .name('ytcli')
-  .description('CLI for generating and uploading videos')
+  .description('CLI for generating and uploading videos. Press Ctrl+C to cancel operations.')
   .version('0.1.0');
 
 program
@@ -241,9 +251,12 @@ program
         tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
         publishAt: options.publishAt,
       };
-      const result = await generateVideo(
-        params,
-        options.quiet ? undefined : showProgress,
+      const result = await withInterrupt(
+        () => invoke('cancel_generate'),
+        () => generateVideo(
+          params,
+          options.quiet ? undefined : showProgress,
+        )
       );
       console.log(result);
     } catch (err) {
@@ -295,10 +308,13 @@ program
         width: options.width,
         height: options.height,
       };
-      const result = await generateAndUpload(
-        params,
-        showProgress,
-        showProgress,
+      const result = await withInterrupt(
+        () => { invoke('cancel_generate'); invoke('cancel_upload'); },
+        () => generateAndUpload(
+          params,
+          showProgress,
+          showProgress,
+        )
       );
       console.log(result);
     } catch (err) {
@@ -373,37 +389,43 @@ program
             tags: meta.tags ?? (options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined),
             publishAt: meta.publishAt ?? options.publishAt,
           } as any;
-          await generateAndUpload(params, showProgress, showProgress);
+          await withInterrupt(
+            () => { invoke('cancel_generate'); invoke('cancel_upload'); },
+            () => generateAndUpload(params, showProgress, showProgress)
+          );
         }
       } else {
-        const result = await callWithUploadProgress(
-          () => callWithProgress(
-            () => invoke('generate_batch_upload', {
-          files,
-          outputDir: options.outputDir,
-          captions: options.captions,
-          captionOptions: {
-            font: options.font,
-            fontPath: options.fontPath,
-            style: options.style,
-            size: options.size,
-            position: options.position,
-            color: options.captionColor,
-            background: options.captionBg,
-          },
-          background: options.background,
-          intro: options.intro,
-          outro: options.outro,
-          width: options.width,
-          height: options.height,
-          title: options.title,
-          description: options.description,
-          tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
-          publishAt: options.publishAt,
-          } as any),
+        const result = await withInterrupt(
+          () => { invoke('cancel_generate'); invoke('cancel_upload'); },
+          () => callWithUploadProgress(
+            () => callWithProgress(
+              () => invoke('generate_batch_upload', {
+                files,
+                outputDir: options.outputDir,
+                captions: options.captions,
+                captionOptions: {
+                  font: options.font,
+                  fontPath: options.fontPath,
+                  style: options.style,
+                  size: options.size,
+                  position: options.position,
+                  color: options.captionColor,
+                  background: options.captionBg,
+                },
+                background: options.background,
+                intro: options.intro,
+                outro: options.outro,
+                width: options.width,
+                height: options.height,
+                title: options.title,
+                description: options.description,
+                tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
+                publishAt: options.publishAt,
+              } as any),
+              showProgress,
+            ),
             showProgress,
-          ),
-          showProgress,
+          )
         );
         console.log(result);
       }
@@ -479,15 +501,18 @@ program
   .option('--publish-at <date>', 'schedule publish date (ISO)')
   .action(async (file: string, options: any) => {
     try {
-      const result = await uploadVideo(
-        {
-          file,
-          title: options.title,
-          description: options.description,
-          tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
-          publishAt: options.publishAt,
-        },
-        showProgress,
+      const result = await withInterrupt(
+        () => invoke('cancel_upload'),
+        () => uploadVideo(
+          {
+            file,
+            title: options.title,
+            description: options.description,
+            tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
+            publishAt: options.publishAt,
+          },
+          showProgress,
+        )
       );
       console.log(result);
     } catch (err) {
@@ -530,15 +555,18 @@ program
           console.log(res);
         }
       } else {
-        const results = await uploadVideos(
-          {
-            files,
-            title: options.title,
-            description: options.description,
-            tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
-            publishAt: options.publishAt,
-          },
-          showProgress,
+        const results = await withInterrupt(
+          () => invoke('cancel_upload'),
+          () => uploadVideos(
+            {
+              files,
+              title: options.title,
+              description: options.description,
+              tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
+              publishAt: options.publishAt,
+            },
+            showProgress,
+          )
         ) as any[];
         results.forEach((res: any) => console.log(res));
       }

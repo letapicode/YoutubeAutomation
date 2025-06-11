@@ -17,18 +17,22 @@ export interface UploadBatchOptions extends Omit<UploadOptions, 'file'> {
 }
 
 export type ProgressCallback = (p: number) => void;
+export type CancelCallback = () => void;
 
 export async function uploadVideoWithProgress(
     opts: UploadOptions,
     onProgress: ProgressCallback,
+    onCancel?: CancelCallback,
 ): Promise<string> {
     const unlisten = await listen<number>('upload_progress', e => {
         if (typeof e.payload === 'number') onProgress(e.payload);
     });
+    const cancelListen = onCancel ? await listen('upload_canceled', () => onCancel()) : undefined;
     try {
         return await invoke('upload_video', opts as any);
     } finally {
         unlisten();
+        if (cancelListen) cancelListen();
     }
 }
 
@@ -38,9 +42,10 @@ export async function uploadVideoWithProgress(
 export async function uploadVideo(
     opts: UploadOptions,
     onProgress?: ProgressCallback,
+    onCancel?: CancelCallback,
 ): Promise<string> {
     if (onProgress) {
-        return uploadVideoWithProgress(opts, onProgress);
+        return uploadVideoWithProgress(opts, onProgress, onCancel);
     }
     return await invoke('upload_video', opts as any);
 }
@@ -51,15 +56,18 @@ export async function uploadVideo(
 export async function uploadVideos(
     opts: UploadBatchOptions,
     onProgress?: ProgressCallback,
+    onCancel?: CancelCallback,
 ): Promise<string[]> {
     if (onProgress) {
         const unlisten = await listen<number>('upload_progress', e => {
             if (typeof e.payload === 'number') onProgress(e.payload);
         });
+        const cancelListen = onCancel ? await listen('upload_canceled', () => onCancel()) : undefined;
         try {
             return await invoke('upload_videos', opts as any);
         } finally {
             unlisten();
+            if (cancelListen) cancelListen();
         }
     }
     return await invoke('upload_videos', opts as any);
@@ -68,8 +76,13 @@ export async function uploadVideos(
 /**
  * Generate a video and upload it directly.
  */
-export async function generateUpload(params: GenerateParams): Promise<string> {
-    return await invoke('generate_upload', params as any);
+export async function generateUpload(params: GenerateParams, onCancel?: CancelCallback): Promise<string> {
+    const cancelListen = onCancel ? await listen('upload_canceled', () => onCancel()) : undefined;
+    try {
+        return await invoke('generate_upload', params as any);
+    } finally {
+        if (cancelListen) cancelListen();
+    }
 }
 
 export interface BatchGenerateParams extends Omit<GenerateParams, 'file' | 'output'> {
@@ -80,8 +93,13 @@ export interface BatchGenerateParams extends Omit<GenerateParams, 'file' | 'outp
 /**
  * Generate and upload multiple videos in sequence.
  */
-export async function generateBatchUpload(params: BatchGenerateParams): Promise<string[]> {
-    return await invoke('generate_batch_upload', params as any);
+export async function generateBatchUpload(params: BatchGenerateParams, onCancel?: CancelCallback): Promise<string[]> {
+    const cancelListen = onCancel ? await listen('upload_canceled', () => onCancel()) : undefined;
+    try {
+        return await invoke('generate_batch_upload', params as any);
+    } finally {
+        if (cancelListen) cancelListen();
+    }
 }
 
 /**

@@ -308,6 +308,7 @@ npx ts-node src/cli.ts upload video.mp4 --title "My Video"
 ```
 
 During uploads the CLI prints progress percentages similar to video generation.
+Press `Ctrl-C` at any time to cancel the current operation.
 
 `--caption-color` and `--caption-bg` accept hex colors. You may also use the
 shorter `--color` and `--bg-color` aliases.

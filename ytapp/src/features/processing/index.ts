@@ -29,6 +29,7 @@ export interface GenerateParams {
 }
 
 export type ProgressCallback = (progress: number) => void;
+export type CancelCallback = () => void;
 
 /**
  * Generate a video from an audio file using the backend.
@@ -39,17 +40,23 @@ export type ProgressCallback = (progress: number) => void;
 export async function generateVideo(
   params: GenerateParams,
   onProgress?: ProgressCallback,
+  onCancel?: CancelCallback,
 ): Promise<string> {
     let unlisten: (() => void) | undefined;
+    let cancelListen: (() => void) | undefined;
     if (onProgress) {
         unlisten = await listen<number>('generate_progress', e => {
             if (typeof e.payload === 'number') onProgress(e.payload);
         });
     }
+    if (onCancel) {
+        cancelListen = await listen('generate_canceled', () => onCancel());
+    }
     try {
-        const result: string = await invoke('generate_video', params);
+        const result: string = await invoke('generate_video', params as any);
         return result;
     } finally {
         if (unlisten) unlisten();
+        if (cancelListen) cancelListen();
     }
 }

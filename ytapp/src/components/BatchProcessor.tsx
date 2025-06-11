@@ -5,6 +5,7 @@ import FilePicker from './FilePicker';
 import { generateBatchWithProgress, BatchOptions } from '../features/batch';
 import { generateBatchUpload, generateUpload } from '../features/youtube';
 import { generateVideo } from '../features/processing';
+import { invoke } from '@tauri-apps/api/core';
 import BatchOptionsForm from './BatchOptionsForm';
 import UploadIcon from './UploadIcon';
 import { open } from '@tauri-apps/api/dialog';
@@ -72,6 +73,11 @@ const BatchProcessor: React.FC = () => {
     setRunning(false);
   };
 
+  const cancelBatch = async () => {
+    await invoke('cancel_generate');
+    setRunning(false);
+  };
+
   const startBatchUpload = async () => {
     if (!files.length) return;
     setUploading(true);
@@ -90,6 +96,11 @@ const BatchProcessor: React.FC = () => {
     } else {
       await generateBatchUpload({ files, ...options });
     }
+    setUploading(false);
+  };
+
+  const cancelUpload = async () => {
+    await invoke('cancel_upload');
     setUploading(false);
   };
 
@@ -116,6 +127,14 @@ const BatchProcessor: React.FC = () => {
         <div className="row">
           <progress value={progress} max={100} />
           <span>{progress}%</span>
+          <button onClick={cancelBatch}>{t('cancel')}</button>
+        </div>
+      )}
+      {uploading && (
+        <div className="row">
+          <progress value={progress} max={100} />
+          <span>{progress}%</span>
+          <button onClick={cancelUpload}>{t('cancel')}</button>
         </div>
       )}
     </div>
