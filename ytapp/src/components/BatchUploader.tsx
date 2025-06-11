@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import FilePicker from './FilePicker';
 import { uploadVideo } from '../features/youtube';
 import UploadIcon from './UploadIcon';
-import { open } from '@tauri-apps/api/dialog';
+import { open } from '@tauri-apps/plugin-dialog';
 import { parseCsv, CsvRow } from '../utils/csv';
 
 const BatchUploader: React.FC = () => {

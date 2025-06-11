@@ -8,7 +8,7 @@ import { generateVideo } from '../features/processing';
 import { invoke } from '@tauri-apps/api/core';
 import BatchOptionsForm from './BatchOptionsForm';
 import UploadIcon from './UploadIcon';
-import { open } from '@tauri-apps/api/dialog';
+import { open } from '@tauri-apps/plugin-dialog';
 import { parseCsv, CsvRow } from '../utils/csv';
 
 const BatchProcessor: React.FC = () => {
