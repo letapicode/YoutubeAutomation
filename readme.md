@@ -15,6 +15,17 @@
 11. [Custom Fonts](#custom-fonts)
 12. [CLI Usage](#cli-usage)
 
+
+### Quick start
+
+```bash
+git clone <repo-url> && cd YoutubeAutomation
+./scripts/setup.sh       # installs everything
+make dev                 # launches the Tauri app
+```
+
+Before every commit: `make verify`
+
 ---
 
 ### 1️⃣ Framework
@@ -199,31 +210,28 @@
 
 ### Setup
 
-Clone the repository and run the bootstrap script which installs system
-dependencies, toolchains and downloads the Whisper model. It also writes a
-`.env` file containing `PKG_CONFIG_PATH` used by Cargo.
+Clone the repository and run the setup script which installs toolchains,
+system libraries and downloads the Whisper model. It also writes a `.env`
+file containing `PKG_CONFIG_PATH` used by Cargo.
 
 ```bash
 git clone <repo-url>
 cd YoutubeAutomation
-./scripts/bootstrap.sh && make dev
+./scripts/setup.sh && make dev
 ```
 
-The script is safe to re-run and detects your platform (Linux, macOS or
-Windows). For Linux it invokes `scripts/install_tauri_deps.sh` to install GTK
-and WebKit packages.
+The script is safe to re-run and detects your platform (Linux or macOS).
+For Linux it invokes `scripts/install_tauri_deps.sh` to install GTK and
+WebKit packages.
 
 You may also use the provided devcontainer which automatically executes the
-bootstrap script when first created.
+setup script when first created.
 
-Pre-commit hooks should run the standard checks:
+Before committing run:
 ```bash
-cd ytapp && npm install
-npm run lint
-cd src-tauri && cargo check
-cd .. && npx ts-node src/cli.ts --help
+make verify
 ```
-These same commands are executed in CI using the devcontainer image.
+The CI pipeline runs the same command using the devcontainer image.
 
 To automatically process files placed in a folder set the **Watch Directory**
 and enable **Auto Upload** in the settings page or use the CLI `watch` command.
