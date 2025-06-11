@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import FilePicker from './FilePicker';
 import { uploadVideo } from '../features/youtube';
 import UploadIcon from './UploadIcon';
+import { open } from '@tauri-apps/api/dialog';
+import { parseCsv, CsvRow } from '../utils/csv';
 
 const BatchUploader: React.FC = () => {
     const { t } = useTranslation();
@@ -14,10 +16,28 @@ const BatchUploader: React.FC = () => {
     const [description, setDescription] = useState('');
     const [tags, setTags] = useState('');
     const [publishDate, setPublishDate] = useState('');
+    const [csvMap, setCsvMap] = useState<Record<string, CsvRow>>({});
+    const [csvWarning, setCsvWarning] = useState(false);
 
     const handleSelect = (p: string | string[] | null) => {
-        if (Array.isArray(p)) setFiles(p);
-        else if (typeof p === 'string') setFiles([p]);
+        if (Array.isArray(p)) {
+            setFiles(p);
+            setCsvWarning(p.some(f => !csvMap[f]));
+        } else if (typeof p === 'string') {
+            setFiles([p]);
+            setCsvWarning(!csvMap[p]);
+        }
+    };
+
+    const importCsv = async () => {
+        const sel = await open({ filters: [{ name: 'CSV', extensions: ['csv'] }] });
+        if (typeof sel === 'string') {
+            const rows = await parseCsv(sel);
+            const map: Record<string, CsvRow> = {};
+            rows.forEach(r => { map[r.file] = r; });
+            setCsvMap(map);
+            setCsvWarning(files.some(f => !map[f]));
+        }
     };
 
     const startUpload = async () => {
@@ -28,13 +48,14 @@ const BatchUploader: React.FC = () => {
         for (const file of files) {
             prog[file] = 0;
             setProgressMap({ ...prog });
+            const meta = csvMap[file] || {};
             await uploadVideo(
                 {
                     file,
-                    title: title || undefined,
-                    description: description || undefined,
-                    tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : undefined,
-                    publishAt: publishDate ? new Date(publishDate).toISOString() : undefined,
+                    title: meta.title || title || undefined,
+                    description: meta.description || description || undefined,
+                    tags: meta.tags || (tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : undefined),
+                    publishAt: meta.publishAt || (publishDate ? new Date(publishDate).toISOString() : undefined),
                 },
                 (p) => {
                     prog[file] = Math.round(p);
@@ -51,6 +72,10 @@ const BatchUploader: React.FC = () => {
             <div className="row">
                 <FilePicker multiple onSelect={handleSelect} label={t('select_videos')} filters={[{ name: 'Videos', extensions: ['mp4'] }]} />
                 {files.length > 0 && <p>{t('files_selected', { count: files.length })}</p>}
+            </div>
+            <div className="row">
+                <button onClick={importCsv}>{t('import_csv')}</button>
+                {csvWarning && <span style={{ color: 'red' }}>{t('missing_in_csv')}</span>}
             </div>
             <div className="row">
                 <input type="text" placeholder={t('video_title')} value={title} onChange={e => setTitle(e.target.value)} />

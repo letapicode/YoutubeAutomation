@@ -7,6 +7,7 @@ import { spawn } from 'child_process';
 import fs from 'fs/promises';
 import os from 'os';
 import { translateSrt } from './utils/translate';
+import { parseCsv, CsvRow } from './utils/csv';
 
 async function callWithProgress<T>(
   fn: () => Promise<T>,
@@ -301,7 +302,8 @@ program
 program
   .command('generate-upload-batch')
   .description('Generate multiple videos and upload to YouTube')
-  .argument('<files...>', 'audio files')
+  .argument('[files...]', 'audio files')
+  .option('--csv <file>', 'CSV metadata file')
   .option('-d, --output-dir <dir>', 'output directory', '.')
   .option('--captions <srt>', 'captions file path')
   .option('--font <font>', 'caption font')
@@ -326,36 +328,77 @@ program
     try {
       if (options.color && !options.captionColor) options.captionColor = options.color;
       if (options.bgColor && !options.captionBg) options.captionBg = options.bgColor;
-      const result = await callWithUploadProgress(
-        () => callWithProgress(
-          () => invoke('generate_batch_upload', {
-        files,
-        outputDir: options.outputDir,
-        captions: options.captions,
-        captionOptions: {
-          font: options.font,
-          fontPath: options.fontPath,
-          style: options.style,
-          size: options.size,
-          position: options.position,
-          color: options.captionColor,
-          background: options.captionBg,
-        },
-        background: options.background,
-        intro: options.intro,
-        outro: options.outro,
-        width: options.width,
-        height: options.height,
-        title: options.title,
-        description: options.description,
-        tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
-        publishAt: options.publishAt,
-        } as any),
+
+      let csvMap: Record<string, CsvRow> = {};
+      if (options.csv) {
+        const rows = await parseCsv(options.csv);
+        csvMap = Object.fromEntries(rows.map(r => [r.file, r]));
+        if (!files.length) files = rows.map(r => r.file);
+      }
+
+      if (options.csv) {
+        for (const file of files) {
+          const meta = csvMap[file] || {};
+          const params: GenerateParams = {
+            file,
+            output: path.join(
+              options.outputDir,
+              path.basename(file, path.extname(file)) + '.mp4'
+            ),
+            captions: options.captions,
+            captionOptions: {
+              font: options.font,
+              fontPath: options.fontPath,
+              style: options.style,
+              size: options.size,
+              position: options.position,
+              color: options.captionColor,
+              background: options.captionBg,
+            },
+            background: options.background,
+            intro: options.intro,
+            outro: options.outro,
+            width: options.width,
+            height: options.height,
+            title: meta.title ?? options.title,
+            description: meta.description ?? options.description,
+            tags: meta.tags ?? (options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined),
+            publishAt: meta.publishAt ?? options.publishAt,
+          } as any;
+          await generateAndUpload(params, showProgress, showProgress);
+        }
+      } else {
+        const result = await callWithUploadProgress(
+          () => callWithProgress(
+            () => invoke('generate_batch_upload', {
+          files,
+          outputDir: options.outputDir,
+          captions: options.captions,
+          captionOptions: {
+            font: options.font,
+            fontPath: options.fontPath,
+            style: options.style,
+            size: options.size,
+            position: options.position,
+            color: options.captionColor,
+            background: options.captionBg,
+          },
+          background: options.background,
+          intro: options.intro,
+          outro: options.outro,
+          width: options.width,
+          height: options.height,
+          title: options.title,
+          description: options.description,
+          tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
+          publishAt: options.publishAt,
+          } as any),
+            showProgress,
+          ),
           showProgress,
-        ),
-        showProgress,
-      );
-      console.log(result);
+        );
+        console.log(result);
+      }
     } catch (err) {
       console.error('Error generating and uploading batch:', err);
       process.exitCode = 1;
@@ -448,24 +491,49 @@ program
 program
   .command('upload-batch')
   .description('Upload multiple videos to YouTube')
-  .argument('<files...>', 'video files')
+  .argument('[files...]', 'video files')
+  .option('--csv <file>', 'CSV metadata file')
   .option('--title <title>', 'video title')
   .option('--description <desc>', 'video description')
   .option('--tags <tags>', 'comma separated tags')
   .option('--publish-at <date>', 'schedule publish date (ISO)')
   .action(async (files: string[], options: any) => {
     try {
-      const results = await uploadVideos(
-        {
-          files,
-          title: options.title,
-          description: options.description,
-          tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
-          publishAt: options.publishAt,
-        },
-        showProgress,
-      ) as any[];
-      results.forEach((res: any) => console.log(res));
+      let csvMap: Record<string, CsvRow> = {};
+      if (options.csv) {
+        const rows = await parseCsv(options.csv);
+        csvMap = Object.fromEntries(rows.map(r => [r.file, r]));
+        if (!files.length) files = rows.map(r => r.file);
+      }
+
+      if (options.csv) {
+        for (const file of files) {
+          const meta = csvMap[file] || {};
+          const res = await uploadVideo(
+            {
+              file,
+              title: meta.title ?? options.title,
+              description: meta.description ?? options.description,
+              tags: meta.tags ?? (options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined),
+              publishAt: meta.publishAt ?? options.publishAt,
+            },
+            showProgress,
+          );
+          console.log(res);
+        }
+      } else {
+        const results = await uploadVideos(
+          {
+            files,
+            title: options.title,
+            description: options.description,
+            tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
+            publishAt: options.publishAt,
+          },
+          showProgress,
+        ) as any[];
+        results.forEach((res: any) => console.log(res));
+      }
     } catch (err) {
       console.error('Error uploading videos:', err);
       process.exitCode = 1;

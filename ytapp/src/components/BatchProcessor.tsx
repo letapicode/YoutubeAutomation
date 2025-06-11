@@ -3,9 +3,12 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import FilePicker from './FilePicker';
 import { generateBatchWithProgress, BatchOptions } from '../features/batch';
-import { generateBatchUpload } from '../features/youtube';
+import { generateBatchUpload, generateUpload } from '../features/youtube';
+import { generateVideo } from '../features/processing';
 import BatchOptionsForm from './BatchOptionsForm';
 import UploadIcon from './UploadIcon';
+import { open } from '@tauri-apps/api/dialog';
+import { parseCsv, CsvRow } from '../utils/csv';
 
 const BatchProcessor: React.FC = () => {
   const { t } = useTranslation();
@@ -14,14 +17,30 @@ const BatchProcessor: React.FC = () => {
   const [running, setRunning] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [options, setOptions] = useState<BatchOptions>({});
+  const [csvMap, setCsvMap] = useState<Record<string, CsvRow>>({});
+  const [csvWarning, setCsvWarning] = useState(false);
 
   const handleSelect = (selected: string | string[] | null) => {
     if (Array.isArray(selected)) {
       setFiles(selected);
+      setCsvWarning(selected.some(f => !csvMap[f]));
     } else if (typeof selected === 'string') {
       setFiles([selected]);
+      setCsvWarning(!csvMap[selected]);
     } else {
       setFiles([]);
+      setCsvWarning(false);
+    }
+  };
+
+  const importCsv = async () => {
+    const selected = await open({ filters: [{ name: 'CSV', extensions: ['csv'] }] });
+    if (typeof selected === 'string') {
+      const rows = await parseCsv(selected);
+      const map: Record<string, CsvRow> = {};
+      rows.forEach(r => { map[r.file] = r; });
+      setCsvMap(map);
+      setCsvWarning(files.some(f => !map[f]));
     }
   };
 
@@ -29,17 +48,48 @@ const BatchProcessor: React.FC = () => {
     if (!files.length) return;
     setRunning(true);
     setProgress(0);
-    await generateBatchWithProgress(files, options, (cur, total) => {
-      const pct = Math.round(((cur + 1) / total) * 100);
-      setProgress(pct);
-    });
+    if (Object.keys(csvMap).length) {
+      for (let i = 0; i < files.length; i++) {
+        const f = files[i];
+        const meta = csvMap[f] || {};
+        await generateVideo({
+          ...options,
+          file: f,
+          title: meta.title ?? options.title,
+          description: meta.description ?? options.description,
+          tags: meta.tags ?? options.tags,
+          publishAt: meta.publishAt ?? options.publishAt,
+        });
+        const pct = Math.round(((i + 1) / files.length) * 100);
+        setProgress(pct);
+      }
+    } else {
+      await generateBatchWithProgress(files, options, (cur, total) => {
+        const pct = Math.round(((cur + 1) / total) * 100);
+        setProgress(pct);
+      });
+    }
     setRunning(false);
   };
 
   const startBatchUpload = async () => {
     if (!files.length) return;
     setUploading(true);
-    await generateBatchUpload({ files, ...options });
+    if (Object.keys(csvMap).length) {
+      for (const f of files) {
+        const meta = csvMap[f] || {};
+        await generateUpload({
+          ...options,
+          file: f,
+          title: meta.title ?? options.title,
+          description: meta.description ?? options.description,
+          tags: meta.tags ?? options.tags,
+          publishAt: meta.publishAt ?? options.publishAt,
+        });
+      }
+    } else {
+      await generateBatchUpload({ files, ...options });
+    }
     setUploading(false);
   };
 
@@ -49,6 +99,10 @@ const BatchProcessor: React.FC = () => {
       <div className="row">
         <FilePicker multiple useDropZone onSelect={handleSelect} label={t('select_audio_files')} />
         {files.length > 0 && <p>{t('files_selected', { count: files.length })}</p>}
+      </div>
+      <div className="row">
+        <button onClick={importCsv}>{t('import_csv')}</button>
+        {csvWarning && <span style={{ color: 'red' }}>{t('missing_in_csv')}</span>}
       </div>
       <BatchOptionsForm value={options} onChange={setOptions} />
       <div className="row">

@@ -147,6 +147,7 @@
   * Captions style and position
 * Process queue → generate multiple videos
 * Optional batch YouTube upload
+* Import per-file metadata from a CSV file
 
 ---
 
@@ -295,6 +296,10 @@ During uploads the CLI prints progress percentages similar to video generation.
 
 `--caption-color` and `--caption-bg` accept hex colors. You may also use the
 shorter `--color` and `--bg-color` aliases.
+
+Batch commands (`generate-upload-batch` and `upload-batch`) accept `--csv <file>`
+to provide per-file metadata. The CSV must contain `file,title,description,tags,publish_at`
+columns, where `tags` is a comma-separated list.
 
 
 

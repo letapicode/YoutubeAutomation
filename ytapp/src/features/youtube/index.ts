@@ -26,7 +26,7 @@ export async function uploadVideoWithProgress(
         if (typeof e.payload === 'number') onProgress(e.payload);
     });
     try {
-        return await invoke('upload_video', opts);
+        return await invoke('upload_video', opts as any);
     } finally {
         unlisten();
     }
@@ -42,7 +42,7 @@ export async function uploadVideo(
     if (onProgress) {
         return uploadVideoWithProgress(opts, onProgress);
     }
-    return await invoke('upload_video', opts);
+    return await invoke('upload_video', opts as any);
 }
 
 /**
@@ -57,19 +57,19 @@ export async function uploadVideos(
             if (typeof e.payload === 'number') onProgress(e.payload);
         });
         try {
-            return await invoke('upload_videos', opts);
+            return await invoke('upload_videos', opts as any);
         } finally {
             unlisten();
         }
     }
-    return await invoke('upload_videos', opts);
+    return await invoke('upload_videos', opts as any);
 }
 
 /**
  * Generate a video and upload it directly.
  */
 export async function generateUpload(params: GenerateParams): Promise<string> {
-    return await invoke('generate_upload', params);
+    return await invoke('generate_upload', params as any);
 }
 
 export interface BatchGenerateParams extends Omit<GenerateParams, 'file' | 'output'> {
@@ -81,7 +81,7 @@ export interface BatchGenerateParams extends Omit<GenerateParams, 'file' | 'outp
  * Generate and upload multiple videos in sequence.
  */
 export async function generateBatchUpload(params: BatchGenerateParams): Promise<string[]> {
-    return await invoke('generate_batch_upload', params);
+    return await invoke('generate_batch_upload', params as any);
 }
 
 /**
