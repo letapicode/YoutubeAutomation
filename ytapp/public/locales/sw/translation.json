@@ -1,3 +1,9 @@
 {
-  "title": "Youtube Automation"
+  "title": "Youtube Automation",
+  "watch_directory": "Watch Directory",
+  "auto_upload": "Auto Upload",
+  "watching": "Watching",
+  "not_watching": "Not Watching",
+  "start_watch": "Start Watching",
+  "stop_watch": "Stop Watching"
 }

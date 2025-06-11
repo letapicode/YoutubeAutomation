@@ -37,16 +37,20 @@
   "advanced_settings": "Advanced Settings",
   "caption_color": "Caption Color",
   "caption_bg": "Caption Background",
-
   "welcome_title": "Welcome",
   "guide_select_audio": "Select an audio file",
   "guide_generate": "Click Generate to create your video",
   "guide_upload": "Use Generate & Upload to post to YouTube",
-
   "video_title": "Title",
   "description": "Description",
   "tags": "Tags",
   "publish_date": "Publish Date",
   "captions": "Captions",
-  "edit_captions": "Edit Captions"
+  "edit_captions": "Edit Captions",
+  "watch_directory": "Watch Directory",
+  "auto_upload": "Auto Upload",
+  "watching": "Watching",
+  "not_watching": "Not Watching",
+  "start_watch": "Start Watching",
+  "stop_watch": "Stop Watching"
 }

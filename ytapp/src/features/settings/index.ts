@@ -12,6 +12,8 @@ export interface Settings {
     captionColor?: string;
     captionBg?: string;
     showGuide?: boolean;
+    watchDir?: string;
+    autoUpload?: boolean;
 }
 
 export async function loadSettings(): Promise<Settings> {
