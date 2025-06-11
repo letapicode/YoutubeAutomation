@@ -24,6 +24,7 @@ cd .. && npx ts-node src/cli.ts --help
 ## Additional Notes
 - Do not commit `.env.tauri` or build artifacts.
 - Prefer cross-platform paths when invoking external tools.
+- System fonts are detected on all platforms; `fc-list` is optional on Linux.
 - To create release installers for all platforms, run `./scripts/package.sh`.
 - Language definitions live in `ytapp/src/features/languages/defs`. Add a new
   `<code>.json` file in that directory to support another language. Each file

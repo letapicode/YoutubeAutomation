@@ -16,6 +16,7 @@ use yup_oauth2::authenticator::Authenticator;
 use hyper_rustls::{HttpsConnectorBuilder, HttpsConnector};
 use hyper_util::{client::legacy::{Client, connect::HttpConnector}, rt::TokioExecutor};
 use chrono::prelude::*;
+use walkdir::WalkDir;
 mod language;
 mod token_store;
 use token_store::EncryptedTokenStorage;
@@ -615,29 +616,102 @@ fn transcribe_audio(params: TranscribeParams) -> Result<String, String> {
     Ok(srt_path.to_string_lossy().to_string())
 }
 
+/// Scan common font directories and return available fonts.
 #[command]
 fn list_fonts() -> Result<Vec<SystemFont>, String> {
-    let output = Command::new("fc-list")
-        .args(["-f", "%{family}||%{style}||%{file}\n"]) 
-        .output()
-        .map_err(|e| e.to_string())?;
-    if !output.status.success() {
-        return Err("fc-list failed".into());
-    }
-    let stdout = String::from_utf8_lossy(&output.stdout);
+    list_fonts_inner()
+}
+
+fn scan_font_dirs(dirs: &[PathBuf]) -> Vec<SystemFont> {
     let mut fonts = Vec::new();
-    for line in stdout.lines() {
-        if let Some((fam, rest)) = line.split_once("||") {
-            if let Some((style, file)) = rest.split_once("||") {
-                fonts.push(SystemFont {
-                    name: fam.trim().split(',').next().unwrap_or("").to_string(),
-                    style: style.trim().to_string(),
-                    path: file.trim().to_string(),
-                });
+    for dir in dirs {
+        if dir.exists() {
+            for entry in WalkDir::new(dir).into_iter().filter_map(|e| e.ok()) {
+                if entry.file_type().is_file() {
+                    let path = entry.path();
+                    if let Some(ext) = path.extension().and_then(|s| s.to_str()) {
+                        if ["ttf", "otf"].iter().any(|e| ext.eq_ignore_ascii_case(e)) {
+                            fonts.push(SystemFont {
+                                name: path
+                                    .file_stem()
+                                    .and_then(|s| s.to_str())
+                                    .unwrap_or("")
+                                    .to_string(),
+                                style: "Regular".into(),
+                                path: path.to_string_lossy().to_string(),
+                            });
+                        }
+                    }
+                }
             }
         }
     }
-    Ok(fonts)
+    fonts
+}
+
+#[cfg(target_os = "windows")]
+fn list_fonts_inner() -> Result<Vec<SystemFont>, String> {
+    let windir = std::env::var("WINDIR").unwrap_or_else(|_| "C:\\Windows".into());
+    let mut dirs = vec![PathBuf::from(windir).join("Fonts")];
+    if let Ok(local) = std::env::var("LOCALAPPDATA") {
+        dirs.push(Path::new(&local).join("Microsoft/Windows/Fonts"));
+        dirs.push(Path::new(&local).join("Fonts"));
+    }
+    Ok(scan_font_dirs(&dirs))
+}
+
+#[cfg(target_os = "macos")]
+fn list_fonts_inner() -> Result<Vec<SystemFont>, String> {
+    let mut dirs = vec![
+        PathBuf::from("/System/Library/Fonts"),
+        PathBuf::from("/Library/Fonts"),
+    ];
+    if let Ok(home) = std::env::var("HOME") {
+        dirs.push(Path::new(&home).join("Library/Fonts"));
+    }
+    Ok(scan_font_dirs(&dirs))
+}
+
+#[cfg(target_os = "linux")]
+fn list_fonts_inner() -> Result<Vec<SystemFont>, String> {
+    if let Ok(output) = Command::new("fc-list")
+        .args(["-f", "%{family}||%{style}||%{file}\n"])
+        .output()
+    {
+        if output.status.success() {
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            let mut fonts = Vec::new();
+            for line in stdout.lines() {
+                if let Some((fam, rest)) = line.split_once("||") {
+                    if let Some((style, file)) = rest.split_once("||") {
+                        fonts.push(SystemFont {
+                            name: fam.trim().split(',').next().unwrap_or("").to_string(),
+                            style: style.trim().to_string(),
+                            path: file.trim().to_string(),
+                        });
+                    }
+                }
+            }
+            if !fonts.is_empty() {
+                return Ok(fonts);
+            }
+        }
+    }
+
+    let mut dirs = vec![
+        PathBuf::from("/usr/share/fonts"),
+        PathBuf::from("/usr/local/share/fonts"),
+    ];
+    if let Ok(home) = std::env::var("HOME") {
+        dirs.push(Path::new(&home).join(".fonts"));
+        dirs.push(Path::new(&home).join(".local/share/fonts"));
+    }
+    Ok(scan_font_dirs(&dirs))
+}
+
+#[cfg(not(any(target_os = "windows", target_os = "macos", target_os = "linux")))]
+fn list_fonts_inner() -> Result<Vec<SystemFont>, String> {
+    Ok(Vec::new())
 }
 
 #[command]
@@ -713,5 +787,48 @@ mod tests {
         save_srt(file.to_string_lossy().to_string(), "hello".into()).unwrap();
         let data = load_srt(file.to_string_lossy().to_string()).unwrap();
         assert_eq!(data, "hello");
+    }
+
+    #[test]
+    #[cfg(target_os = "linux")]
+    fn list_fonts_linux_mock() {
+        let dir = tempfile::tempdir().unwrap();
+        let font_dir = dir.path().join(".local/share/fonts");
+        std::fs::create_dir_all(&font_dir).unwrap();
+        let font = font_dir.join("Mock.ttf");
+        std::fs::write(&font, b"dummy").unwrap();
+        std::env::set_var("HOME", dir.path());
+        let old_path = std::env::var_os("PATH");
+        std::env::set_var("PATH", "");
+        let fonts = list_fonts().unwrap();
+        if let Some(old) = old_path { std::env::set_var("PATH", old); }
+        assert!(fonts.iter().any(|f| f.path == font.to_string_lossy()));
+    }
+
+    #[test]
+    #[cfg(target_os = "windows")]
+    fn list_fonts_windows_mock() {
+        let dir = tempfile::tempdir().unwrap();
+        let font_dir = dir.path().join("Fonts");
+        std::fs::create_dir_all(&font_dir).unwrap();
+        let font = font_dir.join("Mock.ttf");
+        std::fs::write(&font, b"dummy").unwrap();
+        std::env::set_var("WINDIR", dir.path());
+        std::env::set_var("LOCALAPPDATA", dir.path());
+        let fonts = list_fonts().unwrap();
+        assert!(fonts.iter().any(|f| f.path == font.to_string_lossy()));
+    }
+
+    #[test]
+    #[cfg(target_os = "macos")]
+    fn list_fonts_macos_mock() {
+        let dir = tempfile::tempdir().unwrap();
+        let font_dir = dir.path().join("Library/Fonts");
+        std::fs::create_dir_all(&font_dir).unwrap();
+        let font = font_dir.join("Mock.ttf");
+        std::fs::write(&font, b"dummy").unwrap();
+        std::env::set_var("HOME", dir.path());
+        let fonts = list_fonts().unwrap();
+        assert!(fonts.iter().any(|f| f.path == font.to_string_lossy()));
     }
 }
