@@ -28,7 +28,7 @@ mod language;
 mod token_store;
 use token_store::EncryptedTokenStorage;
 mod job_queue;
-use job_queue::{Job, enqueue, dequeue, peek_all, load_queue};
+use job_queue::{Job, enqueue, dequeue, peek_all, load_queue, notifier};
 use tauri::api::dialog::{blocking::MessageDialogBuilder, MessageDialogKind};
 use notify::{RecommendedWatcher, RecursiveMode, Watcher, Config, EventKind, Event, Error as NotifyError};
 use once_cell::sync::Lazy;
@@ -36,8 +36,7 @@ use std::sync::{Mutex, Arc};
 use std::process::Child;
 use futures::future::{AbortHandle, Abortable};
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::time::Duration;
-use tokio::time::sleep;
+
 
 #[derive(Serialize)]
 struct SystemFont {
@@ -703,6 +702,7 @@ fn watch_directory(window: Window, params: WatchDirectoryParams) -> Result<(), S
     let opts = params.options.clone().unwrap_or_default();
     let auto = params.auto_upload;
     let win = window.clone();
+    start_queue_worker(win.clone());
     let app_handle = window.app_handle();
     let mut watcher = RecommendedWatcher::new(
         move |res: Result<Event, NotifyError>| {
@@ -849,6 +849,7 @@ fn start_queue_worker(window: Window) {
     }
     tauri::async_runtime::spawn(async move {
         let app = window.app_handle();
+        let notify = notifier();
         loop {
             load_queue(&app).ok();
             if let Some(job) = dequeue(&app).unwrap_or(None) {
@@ -866,7 +867,7 @@ fn start_queue_worker(window: Window) {
                     }
                 }
             } else {
-                sleep(Duration::from_secs(1)).await;
+                notify.notified().await;
             }
         }
     });
