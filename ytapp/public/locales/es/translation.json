@@ -50,4 +50,9 @@
   "not_watching": "Not Watching",
   "start_watch": "Start Watching",
   "stop_watch": "Stop Watching"
+  ,"profiles": "Profiles"
+  ,"save_profile": "Save Profile"
+  ,"delete_profile": "Delete Profile"
+  ,"load": "Load"
+  ,"edit": "Edit"
 }

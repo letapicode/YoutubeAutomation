@@ -186,6 +186,7 @@ Before every commit: `make verify`
 * Theme toggle (light/dark)
 * Accessible labels and full keyboard navigation
 * Settings page with persistent defaults
+* Profiles page to save and load sets of options
  * Interface translations are handled via i18n files in `public/locales`.
    Over 60 languages are supported and fall back to English when a
    translation is missing. Contributions to improve translations are welcome.
