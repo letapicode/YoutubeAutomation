@@ -35,6 +35,9 @@ use once_cell::sync::Lazy;
 use std::sync::{Mutex, Arc};
 use std::process::Child;
 use futures::future::{AbortHandle, Abortable};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::time::Duration;
+use tokio::time::sleep;
 
 #[derive(Serialize)]
 struct SystemFont {
@@ -46,6 +49,7 @@ struct SystemFont {
 static WATCHER: Lazy<Mutex<Option<RecommendedWatcher>>> = Lazy::new(|| Mutex::new(None));
 static ACTIVE_FFMPEG: Lazy<Mutex<Option<Arc<Mutex<Child>>>>> = Lazy::new(|| Mutex::new(None));
 static ACTIVE_UPLOAD: Lazy<Mutex<Option<AbortHandle>>> = Lazy::new(|| Mutex::new(None));
+static WORKER_STARTED: Lazy<AtomicBool> = Lazy::new(|| AtomicBool::new(false));
 
 
 #[derive(Deserialize, Clone, Default)]
@@ -838,6 +842,36 @@ async fn queue_process(window: Window) -> Result<(), String> {
     Ok(())
 }
 
+/// Continuously process queued jobs in the background.
+fn start_queue_worker(window: Window) {
+    if WORKER_STARTED.swap(true, Ordering::SeqCst) {
+        return;
+    }
+    tauri::async_runtime::spawn(async move {
+        let app = window.app_handle();
+        loop {
+            load_queue(&app).ok();
+            if let Some(job) = dequeue(&app).unwrap_or(None) {
+                match job {
+                    Job::Generate { mut params, dest } => {
+                        params.output = Some(dest);
+                        let _ = generate_video(window.clone(), params);
+                    }
+                    Job::GenerateUpload { mut params, dest, thumbnail } => {
+                        params.output = Some(dest);
+                        if params.thumbnail.is_none() {
+                            params.thumbnail = thumbnail.clone();
+                        }
+                        let _ = generate_upload(window.clone(), params).await;
+                    }
+                }
+            } else {
+                sleep(Duration::from_secs(1)).await;
+            }
+        }
+    });
+}
+
 #[command]
 fn profile_list(app: tauri::AppHandle) -> Result<Vec<String>, String> {
     let settings = load_settings(app.clone())?;
@@ -1044,6 +1078,12 @@ fn install_tauri_deps() -> Result<(), String> {
 fn main() {
     ensure_whisper_model();
     tauri::Builder::default()
+        .setup(|app| {
+            if let Some(win) = app.get_window("main") {
+                start_queue_worker(win);
+            }
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, watch_directory, youtube_sign_in, youtube_sign_out, youtube_is_signed_in, load_settings, save_settings, load_srt, save_srt, cancel_generate, cancel_upload, queue_add, queue_list, queue_process, profile_list, profile_get, profile_save, profile_delete, verify_dependencies, install_tauri_deps, list_fonts])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
