@@ -343,5 +343,25 @@ Process all queued jobs:
 npx ts-node src/cli.ts queue-run
 ```
 
+Profiles can store commonly used generation options in `settings.json`.
+Save a profile from a JSON file:
+
+```bash
+npx ts-node src/cli.ts profile-save gaming profile.json
+```
+
+List or delete profiles:
+
+```bash
+npx ts-node src/cli.ts profile-list
+npx ts-node src/cli.ts profile-delete gaming
+```
+
+Use a profile with other commands using `--profile <name>`:
+
+```bash
+npx ts-node src/cli.ts generate input.wav --profile gaming
+```
+
 
 

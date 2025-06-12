@@ -8,7 +8,8 @@ use tauri::{command, Window, Manager};
 use serde::{Deserialize, Serialize};
 use mime_guess;
 mod schema;
-use schema::{CaptionOptions, GenerateParams};
+use schema::{CaptionOptions, GenerateParams, Profile};
+use std::collections::HashMap;
 use tauri::api::path::app_config_dir;
 use whisper_cli::{Language, Model, Size, Whisper};
 mod model_check;
@@ -72,6 +73,7 @@ struct AppSettings {
     show_guide: Option<bool>,
     watch_dir: Option<String>,
     auto_upload: Option<bool>,
+    profiles: HashMap<String, Profile>,
 }
 
 impl Default for AppSettings {
@@ -91,6 +93,7 @@ impl Default for AppSettings {
             show_guide: Some(true),
             watch_dir: None,
             auto_upload: Some(false),
+            profiles: HashMap::new(),
         }
     }
 }
@@ -760,6 +763,9 @@ fn load_settings(app: tauri::AppHandle) -> Result<AppSettings, String> {
     if settings.auto_upload.is_none() {
         settings.auto_upload = Some(false);
     }
+    if settings.profiles.is_empty() {
+        settings.profiles = HashMap::new();
+    }
     Ok(settings)
 }
 
@@ -830,6 +836,32 @@ async fn queue_process(window: Window) -> Result<(), String> {
         }
     }
     Ok(())
+}
+
+#[command]
+fn profile_list(app: tauri::AppHandle) -> Result<Vec<String>, String> {
+    let settings = load_settings(app.clone())?;
+    Ok(settings.profiles.keys().cloned().collect())
+}
+
+#[command]
+fn profile_get(app: tauri::AppHandle, name: String) -> Result<Profile, String> {
+    let settings = load_settings(app.clone())?;
+    settings.profiles.get(&name).cloned().ok_or_else(|| "profile not found".into())
+}
+
+#[command]
+fn profile_save(app: tauri::AppHandle, name: String, profile: Profile) -> Result<(), String> {
+    let mut settings = load_settings(app.clone())?;
+    settings.profiles.insert(name, profile);
+    save_settings(app, settings)
+}
+
+#[command]
+fn profile_delete(app: tauri::AppHandle, name: String) -> Result<(), String> {
+    let mut settings = load_settings(app.clone())?;
+    settings.profiles.remove(&name);
+    save_settings(app, settings)
 }
 
 #[derive(Deserialize)]
@@ -1012,7 +1044,7 @@ fn install_tauri_deps() -> Result<(), String> {
 fn main() {
     ensure_whisper_model();
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, watch_directory, youtube_sign_in, youtube_sign_out, youtube_is_signed_in, load_settings, save_settings, load_srt, save_srt, cancel_generate, cancel_upload, queue_add, queue_list, queue_process, verify_dependencies, install_tauri_deps, list_fonts])
+        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, watch_directory, youtube_sign_in, youtube_sign_out, youtube_is_signed_in, load_settings, save_settings, load_srt, save_srt, cancel_generate, cancel_upload, queue_add, queue_list, queue_process, profile_list, profile_get, profile_save, profile_delete, verify_dependencies, install_tauri_deps, list_fonts])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

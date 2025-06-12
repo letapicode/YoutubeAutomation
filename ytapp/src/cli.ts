@@ -12,6 +12,8 @@ import { parseCsv, CsvRow } from './utils/csv';
 import { watchDirectory } from './features/watch';
 import { generateBatchWithProgress } from './features/batch';
 import { addJob, listJobs, runQueue } from './features/queue';
+import { listProfiles, getProfile, saveProfile, deleteProfile } from './features/profiles';
+import type { Profile } from './schema';
 
 async function callWithProgress<T>(
   fn: () => Promise<T>,
@@ -61,6 +63,16 @@ function showProgress(p: number): void {
   const pct = Math.round(p);
   process.stdout.write(`\r${pct}%`);
   if (pct >= 100) process.stdout.write('\n');
+}
+
+async function mergeProfile(name: string | undefined, params: Partial<Profile>): Promise<Partial<Profile>> {
+  if (!name) return params;
+  try {
+    const prof = await getProfile(name);
+    return { ...prof, ...params };
+  } catch {
+    return params;
+  }
 }
 
 
@@ -214,14 +226,13 @@ program
   .option('--description <desc>', 'video description')
   .option('--tags <tags>', 'comma separated tags')
   .option('--publish-at <date>', 'schedule publish date (ISO)')
+  .option('-p, --profile <name>', 'load profile')
   .option('-q, --quiet', 'suppress progress output')
   .action(async (file: string, options: any) => {
     try {
       if (options.color && !options.captionColor) options.captionColor = options.color;
       if (options.bgColor && !options.captionBg) options.captionBg = options.bgColor;
-      const params: GenerateParams = {
-        file,
-        output: options.output,
+      const merged = await mergeProfile(options.profile, {
         captions: options.captions,
         captionOptions: {
           font: options.font,
@@ -243,7 +254,12 @@ program
         description: options.description,
         tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
         publishAt: options.publishAt,
-      };
+      });
+      const params: GenerateParams = {
+        file,
+        output: options.output,
+        ...merged,
+      } as any;
       const result = await withInterrupt(
         () => invoke('cancel_generate'),
         () => generateVideo(
@@ -281,13 +297,12 @@ program
   .option('--width <width>', 'output width', (v) => parseInt(v, 10))
   .option('--height <height>', 'output height', (v) => parseInt(v, 10))
   .option('--thumbnail <file>', 'thumbnail image')
+  .option('-p, --profile <name>', 'load profile')
   .action(async (file: string, options: any) => {
     try {
       if (options.color && !options.captionColor) options.captionColor = options.color;
       if (options.bgColor && !options.captionBg) options.captionBg = options.bgColor;
-      const params: GenerateParams = {
-        file,
-        output: options.output,
+      const merged = await mergeProfile(options.profile, {
         captions: options.captions,
         captionOptions: {
           font: options.font,
@@ -306,7 +321,12 @@ program
         width: options.width,
         height: options.height,
         thumbnail: options.thumbnail,
-      };
+      });
+      const params: GenerateParams = {
+        file,
+        output: options.output,
+        ...merged,
+      } as any;
       const result = await withInterrupt(
         () => { invoke('cancel_generate'); invoke('cancel_upload'); },
         () => generateAndUpload(
@@ -349,13 +369,12 @@ program
   .option('--tags <tags>', 'comma separated tags')
   .option('--publish-at <date>', 'schedule publish date (ISO)')
   .option('--thumbnail <file>', 'thumbnail image')
+  .option('-p, --profile <name>', 'load profile')
   .action(async (file: string, options: any) => {
     try {
       if (options.color && !options.captionColor) options.captionColor = options.color;
       if (options.bgColor && !options.captionBg) options.captionBg = options.bgColor;
-      const params: GenerateParams = {
-        file,
-        output: options.output,
+      const merged = await mergeProfile(options.profile, {
         captions: options.captions,
         captionOptions: {
           font: options.font,
@@ -378,6 +397,11 @@ program
         tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
         publishAt: options.publishAt,
         thumbnail: options.thumbnail,
+      });
+      const params: GenerateParams = {
+        file,
+        output: options.output,
+        ...merged,
       } as any;
       const dest = options.output || path.basename(file, path.extname(file)) + '.mp4';
       await addJob({ GenerateUpload: { params, dest, thumbnail: options.thumbnail } } as any);
@@ -737,6 +761,32 @@ program
       console.error('Error during sign-out:', err);
       process.exitCode = 1;
     }
+  });
+
+program
+  .command('profile-list')
+  .description('List saved profiles')
+  .action(async () => {
+    const names = await listProfiles();
+    console.log(names.join('\n'));
+  });
+
+program
+  .command('profile-save')
+  .description('Save or update a profile')
+  .argument('<name>', 'profile name')
+  .argument('<file>', 'json file with profile data')
+  .action(async (name: string, file: string) => {
+    const data = JSON.parse(await fs.readFile(file, 'utf-8')) as Profile;
+    await saveProfile(name, data);
+  });
+
+program
+  .command('profile-delete')
+  .description('Delete a profile')
+  .argument('<name>', 'profile name')
+  .action(async (name: string) => {
+    await deleteProfile(name);
   });
 
 program
