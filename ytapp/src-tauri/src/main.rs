@@ -77,6 +77,7 @@ struct AppSettings {
     show_guide: Option<bool>,
     watch_dir: Option<String>,
     auto_upload: Option<bool>,
+    model_size: Option<String>,
     profiles: HashMap<String, Profile>,
 }
 
@@ -97,6 +98,7 @@ impl Default for AppSettings {
             show_guide: Some(true),
             watch_dir: None,
             auto_upload: Some(false),
+            model_size: Some("base".into()),
             profiles: HashMap::new(),
         }
     }
@@ -767,6 +769,9 @@ fn load_settings(app: tauri::AppHandle) -> Result<AppSettings, String> {
     if settings.auto_upload.is_none() {
         settings.auto_upload = Some(false);
     }
+    if settings.model_size.is_none() {
+        settings.model_size = Some("base".into());
+    }
     if settings.profiles.is_empty() {
         settings.profiles = HashMap::new();
     }
@@ -902,6 +907,7 @@ fn profile_delete(app: tauri::AppHandle, name: String) -> Result<(), String> {
 struct TranscribeParams {
     file: String,
     language: Option<String>,
+    size: Option<String>,
 }
 
 #[command]
@@ -912,7 +918,14 @@ fn transcribe_audio(params: TranscribeParams) -> Result<String, String> {
     // run asynchronous whisper in tauri runtime
     tauri::async_runtime::block_on(async {
         let lang = language::parse_language(params.language);
-        let mut whisper = Whisper::new(Model::new(Size::Base), lang).await;
+        let size = match params.size.as_deref() {
+            Some("tiny") => Size::Tiny,
+            Some("small") => Size::Small,
+            Some("medium") => Size::Medium,
+            Some("large") => Size::Large,
+            _ => Size::Base,
+        };
+        let mut whisper = Whisper::new(Model::new(size), lang).await;
         let transcript = whisper
             .transcribe(&audio_path, false, false)
             .map_err(|e| e.to_string())?;
@@ -1040,9 +1053,19 @@ fn verify_dependencies(app: tauri::AppHandle) -> Result<(), String> {
         return Err("argos-translate not found".into());
     }
 
-    let model = Model::new(Size::Base);
+    let size = {
+        let mut s = load_settings(app.clone()).unwrap_or_default();
+        match s.model_size.as_deref() {
+            Some("tiny") => Size::Tiny,
+            Some("small") => Size::Small,
+            Some("medium") => Size::Medium,
+            Some("large") => Size::Large,
+            _ => Size::Base,
+        }
+    };
+    let model = Model::new(size);
     if !model.get_path().exists() {
-        MessageDialogBuilder::new("Downloading Whisper model", "The base Whisper model is missing and will be downloaded now. This may take a while.")
+        MessageDialogBuilder::new("Downloading Whisper model", "The selected Whisper model is missing and will be downloaded now. This may take a while.")
             .kind(MessageDialogKind::Info)
             .show();
         tauri::async_runtime::block_on(async { model.download().await; });
@@ -1076,7 +1099,8 @@ fn install_tauri_deps() -> Result<(), String> {
 }
 
 fn main() {
-    ensure_whisper_model();
+    let context = tauri::generate_context!();
+    ensure_whisper_model(&context.config());
     tauri::Builder::default()
         .setup(|app| {
             if let Some(win) = app.get_window("main") {
@@ -1085,7 +1109,7 @@ fn main() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, watch_directory, youtube_sign_in, youtube_sign_out, youtube_is_signed_in, load_settings, save_settings, load_srt, save_srt, cancel_generate, cancel_upload, queue_add, queue_list, queue_process, profile_list, profile_get, profile_save, profile_delete, verify_dependencies, install_tauri_deps, list_fonts])
-        .run(tauri::generate_context!())
+        .run(context)
         .expect("error while running tauri application");
 }
 

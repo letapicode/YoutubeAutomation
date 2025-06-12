@@ -1,8 +1,9 @@
 // Button that transcribes audio to SRT and optionally translates it.
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { transcribeAudio } from '../features/transcription';
 import { Language } from '../features/language';
+import { loadSettings } from '../features/settings';
 
 interface TranscribeButtonProps {
     file: string;
@@ -18,13 +19,20 @@ const TranscribeButton: React.FC<TranscribeButtonProps> = ({ file, language, tar
     const { t } = useTranslation();
     const [running, setRunning] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [modelSize, setModelSize] = useState('base');
+
+    useEffect(() => {
+        loadSettings().then(s => {
+            if (s.modelSize) setModelSize(s.modelSize);
+        });
+    }, []);
 
     const handleClick = async () => {
         if (!file) return;
         setRunning(true);
         setError(null);
         try {
-            const result = await transcribeAudio({ file, language, translate: targets });
+            const result = await transcribeAudio({ file, language, translate: targets, modelSize });
             onComplete(result);
         } catch (err: any) {
             setError(String(err));

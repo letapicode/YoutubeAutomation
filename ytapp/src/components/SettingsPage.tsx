@@ -22,6 +22,7 @@ const SettingsPage: React.FC = () => {
     const [guide, setGuide] = useState(true);
     const [watchDir, setWatchDir] = useState('');
     const [autoUpload, setAutoUpload] = useState(false);
+    const [modelSize, setModelSize] = useState('base');
 
     useEffect(() => {
         loadSettings().then(s => {
@@ -39,6 +40,7 @@ const SettingsPage: React.FC = () => {
             setGuide(s.showGuide !== false);
             setWatchDir(s.watchDir || '');
             setAutoUpload(!!s.autoUpload);
+            if (s.modelSize) setModelSize(s.modelSize);
         });
     }, []);
 
@@ -58,6 +60,7 @@ const SettingsPage: React.FC = () => {
             showGuide: guide,
             watchDir: watchDir || undefined,
             autoUpload,
+            modelSize,
         });
     };
 
@@ -136,6 +139,16 @@ const SettingsPage: React.FC = () => {
                 <input type="color" value={captionColor} onChange={e => setCaptionColor(e.target.value)} />
                 <label>{t('caption_bg')}</label>
                 <input type="color" value={captionBg} onChange={e => setCaptionBg(e.target.value)} />
+            </div>
+            <div>
+                <label>{t('whisper_size')}</label>
+                <select value={modelSize} onChange={e => setModelSize(e.target.value)}>
+                    <option value="tiny">tiny</option>
+                    <option value="base">base</option>
+                    <option value="small">small</option>
+                    <option value="medium">medium</option>
+                    <option value="large">large</option>
+                </select>
             </div>
             <div>
                 <label>{t('watch_directory')}</label>

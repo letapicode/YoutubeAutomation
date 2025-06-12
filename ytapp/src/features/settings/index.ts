@@ -16,6 +16,7 @@ export interface Settings {
     showGuide?: boolean;
     watchDir?: string;
     autoUpload?: boolean;
+    modelSize?: string;
 }
 
 export async function loadSettings(): Promise<Settings> {

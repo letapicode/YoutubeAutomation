@@ -10,6 +10,7 @@ export interface TranscribeParams {
      * Target language codes to translate the generated SRT file.
      */
     translate?: string[];
+    modelSize?: string;
 }
 
 /**
@@ -20,8 +21,8 @@ export interface TranscribeParams {
  * @returns Array of generated subtitle paths.
  */
 export async function transcribeAudio(params: TranscribeParams): Promise<string[]> {
-    const { file, language = 'auto', translate } = params;
-    const result: string = await invoke('transcribe_audio', { file, language });
+    const { file, language = 'auto', translate, modelSize } = params;
+    const result: string = await invoke('transcribe_audio', { file, language, size: modelSize });
     const outputs: string[] = [result];
     if (translate && Array.isArray(translate)) {
         for (const target of translate) {
