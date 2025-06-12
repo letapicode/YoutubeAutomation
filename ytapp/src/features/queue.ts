@@ -13,6 +13,11 @@ export async function listJobs(): Promise<QueueJob[]> {
   return await invoke('queue_list');
 }
 
+/** Clear all jobs from the queue. */
+export async function clearQueue(): Promise<void> {
+  await invoke('queue_clear');
+}
+
 export async function runQueue(): Promise<void> {
   await invoke('queue_process');
 }

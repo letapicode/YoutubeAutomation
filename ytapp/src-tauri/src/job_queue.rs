@@ -69,3 +69,10 @@ pub fn load_queue(app: &tauri::AppHandle) -> Result<(), String> {
     *q = q_data;
     Ok(())
 }
+
+/// Remove all queued jobs and persist the empty queue.
+pub fn clear_queue(app: &tauri::AppHandle) -> Result<(), String> {
+    let mut q = QUEUE.lock().unwrap();
+    q.clear();
+    save_queue(app)
+}

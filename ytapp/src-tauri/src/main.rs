@@ -28,7 +28,7 @@ mod language;
 mod token_store;
 use token_store::EncryptedTokenStorage;
 mod job_queue;
-use job_queue::{Job, enqueue, dequeue, peek_all, load_queue, notifier};
+use job_queue::{Job, enqueue, dequeue, peek_all, load_queue, clear_queue as clear_in_memory, notifier};
 use tauri::api::dialog::{blocking::MessageDialogBuilder, MessageDialogKind};
 use notify::{RecommendedWatcher, RecursiveMode, Watcher, Config, EventKind, Event, Error as NotifyError};
 use once_cell::sync::Lazy;
@@ -855,6 +855,12 @@ fn queue_list(app: tauri::AppHandle) -> Result<Vec<Job>, String> {
 }
 
 #[command]
+fn queue_clear(app: tauri::AppHandle) -> Result<(), String> {
+    load_queue(&app).ok();
+    clear_in_memory(&app)
+}
+
+#[command]
 async fn queue_process(window: Window) -> Result<(), String> {
     let app = window.app_handle();
     load_queue(&app).ok();
@@ -1138,7 +1144,7 @@ fn main() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, watch_directory, youtube_sign_in, youtube_sign_out, youtube_is_signed_in, load_settings, save_settings, load_srt, save_srt, cancel_generate, cancel_upload, queue_add, queue_list, queue_process, profile_list, profile_get, profile_save, profile_delete, verify_dependencies, install_tauri_deps, list_fonts])
+        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, watch_directory, youtube_sign_in, youtube_sign_out, youtube_is_signed_in, load_settings, save_settings, load_srt, save_srt, cancel_generate, cancel_upload, queue_add, queue_list, queue_clear, queue_process, profile_list, profile_get, profile_save, profile_delete, verify_dependencies, install_tauri_deps, list_fonts])
         .run(context)
         .expect("error while running tauri application");
 }

@@ -11,7 +11,7 @@ import { translateSrt } from './utils/translate';
 import { parseCsv, CsvRow } from './utils/csv';
 import { watchDirectory } from './features/watch';
 import { generateBatchWithProgress } from './features/batch';
-import { addJob, listJobs, runQueue } from './features/queue';
+import { addJob, listJobs, runQueue, clearQueue } from './features/queue';
 import { listProfiles, getProfile, saveProfile, deleteProfile } from './features/profiles';
 import type { Profile } from './schema';
 
@@ -891,6 +891,18 @@ program
       console.log(JSON.stringify(jobs, null, 2));
     } catch (err) {
       console.error('Error listing queue:', err);
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command('queue-clear')
+  .description('Remove all jobs from the queue')
+  .action(async () => {
+    try {
+      await clearQueue();
+    } catch (err) {
+      console.error('Error clearing queue:', err);
       process.exitCode = 1;
     }
   });
