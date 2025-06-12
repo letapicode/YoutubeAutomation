@@ -166,6 +166,15 @@ fn temp_file(name: &str) -> PathBuf {
     std::env::temp_dir().join(format!("{}_{}.mp4", name, ts))
 }
 
+/// Escape a path for use in ffmpeg filter arguments
+fn escape_filter_path(path: &str) -> String {
+    // REASON: ffmpeg filters treat unescaped single quotes and spaces as
+    // separators, so we wrap the path in single quotes and escape any
+    // existing quotes to avoid injection or parsing errors.
+    let escaped = path.replace('\'', "\\'");
+    format!("'{}'", escaped)
+}
+
 fn run_ffmpeg(mut cmd: Command) -> Result<(), String> {
     let mut child = cmd.spawn().map_err(|e| e.to_string())?;
     let child = Arc::new(Mutex::new(child));
@@ -339,7 +348,7 @@ fn build_main_section(window: Option<&Window>, params: &GenerateParams, duration
             filter_chain = format!(
                 "{} ,subtitles={}:fontsdir={}:force_style='{}'",
                 filter_chain,
-                caption_file,
+                escape_filter_path(caption_file),
                 dir,
                 style_parts.join(",")
             );
@@ -347,7 +356,7 @@ fn build_main_section(window: Option<&Window>, params: &GenerateParams, duration
             filter_chain = format!(
                 "{} ,subtitles={}:force_style='{}'",
                 filter_chain,
-                caption_file,
+                escape_filter_path(caption_file),
                 style_parts.join(",")
             );
         }
@@ -368,7 +377,7 @@ fn build_main_section(window: Option<&Window>, params: &GenerateParams, duration
             filter_chain = format!(
                 "{},movie={},scale=iw/5:-1[wm];[in][wm]overlay={}",
                 filter_chain,
-                wm,
+                escape_filter_path(wm),
                 pos
             );
         }
