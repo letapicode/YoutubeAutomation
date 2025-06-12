@@ -1,6 +1,7 @@
 use std::{fs, path::PathBuf};
 use once_cell::sync::Lazy;
-use std::sync::Mutex;
+use std::sync::{Mutex, Arc};
+use tokio::sync::Notify;
 use serde::{Serialize, Deserialize};
 use tauri::api::path::app_config_dir;
 
@@ -13,6 +14,11 @@ pub enum Job {
 }
 
 static QUEUE: Lazy<Mutex<Vec<Job>>> = Lazy::new(|| Mutex::new(Vec::new()));
+static NOTIFY: Lazy<Arc<Notify>> = Lazy::new(|| Arc::new(Notify::new()));
+
+pub fn notifier() -> Arc<Notify> {
+    NOTIFY.clone()
+}
 
 fn queue_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
     let mut dir = app_config_dir(&app.config()).ok_or("config dir not found")?;
@@ -24,6 +30,7 @@ fn queue_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
 pub fn enqueue(app: &tauri::AppHandle, job: Job) -> Result<(), String> {
     let mut q = QUEUE.lock().unwrap();
     q.push(job);
+    NOTIFY.notify_one();
     save_queue(app)
 }
 

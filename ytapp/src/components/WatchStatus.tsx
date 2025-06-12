@@ -44,7 +44,7 @@ const WatchStatus: React.FC = () => {
                 {watching ? t('stop_watch') : t('start_watch')}
             </button>
             <span> {t('queue')}: {queueLen}</span>
-            <button onClick={process}>{t('process_queue')}</button>
+            {!auto && <button onClick={process}>{t('process_queue')}</button>}
         </div>
     );
 };
