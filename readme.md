@@ -337,6 +337,12 @@ Show queued jobs:
 npx ts-node src/cli.ts queue-list
 ```
 
+Clear the queue:
+
+```bash
+npx ts-node src/cli.ts queue-clear
+```
+
 Process all queued jobs:
 
 ```bash
