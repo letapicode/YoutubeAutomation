@@ -96,6 +96,8 @@ interface UploadParams {
   tags?: string[];
   publishAt?: string;
   thumbnail?: string;
+  privacy?: string;
+  playlistId?: string;
 }
 
 interface UploadBatchParams extends Omit<UploadParams, 'file'> {
@@ -440,6 +442,8 @@ program
   .option('--tags <tags>', 'comma separated tags')
   .option('--publish-at <date>', 'schedule publish date (ISO)')
   .option('--thumbnail <file>', 'thumbnail image')
+  .option('--privacy <privacy>', 'video privacy')
+  .option('--playlist-id <id>', 'playlist ID')
   .action(async (files: string[], options: any) => {
     try {
       if (options.color && !options.captionColor) options.captionColor = options.color;
@@ -657,6 +661,8 @@ program
   .option('--tags <tags>', 'comma separated tags')
   .option('--publish-at <date>', 'schedule publish date (ISO)')
   .option('--thumbnail <file>', 'thumbnail image')
+  .option('--privacy <privacy>', 'video privacy')
+  .option('--playlist-id <id>', 'playlist ID')
   .action(async (file: string, options: any) => {
     try {
       const result = await withInterrupt(
@@ -669,6 +675,8 @@ program
             tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
             publishAt: options.publishAt,
             thumbnail: options.thumbnail,
+            privacy: options.privacy,
+            playlistId: options.playlistId,
           },
           showProgress,
         )
@@ -690,6 +698,8 @@ program
   .option('--tags <tags>', 'comma separated tags')
   .option('--publish-at <date>', 'schedule publish date (ISO)')
   .option('--thumbnail <file>', 'thumbnail image')
+  .option('--privacy <privacy>', 'video privacy')
+  .option('--playlist-id <id>', 'playlist ID')
   .action(async (files: string[], options: any) => {
     try {
       let csvMap: Record<string, CsvRow> = {};
@@ -710,6 +720,8 @@ program
               tags: meta.tags ?? (options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined),
               publishAt: meta.publishAt ?? options.publishAt,
               thumbnail: options.thumbnail,
+              privacy: options.privacy,
+              playlistId: options.playlistId,
             },
             showProgress,
           );
@@ -726,6 +738,8 @@ program
               tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
               publishAt: options.publishAt,
               thumbnail: options.thumbnail,
+              privacy: options.privacy,
+              playlistId: options.playlistId,
             },
             showProgress,
           )
