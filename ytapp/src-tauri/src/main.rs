@@ -28,7 +28,7 @@ mod language;
 mod token_store;
 use token_store::EncryptedTokenStorage;
 mod job_queue;
-use job_queue::{Job, enqueue, dequeue, peek_all, load_queue, clear_queue as clear_in_memory, notifier};
+use job_queue::{Job, QueueItem, enqueue, dequeue, peek_all, load_queue, clear_queue as clear_in_memory, notifier, mark_complete, mark_failed};
 use tauri::api::dialog::{blocking::MessageDialogBuilder, MessageDialogKind};
 use notify::{RecommendedWatcher, RecursiveMode, Watcher, Config, EventKind, Event, Error as NotifyError};
 use once_cell::sync::Lazy;
@@ -81,6 +81,7 @@ struct AppSettings {
     watch_dir: Option<String>,
     auto_upload: Option<bool>,
     model_size: Option<String>,
+    max_retries: Option<u32>,
     profiles: HashMap<String, Profile>,
 }
 
@@ -102,6 +103,7 @@ impl Default for AppSettings {
             watch_dir: None,
             auto_upload: Some(false),
             model_size: Some("base".into()),
+            max_retries: Some(3),
             profiles: HashMap::new(),
         }
     }
@@ -810,6 +812,9 @@ fn load_settings(app: tauri::AppHandle) -> Result<AppSettings, String> {
     if settings.model_size.is_none() {
         settings.model_size = Some("base".into());
     }
+    if settings.max_retries.is_none() {
+        settings.max_retries = Some(3);
+    }
     if settings.profiles.is_empty() {
         settings.profiles = HashMap::new();
     }
@@ -858,7 +863,7 @@ fn queue_add(app: tauri::AppHandle, job: Job) -> Result<(), String> {
 }
 
 #[command]
-fn queue_list(app: tauri::AppHandle) -> Result<Vec<Job>, String> {
+fn queue_list(app: tauri::AppHandle) -> Result<Vec<QueueItem>, String> {
     load_queue(&app).ok();
     Ok(peek_all())
 }
@@ -870,22 +875,27 @@ fn queue_clear(app: tauri::AppHandle) -> Result<(), String> {
 }
 
 #[command]
-async fn queue_process(window: Window) -> Result<(), String> {
+async fn queue_process(window: Window, retry_failed: Option<bool>) -> Result<(), String> {
     let app = window.app_handle();
     load_queue(&app).ok();
-    while let Some(job) = dequeue(&app)? {
-        match job {
+    let settings = load_settings(app.clone()).unwrap_or_default();
+    let max_retries = settings.max_retries.unwrap_or(3);
+    let retry = retry_failed.unwrap_or(false);
+    while let Some((idx, item)) = dequeue(&app, retry, max_retries)? {
+        let res = match item.job {
             Job::Generate { mut params, dest } => {
                 params.output = Some(dest);
-                let _ = generate_video(window.clone(), params);
+                generate_video(window.clone(), params)
             }
             Job::GenerateUpload { mut params, dest, thumbnail } => {
                 params.output = Some(dest);
-                if params.thumbnail.is_none() {
-                    params.thumbnail = thumbnail.clone();
-                }
-                let _ = generate_upload(window.clone(), params).await?;
+                if params.thumbnail.is_none() { params.thumbnail = thumbnail.clone(); }
+                generate_upload(window.clone(), params).await.map(|_| ())
             }
+        };
+        match res {
+            Ok(_) => { mark_complete(&app, idx)?; },
+            Err(e) => { mark_failed(&app, idx, e)?; },
         }
     }
     Ok(())
@@ -901,19 +911,23 @@ fn start_queue_worker(window: Window) {
         let notify = notifier();
         loop {
             load_queue(&app).ok();
-            if let Some(job) = dequeue(&app).unwrap_or(None) {
-                match job {
+            let settings = load_settings(app.clone()).unwrap_or_default();
+            let max_retries = settings.max_retries.unwrap_or(3);
+            if let Some((idx, item)) = dequeue(&app, true, max_retries).unwrap_or(None) {
+                let res = match item.job {
                     Job::Generate { mut params, dest } => {
                         params.output = Some(dest);
-                        let _ = generate_video(window.clone(), params);
+                        generate_video(window.clone(), params)
                     }
                     Job::GenerateUpload { mut params, dest, thumbnail } => {
                         params.output = Some(dest);
-                        if params.thumbnail.is_none() {
-                            params.thumbnail = thumbnail.clone();
-                        }
-                        let _ = generate_upload(window.clone(), params).await;
+                        if params.thumbnail.is_none() { params.thumbnail = thumbnail.clone(); }
+                        generate_upload(window.clone(), params).await.map(|_| ())
                     }
+                };
+                match res {
+                    Ok(_) => { let _ = mark_complete(&app, idx); },
+                    Err(e) => { let _ = mark_failed(&app, idx, e); },
                 }
             } else {
                 notify.notified().await;
