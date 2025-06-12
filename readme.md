@@ -336,6 +336,8 @@ Show queued jobs:
 ```bash
 npx ts-node src/cli.ts queue-list
 ```
+Each job now tracks a `status` and `retries` count in `queue.json`.
+Failed jobs remain in the queue until they succeed or exceed the retry limit.
 
 Clear the queue:
 
@@ -343,11 +345,12 @@ Clear the queue:
 npx ts-node src/cli.ts queue-clear
 ```
 
-Process all queued jobs:
+Process all queued jobs (retry failed jobs with `--retry-failed`):
 
 ```bash
-npx ts-node src/cli.ts queue-run
+npx ts-node src/cli.ts queue-run --retry-failed
 ```
+The maximum retry count is configured by `max_retries` in `settings.json` (default `3`).
 
 Profiles can store commonly used generation options in `settings.json`.
 Save a profile from a JSON file:

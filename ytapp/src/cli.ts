@@ -910,9 +910,10 @@ program
 program
   .command('queue-run')
   .description('Process queued jobs')
-  .action(async () => {
+  .option('--retry-failed', 'retry previously failed jobs')
+  .action(async (opts: any) => {
     try {
-      await runQueue();
+      await runQueue(!!opts.retryFailed);
     } catch (err) {
       console.error('Error running queue:', err);
       process.exitCode = 1;
