@@ -135,9 +135,10 @@ async function transcribeAudio(params: {
   file: string;
   language?: string;
   translate?: string[];
+  modelSize?: string;
 }): Promise<string[]> {
-  const { file, language = 'auto', translate } = params;
-  const result: string = await invoke('transcribe_audio', { file, language });
+  const { file, language = 'auto', translate, modelSize } = params;
+  const result: string = await invoke('transcribe_audio', { file, language, size: modelSize });
   const outputs: string[] = [result];
   if (translate) {
     for (const t of translate) {
@@ -794,6 +795,7 @@ program
   .description('Transcribe audio to SRT')
   .argument('<file>', 'audio file path')
   .option('-l, --language <lang>', 'language code (auto|ne|hi|en)', 'auto')
+  .option('-m, --model-size <size>', 'Whisper model size (tiny|base|small|medium|large)', 'base')
   // Specify one or more target language codes using multiple -t options
   .option('-t, --translate <lang...>', 'translate subtitles to languages')
   .action(async (file: string, options: any) => {
@@ -801,6 +803,7 @@ program
       const results = await transcribeAudio({
         file,
         language: options.language,
+        modelSize: options.modelSize,
         translate: options.translate,
       });
       results.forEach(r => console.log(r));

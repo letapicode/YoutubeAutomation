@@ -38,6 +38,7 @@
   "advanced_settings": "Advanced Settings",
   "caption_color": "Caption Color",
   "caption_bg": "Caption Background",
+  "whisper_size": "Whisper Model Size",
   "watermark": "Watermark",
   "watermark_position": "Watermark Position",
   "top_left": "Top Left",
