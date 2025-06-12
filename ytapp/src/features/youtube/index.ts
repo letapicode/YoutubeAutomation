@@ -11,6 +11,8 @@ export interface UploadOptions {
     tags?: string[];
     publishAt?: string;
     thumbnail?: string;
+    privacy?: string;
+    playlistId?: string;
 }
 
 export interface UploadBatchOptions extends Omit<UploadOptions, 'file'> {

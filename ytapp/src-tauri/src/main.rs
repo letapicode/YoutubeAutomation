@@ -14,7 +14,7 @@ use tauri::api::path::app_config_dir;
 use whisper_cli::{Language, Model, Size, Whisper};
 mod model_check;
 use model_check::ensure_whisper_model;
-use google_youtube3::{api::Video, YouTube};
+use google_youtube3::{api::{Video, PlaylistItem, PlaylistItemSnippet, ResourceId}, YouTube};
 use yup_oauth2::{InstalledFlowAuthenticator, InstalledFlowReturnMethod};
 use yup_oauth2::authenticator::Authenticator;
 use google_youtube3::hyper_util::{
@@ -57,8 +57,12 @@ struct UploadOptions {
     title: Option<String>,
     description: Option<String>,
     tags: Option<Vec<String>>,
+    #[serde(rename = "publishAt")]
     publish_at: Option<String>,
     thumbnail: Option<String>,
+    privacy: Option<String>,
+    #[serde(rename = "playlistId")]
+    playlist_id: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -463,13 +467,16 @@ async fn upload_video_impl(window: Window, file: String, opts: UploadOptions) ->
         tags: opts.tags.clone(),
         ..Default::default()
     });
-    if opts.publish_at.is_some() {
-        video.status = Some(google_youtube3::api::VideoStatus {
-            privacy_status: Some("private".to_string()),
-            publish_at: opts.publish_at.as_ref().and_then(|s| parse_publish_at(s)),
-            ..Default::default()
-        });
+    let mut status = google_youtube3::api::VideoStatus::default();
+    status.privacy_status = Some(
+        opts.privacy
+            .clone()
+            .unwrap_or_else(|| if opts.publish_at.is_some() { "private".into() } else { "public".into() }),
+    );
+    if let Some(ref p) = opts.publish_at {
+        status.publish_at = parse_publish_at(p);
     }
+    video.status = Some(status);
 
     let f = std::fs::File::open(&file).map_err(|e| format!("Failed to open file: {}", e))?;
     let size = f.metadata().map_err(|e| e.to_string())?.len();
@@ -514,6 +521,26 @@ async fn upload_video_impl(window: Window, file: String, opts: UploadOptions) ->
                             .await;
                     }
                 }
+            }
+            if let Some(pid) = opts.playlist_id.as_ref() {
+                let item = google_youtube3::api::PlaylistItem {
+                    snippet: Some(google_youtube3::api::PlaylistItemSnippet {
+                        playlist_id: Some(pid.clone()),
+                        resource_id: Some(google_youtube3::api::ResourceId {
+                            kind: Some("youtube#video".to_string()),
+                            video_id: Some(id.clone()),
+                            ..Default::default()
+                        }),
+                        ..Default::default()
+                    }),
+                    ..Default::default()
+                };
+                let _ = hub
+                    .playlist_items()
+                    .insert(item)
+                    .add_part("snippet")
+                    .doit()
+                    .await;
             }
             Ok(format!("Uploaded video ID: {}", id))
         }
@@ -586,6 +613,7 @@ async fn generate_upload(window: Window, params: GenerateParams) -> Result<Strin
         tags: params.tags,
         publish_at: params.publish_at,
         thumbnail: params.thumbnail,
+        ..Default::default()
     }).await?;
     let _ = fs::remove_file(output);
     Ok(result)
@@ -683,6 +711,7 @@ async fn generate_batch_upload(window: Window, params: BatchGenerateParams) -> R
             tags: params.tags.clone(),
             publish_at: params.publish_at.clone(),
             thumbnail: params.thumbnail.clone(),
+            ..Default::default()
         }).await?;
         let _ = fs::remove_file(video);
         results.push(res);

@@ -16,6 +16,8 @@ const BatchUploader: React.FC = () => {
     const [description, setDescription] = useState('');
     const [tags, setTags] = useState('');
     const [publishDate, setPublishDate] = useState('');
+    const [privacy, setPrivacy] = useState('public');
+    const [playlistId, setPlaylistId] = useState('');
     const [csvMap, setCsvMap] = useState<Record<string, CsvRow>>({});
     const [csvWarning, setCsvWarning] = useState(false);
 
@@ -56,6 +58,8 @@ const BatchUploader: React.FC = () => {
                     description: meta.description || description || undefined,
                     tags: meta.tags || (tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : undefined),
                     publishAt: meta.publishAt || (publishDate ? new Date(publishDate).toISOString() : undefined),
+                    privacy: privacy || undefined,
+                    playlistId: playlistId || undefined,
                 },
                 (p) => {
                     prog[file] = Math.round(p);
@@ -88,6 +92,17 @@ const BatchUploader: React.FC = () => {
             </div>
             <div className="row">
                 <input type="datetime-local" value={publishDate} onChange={e => setPublishDate(e.target.value)} />
+            </div>
+            <div className="row">
+                <label>{t('privacy')}</label>
+                <select value={privacy} onChange={e => setPrivacy(e.target.value)}>
+                    <option value="public">public</option>
+                    <option value="unlisted">unlisted</option>
+                    <option value="private">private</option>
+                </select>
+            </div>
+            <div className="row">
+                <input type="text" placeholder="Playlist ID" value={playlistId} onChange={e => setPlaylistId(e.target.value)} />
             </div>
             <div className="row">
                 <button onClick={startUpload} disabled={running || !files.length}>
