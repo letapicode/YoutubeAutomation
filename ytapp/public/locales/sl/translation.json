@@ -7,4 +7,9 @@
   "start_watch": "Start Watching",
   "stop_watch": "Stop Watching",
   "sign_out": "Sign Out"
+  ,"profiles": "Profiles"
+  ,"save_profile": "Save Profile"
+  ,"delete_profile": "Delete Profile"
+  ,"load": "Load"
+  ,"edit": "Edit"
 }

@@ -63,4 +63,9 @@
   "stop_watch": "Stop Watching"
   ,"queue": "Queue"
   ,"process_queue": "Process Queue"
+  ,"profiles": "Profiles"
+  ,"save_profile": "Save Profile"
+  ,"delete_profile": "Delete Profile"
+  ,"load": "Load"
+  ,"edit": "Edit"
 }

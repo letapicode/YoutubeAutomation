@@ -11,11 +11,14 @@ import { generateUpload, GenerateParams } from './features/youtube';
 import FilePicker from './components/FilePicker';
 import BatchPage from './components/BatchPage';
 import SettingsPage from './components/SettingsPage';
+import ProfilesPage from './components/ProfilesPage';
 import FontSelector from './components/FontSelector';
 import SizeSlider from './components/SizeSlider';
 import { languages, Language } from './features/languages';
 import TranscribeButton from './components/TranscribeButton';
 import { loadSettings, saveSettings } from './features/settings';
+import { saveProfile } from './features/profiles';
+import type { Profile } from './schema';
 import Modal from './components/Modal';
 import UploadIcon from './components/UploadIcon';
 import SettingsIcon from './components/SettingsIcon';
@@ -25,7 +28,7 @@ import SubtitleEditor from './components/SubtitleEditor';
 
 const App: React.FC = () => {
     const { t, i18n } = useTranslation();
-    const [page, setPage] = useState<'single' | 'batch' | 'settings'>('single');
+    const [page, setPage] = useState<'single' | 'batch' | 'settings' | 'profiles'>('single');
     const [file, setFile] = useState('');
     const [background, setBackground] = useState('');
     const [captions, setCaptions] = useState('');
@@ -149,6 +152,35 @@ const App: React.FC = () => {
         publishAt: publishDate || undefined,
     });
 
+    const handleSaveCurrentProfile = async () => {
+        const name = prompt(t('save_profile')) || '';
+        if (!name) return;
+        const p: Profile = {
+            captions: captions || undefined,
+            captionOptions: {
+                font: font || undefined,
+                fontPath: fontPath || undefined,
+                style: fontStyle || undefined,
+                size,
+                position,
+                color: captionColor,
+                background: captionBg,
+            },
+            background: background || undefined,
+            intro: intro || undefined,
+            outro: outro || undefined,
+            watermark: watermark || undefined,
+            watermarkPosition: watermarkPos,
+            width,
+            height,
+            title: title || undefined,
+            description: description || undefined,
+            tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : undefined,
+            publishAt: publishDate || undefined,
+        };
+        await saveProfile(name, p);
+    };
+
     const closePreview = async () => {
         if (preview) {
             try {
@@ -179,6 +211,30 @@ const App: React.FC = () => {
             watermarkPosition: watermarkPos,
             showGuide: false,
         });
+    };
+
+    const applyProfile = (p: Profile) => {
+        setBackground(p.background || '');
+        setIntro(p.intro || '');
+        setOutro(p.outro || '');
+        setCaptions(p.captions || '');
+        setWatermark(p.watermark || '');
+        if (p.watermarkPosition) setWatermarkPos(p.watermarkPosition as any);
+        if (p.captionOptions) {
+            setFont(p.captionOptions.font || '');
+            setFontPath(p.captionOptions.fontPath || '');
+            setFontStyle(p.captionOptions.style || '');
+            if (p.captionOptions.size) setSize(p.captionOptions.size);
+            if (p.captionOptions.position) setPosition(p.captionOptions.position);
+            if (p.captionOptions.color) setCaptionColor(p.captionOptions.color);
+            if (p.captionOptions.background) setCaptionBg(p.captionOptions.background);
+        }
+        if (p.width) setWidth(p.width);
+        if (p.height) setHeight(p.height);
+        setTitle(p.title || '');
+        setDescription(p.description || '');
+        setTags(p.tags ? p.tags.join(', ') : '');
+        setPublishDate(p.publishAt || '');
     };
 
     const handleGenerateUpload = async () => {
@@ -227,6 +283,17 @@ const App: React.FC = () => {
                     <button onClick={() => setPage('single')}>{t('back')}</button>
                 </div>
                 <BatchPage />
+            </div>
+        );
+    }
+
+    if (page === 'profiles') {
+        return (
+            <div className="app">
+                <div className="row">
+                    <button onClick={() => setPage('single')}>{t('back')}</button>
+                </div>
+                <ProfilesPage onLoad={p => { applyProfile(p); setPage('single'); }} />
             </div>
         );
     }
@@ -430,7 +497,9 @@ const App: React.FC = () => {
                     <UploadIcon />
                     {t('generate_upload')}
                 </button>
+                <button onClick={handleSaveCurrentProfile}>{t('save_profile')}</button>
                 <button onClick={() => setPage('batch')}>{t('batch_tools')}</button>
+                <button onClick={() => setPage('profiles')}>{t('profiles')}</button>
                 <button onClick={() => setPage('settings')}>
                     <SettingsIcon />
                     {t('settings')}
