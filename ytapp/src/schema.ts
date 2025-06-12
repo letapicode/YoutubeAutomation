@@ -8,6 +8,23 @@ export interface CaptionOptions {
   background?: string;
 }
 
+export interface Profile {
+  captions?: string;
+  captionOptions?: CaptionOptions;
+  background?: string;
+  intro?: string;
+  outro?: string;
+  watermark?: string;
+  watermarkPosition?: string;
+  width?: number;
+  height?: number;
+  title?: string;
+  description?: string;
+  tags?: string[];
+  publishAt?: string;
+  thumbnail?: string;
+}
+
 export interface GenerateParams {
   file: string;
   output?: string;
