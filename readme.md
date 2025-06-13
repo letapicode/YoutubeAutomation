@@ -235,6 +235,8 @@ packages and writes `.env.tauri`:
 You may also use the provided devcontainer which automatically executes the
 setup script when first created.
 Codex and all contributors should open the repo using the prebuilt image `ghcr.io/<OWNER>/ytapp-dev:latest` for the fastest startup.
+The same setup steps are mirrored in `.codex/Dockerfile` which Codex uses as a
+bootstrap container.
 
 Before committing run `make verify` or the steps in `AGENTS.md`:
 ```bash
