@@ -25,6 +25,7 @@ import SettingsIcon from './components/SettingsIcon';
 import OnboardingModal from './components/OnboardingModal';
 import WatchStatus from './components/WatchStatus';
 import SubtitleEditor from './components/SubtitleEditor';
+import { notify } from './utils/notify';
 
 const App: React.FC = () => {
     const { t, i18n } = useTranslation();
@@ -60,6 +61,8 @@ const App: React.FC = () => {
     const [description, setDescription] = useState('');
     const [tags, setTags] = useState('');
     const [publishDate, setPublishDate] = useState('');
+    const [privacy, setPrivacy] = useState('public');
+    const [playlistId, setPlaylistId] = useState('');
     const [showEditor, setShowEditor] = useState(false);
 
 
@@ -125,6 +128,7 @@ const App: React.FC = () => {
         }, p => setProgress(Math.round(p)), () => setGenerating(false));
         setOutputs(o => [...o, out]);
         setGenerating(false);
+        notify('Generation complete', 'Video created successfully');
     };
 
     const buildParams = (): GenerateParams => ({
@@ -150,6 +154,8 @@ const App: React.FC = () => {
         description: description || undefined,
         tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : undefined,
         publishAt: publishDate || undefined,
+        privacy: privacy || undefined,
+        playlistId: playlistId || undefined,
     });
 
     const handleSaveCurrentProfile = async () => {
@@ -247,6 +253,7 @@ const App: React.FC = () => {
         await generateUpload(buildParams(), () => setGenerating(false));
         unlisten();
         setGenerating(false);
+        notify('Upload complete', 'Video uploaded successfully');
     };
 
     const cancelGenerate = async () => {
@@ -394,6 +401,17 @@ const App: React.FC = () => {
             </div>
             <div className="row">
                 <input type="datetime-local" value={publishDate} onChange={e => setPublishDate(e.target.value)} />
+            </div>
+            <div className="row">
+                <label>{t('privacy')}</label>
+                <select value={privacy} onChange={e => setPrivacy(e.target.value)}>
+                    <option value="public">public</option>
+                    <option value="unlisted">unlisted</option>
+                    <option value="private">private</option>
+                </select>
+            </div>
+            <div className="row">
+                <input type="text" placeholder="Playlist ID" value={playlistId} onChange={e => setPlaylistId(e.target.value)} />
             </div>
             <details>
                 <summary>{t('advanced_settings')}</summary>

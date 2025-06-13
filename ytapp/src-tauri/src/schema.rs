@@ -31,6 +31,9 @@ pub struct Profile {
     #[serde(rename = "publishAt")]
     pub publish_at: Option<String>,
     pub thumbnail: Option<String>,
+    pub privacy: Option<String>,
+    #[serde(rename = "playlistId")]
+    pub playlist_id: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -54,4 +57,7 @@ pub struct GenerateParams {
     #[serde(rename = "publishAt")]
     pub publish_at: Option<String>,
     pub thumbnail: Option<String>,
+    pub privacy: Option<String>,
+    #[serde(rename = "playlistId")]
+    pub playlist_id: Option<String>,
 }

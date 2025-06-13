@@ -10,6 +10,7 @@ import BatchOptionsForm from './BatchOptionsForm';
 import UploadIcon from './UploadIcon';
 import { open } from '@tauri-apps/plugin-dialog';
 import { parseCsv, CsvRow } from '../utils/csv';
+import { notify } from '../utils/notify';
 
 const BatchProcessor: React.FC = () => {
   const { t } = useTranslation();
@@ -71,6 +72,7 @@ const BatchProcessor: React.FC = () => {
       });
     }
     setRunning(false);
+    notify('Batch generate complete', `${files.length} video(s) processed`);
   };
 
   const cancelBatch = async () => {
@@ -97,6 +99,7 @@ const BatchProcessor: React.FC = () => {
       await generateBatchUpload({ files, ...options });
     }
     setUploading(false);
+    notify('Batch upload complete', `${files.length} video(s) uploaded`);
   };
 
   const cancelUpload = async () => {
