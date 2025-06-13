@@ -9,6 +9,7 @@ These guidelines apply to the entire repository.
 ## Code Style
 - Keep existing indentation styles: TypeScript files generally use two spaces and TSX files use four spaces.
 - Document new functions with brief comments describing their purpose.
+- A `.editorconfig` at the repo root enforces indentation and newline rules; configure your editor to use it.
 
 ## Required Checks
 Run the following commands before committing changes:
@@ -19,7 +20,8 @@ cd src-tauri && cargo check
 cd .. && npx ts-node src/cli.ts --help
 ```
 
-`cargo check` may require system packages; run `./scripts/install_tauri_deps.sh` if needed.
+`cargo check` may require system packages. Run the appropriate install script
+for your OS (`./scripts/install_tauri_deps.sh`, `./scripts/install_tauri_deps_macos.sh` or `./scripts/install_tauri_deps_windows.ps1`) if needed.
 After running the script, source the generated `.env.tauri` file (or export the `PKG_CONFIG_PATH` it contains) before running cargo.
 
 ## Additional Notes

@@ -20,12 +20,13 @@
 ### Quick start
 
 ```bash
-git clone <repo-url> && cd YoutubeAutomation
+git clone https://github.com/letapicode/YoutubeAutomation.git && cd YoutubeAutomation
 ./scripts/setup.sh       # installs everything
 make dev                 # launches the Tauri app
 ```
 
-Before every commit: `make verify`
+Before every commit run `make verify` (or the commands in `AGENTS.md`).
+If `cargo check` fails on Linux, run `scripts/install_tauri_deps.sh`.
 
 ---
 
@@ -217,19 +218,23 @@ system libraries and downloads the Whisper model. It also writes a `.env`
 file containing `PKG_CONFIG_PATH` used by Cargo.
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/letapicode/YoutubeAutomation.git
 cd YoutubeAutomation
 ./scripts/setup.sh && make dev
 ```
 
-The script is safe to re-run and detects your platform (Linux or macOS).
-For Linux it invokes `scripts/install_tauri_deps.sh` to install GTK and
-WebKit packages.
+The script is safe to re-run and detects your platform.
+Use the matching dependency script for your OS which installs GTK/WebKit
+packages and writes `.env.tauri`:
+
+* Linux: `scripts/install_tauri_deps.sh`
+* macOS: `scripts/install_tauri_deps_macos.sh`
+* Windows (PowerShell): `scripts/install_tauri_deps_windows.ps1`
 
 You may also use the provided devcontainer which automatically executes the
 setup script when first created.
 
-Before committing run:
+Before committing run `make verify` or the steps in `AGENTS.md`:
 ```bash
 make verify
 ```
@@ -238,8 +243,10 @@ The CI pipeline runs the same command using the devcontainer image.
 ### Troubleshooting `cargo check`
 
 Errors about `gobject-2.0` or `gobject-sys` usually mean `PKG_CONFIG_PATH` is not
-set. Run `scripts/install_tauri_deps.sh` and then source `.env.tauri` (as noted
-in `AGENTS.md`) before re-running `cargo check`.
+set. Run the appropriate install script (`scripts/install_tauri_deps.sh`,
+`scripts/install_tauri_deps_macos.sh` or `scripts/install_tauri_deps_windows.ps1`)
+and then source `.env.tauri` (as noted in `AGENTS.md`) before re-running
+`cargo check`.
 
 To automatically process files placed in a folder set the **Watch Directory**
 and enable **Auto Upload** in the settings page or use the CLI `watch` command.
@@ -398,3 +405,5 @@ Additional references live in the `docs` folder:
 - [Project Overview](context.md)
 - [Codex Self Reflection](SELF_REFLECTION.md)
 - [AI Model Training Policy](docs/AI_MODEL_TRAINING_POLICY.md)
+
+Licensed under the MIT License.
