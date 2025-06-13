@@ -2,6 +2,12 @@
 
 These guidelines apply to the entire repository.
 
+## Devcontainer
+A pre-built development container image exists for this project. Codex should
+start from this image (or run `devcontainer open` if supported) before executing
+`make verify`. The container runs `scripts/setup.sh` automatically, so manual
+invocation of that script is unnecessary.
+
 ## Project Structure
 - The Tauri desktop application is under `ytapp`.
 - Rust sources live in `ytapp/src-tauri/src` and TypeScript/React sources in `ytapp/src`.
