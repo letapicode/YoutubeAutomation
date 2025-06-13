@@ -1,1 +1,4 @@
 .env.tauri
+
+.env
+dist/
