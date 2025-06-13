@@ -9,6 +9,7 @@ These guidelines apply to the entire repository.
 ## Code Style
 - Keep existing indentation styles: TypeScript files generally use two spaces and TSX files use four spaces.
 - Document new functions with brief comments describing their purpose.
+- A `.editorconfig` at the repo root enforces indentation and newline rules; configure your editor to use it.
 
 ## Required Checks
 Run the following commands before committing changes:
