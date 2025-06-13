@@ -81,3 +81,11 @@ button svg {
     align-items: stretch;
   }
 }
+
+button:focus,
+a:focus,
+input:focus,
+textarea:focus {
+  outline: 2px solid var(--text-color);
+  outline-offset: 2px;
+}

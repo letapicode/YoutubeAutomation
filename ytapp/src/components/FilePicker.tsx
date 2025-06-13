@@ -53,7 +53,12 @@ const FilePicker: React.FC<FilePickerProps> = ({ multiple, onSelect, label, filt
   }
 
   return (
-    <button onClick={handleClick}>{label || (multiple ? t('select_files') : t('select_file'))}</button>
+    <button
+      onClick={handleClick}
+      aria-label={label || (multiple ? t('select_files') : t('select_file'))}
+    >
+      {label || (multiple ? t('select_files') : t('select_file'))}
+    </button>
   );
 };
 

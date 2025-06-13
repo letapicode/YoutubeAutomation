@@ -187,6 +187,7 @@ If `cargo check` fails on Linux, run `scripts/install_tauri_deps.sh`.
 * Drag & drop support for file inputs
 * Theme toggle (light/dark)
 * Accessible labels and full keyboard navigation
+* Improved focus outlines and ARIA labels on modal and file picker buttons
 * Settings page with persistent defaults
 * Profiles page to save and load sets of options
  * Interface translations are handled via i18n files in `public/locales`.

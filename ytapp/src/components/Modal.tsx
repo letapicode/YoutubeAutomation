@@ -12,7 +12,7 @@ const Modal: React.FC<ModalProps> = ({ open, onClose, children }) => {
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal" onClick={e => e.stopPropagation()}>
-                <button className="close" onClick={onClose}>×</button>
+                <button className="close" onClick={onClose} aria-label="Close modal">×</button>
                 {children}
             </div>
         </div>
