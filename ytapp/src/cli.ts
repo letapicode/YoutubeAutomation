@@ -14,6 +14,7 @@ import { generateBatchWithProgress } from './features/batch';
 import { addJob, listJobs, runQueue, clearQueue } from './features/queue';
 import { listProfiles, getProfile, saveProfile, deleteProfile } from './features/profiles';
 import type { Profile } from './schema';
+import { verifyDependencies } from './features/dependencies';
 
 async function callWithProgress<T>(
   fn: () => Promise<T>,
@@ -204,6 +205,19 @@ program
   .version('0.1.0');
 
 program
+  .command('check-deps')
+  .description('Verify required native dependencies')
+  .action(async () => {
+    try {
+      await verifyDependencies();
+      console.log('All dependencies present');
+    } catch (err) {
+      console.error('Dependency check failed:', err);
+      process.exitCode = 1;
+    }
+  });
+
+program
   .command('generate')
   .description('Generate video from audio')
   .argument('<file>', 'audio file path')
@@ -233,6 +247,7 @@ program
   .option('-q, --quiet', 'suppress progress output')
   .action(async (file: string, options: any) => {
     try {
+      await verifyDependencies();
       if (options.color && !options.captionColor) options.captionColor = options.color;
       if (options.bgColor && !options.captionBg) options.captionBg = options.bgColor;
       const merged = await mergeProfile(options.profile, {
@@ -303,6 +318,7 @@ program
   .option('-p, --profile <name>', 'load profile')
   .action(async (file: string, options: any) => {
     try {
+      await verifyDependencies();
       if (options.color && !options.captionColor) options.captionColor = options.color;
       if (options.bgColor && !options.captionBg) options.captionBg = options.bgColor;
       const merged = await mergeProfile(options.profile, {
@@ -375,6 +391,7 @@ program
   .option('-p, --profile <name>', 'load profile')
   .action(async (file: string, options: any) => {
     try {
+      await verifyDependencies();
       if (options.color && !options.captionColor) options.captionColor = options.color;
       if (options.bgColor && !options.captionBg) options.captionBg = options.bgColor;
       const merged = await mergeProfile(options.profile, {
@@ -446,6 +463,7 @@ program
   .option('--playlist-id <id>', 'playlist ID')
   .action(async (files: string[], options: any) => {
     try {
+      await verifyDependencies();
       if (options.color && !options.captionColor) options.captionColor = options.color;
       if (options.bgColor && !options.captionBg) options.captionBg = options.bgColor;
 
@@ -565,6 +583,7 @@ program
   .option('--publish-at <date>', 'schedule publish date (ISO)')
   .action(async (files: string[], options: any) => {
     try {
+      await verifyDependencies();
       if (options.color && !options.captionColor) options.captionColor = options.color;
       if (options.bgColor && !options.captionBg) options.captionBg = options.bgColor;
 
@@ -665,6 +684,7 @@ program
   .option('--playlist-id <id>', 'playlist ID')
   .action(async (file: string, options: any) => {
     try {
+      await verifyDependencies();
       const result = await withInterrupt(
         () => invoke('cancel_upload'),
         () => uploadVideo(
@@ -702,6 +722,7 @@ program
   .option('--playlist-id <id>', 'playlist ID')
   .action(async (files: string[], options: any) => {
     try {
+      await verifyDependencies();
       let csvMap: Record<string, CsvRow> = {};
       if (options.csv) {
         const rows = await parseCsv(options.csv);
@@ -814,6 +835,7 @@ program
   .option('-t, --translate <lang...>', 'translate subtitles to languages')
   .action(async (file: string, options: any) => {
     try {
+      await verifyDependencies();
       const results = await transcribeAudio({
         file,
         language: options.language,
@@ -856,6 +878,7 @@ program
   .action(async (dir: string, options: any) => {
     if (options.color && !options.captionColor) options.captionColor = options.color;
     if (options.bgColor && !options.captionBg) options.captionBg = options.bgColor;
+    await verifyDependencies();
     await watchDirectory(dir, {
       captions: options.captions,
       captionOptions: {
@@ -913,6 +936,7 @@ program
   .option('--retry-failed', 'retry previously failed jobs')
   .action(async (opts: any) => {
     try {
+      await verifyDependencies();
       await runQueue(!!opts.retryFailed);
     } catch (err) {
       console.error('Error running queue:', err);
