@@ -15,6 +15,10 @@ ln -sf /usr/lib/x86_64-linux-gnu/pkgconfig/javascriptcoregtk-4.1.pc \
 
 # 4) Quick health check
 cd ytapp
-npm install --no-fund --no-audit
+if [ ! -d node_modules ]; then
+  npm install --no-fund --no-audit
+fi
 cd src-tauri
-cargo check --locked --all-targets
+if [ ! -d target ]; then
+  cargo check --locked --all-targets
+fi
