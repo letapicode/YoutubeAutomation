@@ -393,3 +393,5 @@ Additional references live in the `docs` folder:
 - [Design Guide](design.md)
 - [Project Overview](context.md)
 - [Codex Self Reflection](SELF_REFLECTION.md)
+
+Licensed under the MIT License.
