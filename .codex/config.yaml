@@ -1,4 +1,5 @@
 bootstrap: .codex/bootstrap.sh
+image: ghcr.io/<OWNER>/ytapp-dev:latest
 workflow:
   default:
     - description: "Run unit & CLI tests"
