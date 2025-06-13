@@ -250,6 +250,7 @@ and then source `.env.tauri` (as noted in `AGENTS.md`) before re-running
 
 To automatically process files placed in a folder set the **Watch Directory**
 and enable **Auto Upload** in the settings page or use the CLI `watch` command.
+When the app starts it will immediately begin watching the configured folder.
 
 ### Contribution
 

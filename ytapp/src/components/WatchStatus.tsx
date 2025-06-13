@@ -16,6 +16,7 @@ const WatchStatus: React.FC = () => {
         loadSettings().then(s => {
             setDir(s.watchDir || '');
             setAuto(!!s.autoUpload);
+            if (s.watchDir) setWatching(true);
         });
         const interval = setInterval(() => {
             listJobs().then(j => setQueueLen(j.length));
