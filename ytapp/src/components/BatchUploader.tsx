@@ -6,6 +6,7 @@ import { uploadVideo } from '../features/youtube';
 import UploadIcon from './UploadIcon';
 import { open } from '@tauri-apps/plugin-dialog';
 import { parseCsv, CsvRow } from '../utils/csv';
+import { notify } from '../utils/notify';
 
 const BatchUploader: React.FC = () => {
     const { t } = useTranslation();
@@ -68,6 +69,7 @@ const BatchUploader: React.FC = () => {
             );
         }
         setRunning(false);
+        notify('Batch upload complete', `${files.length} video(s) uploaded`);
     };
 
     return (

@@ -25,6 +25,7 @@ import SettingsIcon from './components/SettingsIcon';
 import OnboardingModal from './components/OnboardingModal';
 import WatchStatus from './components/WatchStatus';
 import SubtitleEditor from './components/SubtitleEditor';
+import { notify } from './utils/notify';
 
 const App: React.FC = () => {
     const { t, i18n } = useTranslation();
@@ -125,6 +126,7 @@ const App: React.FC = () => {
         }, p => setProgress(Math.round(p)), () => setGenerating(false));
         setOutputs(o => [...o, out]);
         setGenerating(false);
+        notify('Generation complete', 'Video created successfully');
     };
 
     const buildParams = (): GenerateParams => ({
@@ -247,6 +249,7 @@ const App: React.FC = () => {
         await generateUpload(buildParams(), () => setGenerating(false));
         unlisten();
         setGenerating(false);
+        notify('Upload complete', 'Video uploaded successfully');
     };
 
     const cancelGenerate = async () => {
