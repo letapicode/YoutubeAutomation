@@ -1,9 +1,6 @@
 {
   "name": "ytapp-dev",
-  "build": {
-    "dockerfile": "Dockerfile",
-    "context": ".."
-  },
+  "image": "ghcr.io/<OWNER>/ytapp-dev:latest",
   "postCreateCommand": "./scripts/setup.sh && make verify",
   "updateContentCommand": "./scripts/setup.sh",
   "customizations": {
