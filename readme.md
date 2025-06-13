@@ -246,7 +246,7 @@ The CI pipeline runs the same command using the devcontainer image.
 
 ### Codex Container
 
-`.codex/config.yaml` lists the verification steps Codex runs and points to `.codex/bootstrap.sh` for initial setup. Customize `.devcontainer/Dockerfile` and `scripts/setup.sh` to install additional packages or adjust the environment. Opening the repository with the prebuilt image speeds up container creation. See [docs/SELF_REFLECTION.md](docs/SELF_REFLECTION.md) for more details on Codex operations.
+`.codex/config.yaml` lists the verification steps Codex runs and references `.codex/bootstrap.sh` for initialization. The development container is built from `.codex/Dockerfile` and published as `ghcr.io/<OWNER>/ytapp-dev:latest`. Starting from this prebuilt image allows Codex to skip dependency installation; the bootstrap script runs `scripts/setup.sh` and sources `.env.tauri` so the environment is ready immediately. See [docs/SELF_REFLECTION.md](docs/SELF_REFLECTION.md) for more details on Codex operations.
 
 ### Troubleshooting `cargo check`
 
