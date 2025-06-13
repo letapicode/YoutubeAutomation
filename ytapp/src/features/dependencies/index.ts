@@ -2,6 +2,14 @@
 import { invoke } from '@tauri-apps/api/core';
 
 /**
+ * Verify that required native tools like FFmpeg are installed.
+ * Throws an error if verification fails.
+ */
+export async function verifyDependencies(): Promise<void> {
+  await invoke('verify_dependencies');
+}
+
+/**
  * Ensure native dependencies like FFmpeg are installed. Prompts the user to
  * run the provided installation script when verification fails.
  */
