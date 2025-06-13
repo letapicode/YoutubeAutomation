@@ -19,6 +19,12 @@
   --spacing: calc(var(--spacing-8) * 3);
   --transition: 0.2s ease;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition: none;
+  }
+}
 [data-theme="high"] {
   --bg-color: #000;
   --text-color: #fff;

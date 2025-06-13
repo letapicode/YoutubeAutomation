@@ -27,6 +27,7 @@ This project follows a minimalist approach inspired by the principle **"Less but
 - Base layout spacing on an 8‑pt grid for consistent rhythm. Theme variables like `--spacing-8` help enforce these increments across the UI.
 - Define typography scales in `theme.css` so headings and body text align.
 - Honor `@media (prefers-reduced-motion: reduce)` to disable transitions when requested.
+- The `--transition` CSS variable is set to `none` in this media query so buttons, modals and other components automatically minimize motion.
 
 ## Components
 - Only present controls that are necessary for the task.
