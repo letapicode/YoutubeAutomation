@@ -882,15 +882,15 @@ async fn queue_process(window: Window, retry_failed: Option<bool>) -> Result<(),
     let max_retries = settings.max_retries.unwrap_or(3);
     let retry = retry_failed.unwrap_or(false);
     while let Some((idx, item)) = dequeue(&app, retry, max_retries)? {
-        let res = match item.job {
+        let res: Result<(), String> = match item.job {
             Job::Generate { mut params, dest } => {
                 params.output = Some(dest);
-                generate_video(window.clone(), params)
+                generate_video(window.clone(), params).map(|_| ())
             }
             Job::GenerateUpload { mut params, dest, thumbnail } => {
                 params.output = Some(dest);
                 if params.thumbnail.is_none() { params.thumbnail = thumbnail.clone(); }
-                generate_upload(window.clone(), params).await
+                generate_upload(window.clone(), params).await.map(|_| ())
             }
         };
         match res {
@@ -914,15 +914,15 @@ fn start_queue_worker(window: Window) {
             let settings = load_settings(app.clone()).unwrap_or_default();
             let max_retries = settings.max_retries.unwrap_or(3);
             if let Some((idx, item)) = dequeue(&app, true, max_retries).unwrap_or(None) {
-                let res = match item.job {
+                let res: Result<(), String> = match item.job {
                     Job::Generate { mut params, dest } => {
                         params.output = Some(dest);
-                        generate_video(window.clone(), params)
+                        generate_video(window.clone(), params).map(|_| ())
                     }
                     Job::GenerateUpload { mut params, dest, thumbnail } => {
                         params.output = Some(dest);
                         if params.thumbnail.is_none() { params.thumbnail = thumbnail.clone(); }
-                        generate_upload(window.clone(), params).await
+                        generate_upload(window.clone(), params).await.map(|_| ())
                     }
                 };
                 match res {
