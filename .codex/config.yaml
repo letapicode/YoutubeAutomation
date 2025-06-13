@@ -1,5 +1,3 @@
-image:
-  dockerfile: .codex/Dockerfile
 bootstrap: .codex/bootstrap.sh
 workflow:
   default:
