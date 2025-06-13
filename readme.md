@@ -21,7 +21,7 @@
 
 ```bash
 git clone https://github.com/letapicode/YoutubeAutomation.git && cd YoutubeAutomation
-./scripts/setup.sh       # installs everything
+./scripts/setup_codex.sh       # installs everything
 make dev                 # launches the Tauri app
 ```
 
@@ -214,14 +214,14 @@ If `cargo check` fails on Linux, run `scripts/install_tauri_deps.sh`.
 
 ### Setup
 
-Clone the repository and run the setup script which installs toolchains,
+Clone the repository and run the setup script (`scripts/setup_codex.sh`) which installs toolchains,
 system libraries and downloads the Whisper model. It also writes a `.env`
 file containing `PKG_CONFIG_PATH` used by Cargo.
 
 ```bash
 git clone https://github.com/letapicode/YoutubeAutomation.git
 cd YoutubeAutomation
-./scripts/setup.sh && make dev
+./scripts/setup_codex.sh && make dev
 ```
 
 The script is safe to re-run and detects your platform.
@@ -232,8 +232,7 @@ packages and writes `.env.tauri`:
 * macOS: `scripts/install_tauri_deps_macos.sh`
 * Windows (PowerShell): `scripts/install_tauri_deps_windows.ps1`
 
-You may also use the provided devcontainer which automatically executes the
-setup script when first created.
+You may also use the provided devcontainer which automatically executes the setup script (`scripts/setup_codex.sh`) when first created.
 Codex and all contributors should open the repo using the prebuilt image `ghcr.io/<OWNER>/ytapp-dev:latest` for the fastest startup.
 The same setup steps are mirrored in `.codex/Dockerfile` which Codex uses as a
 bootstrap container.

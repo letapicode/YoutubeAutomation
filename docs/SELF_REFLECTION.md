@@ -31,6 +31,8 @@ This document summarizes how the Codex agent operates and how it should be guide
 - The agent runs in an isolated container without internet access unless explicitly enabled by the user.
 - If required dependencies are missing, commands or tests may fail. The agent should report such issues and may include a disclaimer about environment limitations in the PR.
 
+Codex currently spins up a fresh container for every task, reinstalling all dependencies each time. This overhead slows the feedback loop. Adding a preconfigured setup script or Dockerfile would let the agent reuse cached packages and speed up initialization. Exploring ways to cache dependencies or use a prebuilt image is a future goal.
+
 ## 🛠️ The Codex Journey: What Really Happens Behind the Scenes
 
 The following walkthrough illustrates how Codex sets up its environment and why
