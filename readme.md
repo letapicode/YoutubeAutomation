@@ -261,7 +261,7 @@ The guide only shows once and the preference is stored in `settings.json`.
 
 ### Design Guidelines
 
-See [design.md](design.md) for the design approach. The interface follows the principles of Dieter Rams and Jony Ive with generous whitespace and a focus on accessibility.
+See [design.md](docs/design.md) for the design approach. The interface follows the principles of Dieter Rams and Jony Ive with generous whitespace and a focus on accessibility.
 
 Finally, start the Tauri application:
 
