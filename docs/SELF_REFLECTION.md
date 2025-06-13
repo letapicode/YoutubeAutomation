@@ -30,3 +30,46 @@ This document summarizes how the Codex agent operates and how it should be guide
 ## Limitations
 - The agent runs in an isolated container without internet access unless explicitly enabled by the user.
 - If required dependencies are missing, commands or tests may fail. The agent should report such issues and may include a disclaimer about environment limitations in the PR.
+
+## 🛠️ The Codex Journey: What Really Happens Behind the Scenes
+
+The following walkthrough illustrates how Codex sets up its environment and why
+preparing the container matters, especially for projects that rely on system
+libraries.
+
+### 🧱 Step 1: Codex Creates a Mini World
+
+Codex runs inside a clean container rather than on your own machine. The
+repository is copied in and no other files are present. This sandbox can run
+shell commands, install dependencies and produce commits, but it starts out very
+minimal.
+
+### 📦 Step 2: Codex Tries to Build
+
+When Codex sees a `Cargo.toml` and a Tauri project, it will attempt
+`cargo check`. Native packages like `glib` or `webkit2gtk` are often missing, so
+the build fails.
+
+### 🧩 Step 3: You Step In and Patch the System
+
+To fix the build you install the required Linux packages, set up the
+`PKG_CONFIG_PATH` and re-run `cargo check`. Now the project compiles inside the
+container.
+
+### 🧠 Step 4: Codex Gets Smarter (With Your Help)
+
+Automate this setup by adding a `.devcontainer` with a `Dockerfile`, a script to
+install Tauri dependencies and an optional `.cargo/config.toml`. With these in
+place Codex can run `cargo check` successfully without extra help.
+
+### 🛠️ Step 5: Codex Makes a PR
+
+Once the environment is ready, Codex can apply code changes, validate them and
+open a pull request. A properly prepared container leads to smoother automated
+development.
+
+## ✅ The Moral of the Story
+
+Codex only works as well as the environment it is given. Providing system
+dependencies and configuration upfront lets it build, test and generate code
+without hitting setup errors.
