@@ -20,12 +20,13 @@
 ### Quick start
 
 ```bash
-git clone <repo-url> && cd YoutubeAutomation
+git clone https://github.com/letapicode/YoutubeAutomation.git && cd YoutubeAutomation
 ./scripts/setup.sh       # installs everything
 make dev                 # launches the Tauri app
 ```
 
-Before every commit: `make verify`
+Before every commit run `make verify` (or the commands in `AGENTS.md`).
+If `cargo check` fails on Linux, run `scripts/install_tauri_deps.sh`.
 
 ---
 
@@ -217,7 +218,7 @@ system libraries and downloads the Whisper model. It also writes a `.env`
 file containing `PKG_CONFIG_PATH` used by Cargo.
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/letapicode/YoutubeAutomation.git
 cd YoutubeAutomation
 ./scripts/setup.sh && make dev
 ```
@@ -233,7 +234,7 @@ packages and writes `.env.tauri`:
 You may also use the provided devcontainer which automatically executes the
 setup script when first created.
 
-Before committing run:
+Before committing run `make verify` or the steps in `AGENTS.md`:
 ```bash
 make verify
 ```
