@@ -31,5 +31,6 @@
   },
   "husky": {
     "skipCI": true
-  }
+  },
+  "license": "MIT"
 }
