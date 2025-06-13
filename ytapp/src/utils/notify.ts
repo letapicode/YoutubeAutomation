@@ -1,11 +1,29 @@
+import {
+  isPermissionGranted,
+  requestPermission,
+  sendNotification,
+} from '@tauri-apps/api/notification';
+
+/**
+ * Display a desktop notification using the Tauri API.
+ * Falls back to the Web Notification API if available.
+ */
 export async function notify(title: string, body: string) {
-  // Attempt to use the Web Notification API.
+  let granted = await isPermissionGranted();
+  if (!granted) {
+    const result = await requestPermission();
+    granted = result === 'granted';
+  }
+  if (granted) {
+    sendNotification({ title, body });
+    return;
+  }
+
+  // Fallback to the Web Notification API for non-Tauri environments
   if ('Notification' in window) {
     if (Notification.permission === 'granted') {
       new Notification(title, { body });
-      return;
-    }
-    if (Notification.permission !== 'denied') {
+    } else if (Notification.permission !== 'denied') {
       const perm = await Notification.requestPermission();
       if (perm === 'granted') {
         new Notification(title, { body });
@@ -13,4 +31,3 @@ export async function notify(title: string, body: string) {
     }
   }
 }
-

@@ -625,6 +625,8 @@ async fn generate_upload(window: Window, params: GenerateParams) -> Result<Strin
         tags: params.tags,
         publish_at: params.publish_at,
         thumbnail: params.thumbnail,
+        privacy: params.privacy.clone(),
+        playlist_id: params.playlist_id.clone(),
         ..Default::default()
     }).await?;
     let _ = fs::remove_file(output);
@@ -659,6 +661,9 @@ struct BatchGenerateParams {
     tags: Option<Vec<String>>,
     publish_at: Option<String>,
     thumbnail: Option<String>,
+    privacy: Option<String>,
+    #[serde(rename = "playlistId")]
+    playlist_id: Option<String>,
 }
 
 #[derive(Deserialize, Clone, Default)]
@@ -677,6 +682,9 @@ struct WatchOptions {
     tags: Option<Vec<String>>,
     publish_at: Option<String>,
     thumbnail: Option<String>,
+    privacy: Option<String>,
+    #[serde(rename = "playlistId")]
+    playlist_id: Option<String>,
 }
 
 #[derive(Deserialize, Clone)]
@@ -716,6 +724,8 @@ async fn generate_batch_upload(window: Window, params: BatchGenerateParams) -> R
             tags: params.tags.clone(),
             publish_at: params.publish_at.clone(),
             thumbnail: params.thumbnail.clone(),
+            privacy: params.privacy.clone(),
+            playlist_id: params.playlist_id.clone(),
         })?;
         let res = upload_video_impl(window.clone(), video.clone(), UploadOptions {
             title: params.title.clone(),
@@ -723,6 +733,8 @@ async fn generate_batch_upload(window: Window, params: BatchGenerateParams) -> R
             tags: params.tags.clone(),
             publish_at: params.publish_at.clone(),
             thumbnail: params.thumbnail.clone(),
+            privacy: params.privacy.clone(),
+            playlist_id: params.playlist_id.clone(),
             ..Default::default()
         }).await?;
         let _ = fs::remove_file(video);
@@ -772,6 +784,8 @@ fn watch_directory(window: Window, params: WatchDirectoryParams) -> Result<(), S
                                         tags: opts.tags.clone(),
                                         publish_at: opts.publish_at.clone(),
                                         thumbnail: opts.thumbnail.clone(),
+                                        privacy: opts.privacy.clone(),
+                                        playlist_id: opts.playlist_id.clone(),
                                     };
                                     let dest = p.with_extension("mp4").to_string_lossy().to_string();
                                     let job = if auto {
