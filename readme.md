@@ -234,6 +234,12 @@ make verify
 ```
 The CI pipeline runs the same command using the devcontainer image.
 
+### Troubleshooting `cargo check`
+
+Errors about `gobject-2.0` or `gobject-sys` usually mean `PKG_CONFIG_PATH` is not
+set. Run `scripts/install_tauri_deps.sh` and then source `.env.tauri` (as noted
+in `AGENTS.md`) before re-running `cargo check`.
+
 To automatically process files placed in a folder set the **Watch Directory**
 and enable **Auto Upload** in the settings page or use the CLI `watch` command.
 
