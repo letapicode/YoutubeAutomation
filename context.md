@@ -20,5 +20,5 @@ Utilities shared between the CLI and renderer (like subtitle translation) live i
 
 The application can optionally overlay a watermark image on generated videos. The watermark position is configurable in both the GUI and CLI.
 
-Supporting documentation is found in `readme.md`, `design.md` and language definition files under `features/languages` and `public/locales`.
+Supporting documentation is found in `README.md`, `design.md` and language definition files under `features/languages` and `public/locales`.
 
