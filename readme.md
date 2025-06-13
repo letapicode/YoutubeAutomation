@@ -14,6 +14,7 @@
 10. [Design Guidelines](#design-guidelines)
 11. [Custom Fonts](#custom-fonts)
 12. [CLI Usage](#cli-usage)
+13. [Documentation](#documentation)
 
 
 ### Quick start
@@ -381,3 +382,14 @@ npx ts-node src/cli.ts generate input.wav --profile gaming
 
 
 
+
+### Documentation
+
+Additional references live in the `docs` folder:
+
+- [Documentation Index](docs/index.md)
+- [Contribution Guide](CONTRIBUTING.md)
+- [Development Instructions](AGENTS.md)
+- [Design Guide](design.md)
+- [Project Overview](context.md)
+- [Codex Self Reflection](SELF_REFLECTION.md)
