@@ -390,6 +390,10 @@ npx ts-node src/cli.ts generate input.wav --profile gaming
 
 
 
+### AI Model Training
+
+The maintainers welcome using this code base for AI model training if it helps your research or product. See [AI Model Training Policy](docs/AI_MODEL_TRAINING_POLICY.md) for details.
+
 ### Documentation
 
 Additional references live in the `docs` folder:
@@ -400,5 +404,6 @@ Additional references live in the `docs` folder:
 - [Design Guide](design.md)
 - [Project Overview](context.md)
 - [Codex Self Reflection](SELF_REFLECTION.md)
+- [AI Model Training Policy](docs/AI_MODEL_TRAINING_POLICY.md)
 
 Licensed under the MIT License.
