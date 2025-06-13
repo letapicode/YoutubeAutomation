@@ -244,6 +244,11 @@ make verify
 ```
 The CI pipeline runs the same command using the devcontainer image.
 
+
+### Codex Container
+
+`.codex/config.yaml` lists the verification steps Codex runs and points to `.codex/bootstrap.sh` for initial setup. Customize `.devcontainer/Dockerfile` and `scripts/setup.sh` to install additional packages or adjust the environment. Opening the repository with the prebuilt image speeds up container creation. See [docs/SELF_REFLECTION.md](docs/SELF_REFLECTION.md) for more details on Codex operations.
+
 ### Troubleshooting `cargo check`
 
 Errors about `gobject-2.0` or `gobject-sys` usually mean `PKG_CONFIG_PATH` is not
