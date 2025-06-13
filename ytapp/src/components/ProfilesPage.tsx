@@ -1,3 +1,4 @@
+// Manage saved profiles with load, edit and delete options.
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { listProfiles, getProfile, saveProfile, deleteProfile } from '../features/profiles';
