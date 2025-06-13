@@ -73,3 +73,7 @@ development.
 Codex only works as well as the environment it is given. Providing system
 dependencies and configuration upfront lets it build, test and generate code
 without hitting setup errors.
+
+## AI Model Training
+
+Project maintainers are supportive of using this code base for AI model training when helpful. Refer to the [AI Model Training Policy](AI_MODEL_TRAINING_POLICY.md) for details.
