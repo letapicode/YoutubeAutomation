@@ -890,7 +890,7 @@ async fn queue_process(window: Window, retry_failed: Option<bool>) -> Result<(),
             Job::GenerateUpload { mut params, dest, thumbnail } => {
                 params.output = Some(dest);
                 if params.thumbnail.is_none() { params.thumbnail = thumbnail.clone(); }
-                generate_upload(window.clone(), params).await.map(|_| ())
+                generate_upload(window.clone(), params).await
             }
         };
         match res {
@@ -922,7 +922,7 @@ fn start_queue_worker(window: Window) {
                     Job::GenerateUpload { mut params, dest, thumbnail } => {
                         params.output = Some(dest);
                         if params.thumbnail.is_none() { params.thumbnail = thumbnail.clone(); }
-                        generate_upload(window.clone(), params).await.map(|_| ())
+                        generate_upload(window.clone(), params).await
                     }
                 };
                 match res {
