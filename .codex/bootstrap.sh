@@ -11,5 +11,9 @@ ln -sf /usr/lib/x86_64-linux-gnu/pkgconfig/webkit2gtk-4.1.pc \
 ln -sf /usr/lib/x86_64-linux-gnu/pkgconfig/javascriptcoregtk-4.1.pc \
       /usr/lib/x86_64-linux-gnu/pkgconfig/javascriptcoregtk-4.0.pc
 
-cd ytapp/src-tauri
-cargo check --locked --all-targets
+if [ -d ytapp/src-tauri/target ]; then
+    echo "Rust target directory exists; skipping cargo check"
+else
+    cd ytapp/src-tauri
+    cargo check --locked --all-targets
+fi
