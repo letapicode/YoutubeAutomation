@@ -3,9 +3,9 @@
 These guidelines apply to the entire repository.
 
 ## Devcontainer
-A pre-built development container image exists for this project. Codex should
+A pre-built development container image exists for this project: `ghcr.io/<OWNER>/ytapp-dev:latest`. Codex should
 start from this image (or run `devcontainer open` if supported) before executing
-`make verify`. The container runs `scripts/setup.sh` automatically, so manual
+`make verify`. The container runs `scripts/setup.sh` automatically via `.codex/bootstrap.sh`, so manual
 invocation of that script is unnecessary.
 
 ## Project Structure
