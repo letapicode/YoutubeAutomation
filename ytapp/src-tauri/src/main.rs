@@ -1,6 +1,6 @@
 use std::{
     fs::{self, File},
-    io::{BufReader, Write, Read, Seek, SeekFrom},
+    io::{Write, Read, Seek, SeekFrom},
     path::{Path, PathBuf},
     process::Command,
 };
@@ -11,10 +11,10 @@ mod schema;
 use schema::{CaptionOptions, GenerateParams, Profile};
 use std::collections::HashMap;
 use tauri::api::path::app_config_dir;
-use whisper_cli::{Language, Model, Size, Whisper};
+use whisper_cli::{Model, Size, Whisper};
 mod model_check;
 use model_check::ensure_whisper_model;
-use google_youtube3::{api::{Video, PlaylistItem, PlaylistItemSnippet, ResourceId}, YouTube};
+use google_youtube3::{api::Video, YouTube};
 use yup_oauth2::{InstalledFlowAuthenticator, InstalledFlowReturnMethod};
 use yup_oauth2::authenticator::Authenticator;
 use google_youtube3::hyper_util::{
@@ -178,7 +178,7 @@ fn escape_filter_path(path: &str) -> String {
 }
 
 fn run_ffmpeg(mut cmd: Command) -> Result<(), String> {
-    let mut child = cmd.spawn().map_err(|e| e.to_string())?;
+    let child = cmd.spawn().map_err(|e| e.to_string())?;
     let child = Arc::new(Mutex::new(child));
     {
         let mut active = ACTIVE_FFMPEG.lock().unwrap();
@@ -196,9 +196,9 @@ fn run_with_progress(mut cmd: Command, duration: f64, window: &Window) -> Result
     use std::io::{BufRead, BufReader};
     cmd.args(["-progress", "pipe:1", "-nostats"]);
     cmd.stdout(std::process::Stdio::piped());
-    let mut child = cmd.spawn().map_err(|e| format!("failed to start ffmpeg: {}", e))?;
-    let stdout = child.stdout.take().ok_or("failed to capture stdout")?;
-    let child = Arc::new(Mutex::new(child));
+    let mut child_process = cmd.spawn().map_err(|e| format!("failed to start ffmpeg: {}", e))?;
+    let stdout = child_process.stdout.take().ok_or("failed to capture stdout")?;
+    let child = Arc::new(Mutex::new(child_process));
     {
         let mut active = ACTIVE_FFMPEG.lock().unwrap();
         *active = Some(child.clone());
@@ -465,7 +465,7 @@ async fn upload_video_impl(window: Window, file: String, opts: UploadOptions) ->
                 .build(),
         );
 
-    let mut hub = YouTube::new(client, auth);
+    let hub = YouTube::new(client, auth);
 
     let file_name = Path::new(&file)
         .file_name()
@@ -755,7 +755,7 @@ fn watch_directory(window: Window, params: WatchDirectoryParams) -> Result<(), S
                             if let Some(ext) = p.extension().and_then(|s| s.to_str()) {
                                 let ext = ext.to_ascii_lowercase();
                                 if ["mp3", "wav", "m4a", "flac", "aac"].contains(&ext.as_str()) {
-                                    let mut gp = GenerateParams {
+                                    let gp = GenerateParams {
                                         file: p.to_string_lossy().to_string(),
                                         output: None,
                                         captions: opts.captions.clone(),
@@ -1113,7 +1113,7 @@ fn verify_dependencies(app: tauri::AppHandle) -> Result<(), String> {
     }
 
     let size = {
-        let mut s = load_settings(app.clone()).unwrap_or_default();
+        let s = load_settings(app.clone()).unwrap_or_default();
         match s.model_size.as_deref() {
             Some("tiny") => Size::Tiny,
             Some("small") => Size::Small,
