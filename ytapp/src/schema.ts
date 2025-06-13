@@ -23,6 +23,8 @@ export interface Profile {
   tags?: string[];
   publishAt?: string;
   thumbnail?: string;
+  privacy?: string;
+  playlistId?: string;
 }
 
 export interface GenerateParams {
@@ -42,4 +44,6 @@ export interface GenerateParams {
   tags?: string[];
   publishAt?: string;
   thumbnail?: string;
+  privacy?: string;
+  playlistId?: string;
 }
