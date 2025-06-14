@@ -215,9 +215,15 @@ If `cargo check` fails on Linux, run `scripts/install_tauri_deps.sh`.
 
 ### Setup
 
-Clone the repository and run the setup script (`scripts/setup_codex.sh`) which installs toolchains,
-system libraries and downloads the Whisper model. It also writes a `.env`
-file containing `PKG_CONFIG_PATH` used by Cargo.
+Clone the repository and run the setup script after entering the project
+directory. Use `./scripts/setup_codex.sh` locally or `.codex/bootstrap.sh`
+when starting the devcontainer. This script installs toolchains, downloads
+the Whisper model and calls `scripts/install_tauri_deps.sh` to install the
+required GTK/WebKit packages. It also writes `.env.tauri` which defines
+`PKG_CONFIG_PATH` for Cargo.
+
+After the script finishes **source `.env.tauri` or restart your shell** so
+the variables are available before running any Cargo commands.
 
 ```bash
 git clone https://github.com/letapicode/YoutubeAutomation.git
