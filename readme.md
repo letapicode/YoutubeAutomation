@@ -21,7 +21,7 @@
 
 ```bash
 git clone https://github.com/letapicode/YoutubeAutomation.git && cd YoutubeAutomation
-./scripts/setup_codex.sh       # installs everything
+./scripts/setup_codex.sh       # installs everything (auto-run in Codex/devcontainer)
 make dev                 # launches the Tauri app
 ```
 
