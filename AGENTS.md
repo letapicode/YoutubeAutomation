@@ -38,6 +38,8 @@ Be sure `.env.tauri` from `scripts/setup_codex.sh` is sourced (or export the
 - Prefer cross-platform paths when invoking external tools.
 - System fonts are detected on all platforms; `fc-list` is optional on Linux.
 - To create release installers for all platforms, run `./scripts/package.sh`.
+- CI builds run `.github/workflows/package.yml` which executes this script and
+  uploads the installers as artifacts.
 - Language definitions live in `ytapp/src/features/languages/defs`. Add a new
   `<code>.json` file in that directory to support another language. Each file
   contains `value`, `label` and `rtl` fields.

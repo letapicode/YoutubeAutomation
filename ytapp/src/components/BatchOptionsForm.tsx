@@ -109,6 +109,17 @@ const BatchOptionsForm: React.FC<BatchOptionsFormProps> = ({ value, onChange }) 
                     <option value="1080x1920">1080x1920</option>
                 </select>
             </div>
+            <div className="row">
+                <FilePicker
+                    label={t('thumbnail')}
+                    onSelect={(p) => {
+                        if (typeof p === 'string') update({ thumbnail: p });
+                        else if (Array.isArray(p) && p.length) update({ thumbnail: p[0] });
+                    }}
+                    filters={[{ name: 'Image', extensions: ['png', 'jpg', 'jpeg'] }]}
+                />
+                {value.thumbnail && <span>{value.thumbnail}</span>}
+            </div>
         </div>
     );
 };

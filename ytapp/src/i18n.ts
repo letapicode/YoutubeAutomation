@@ -22,9 +22,15 @@ const resources = languages.reduce<Record<string, { translation: any }>>((acc, l
   return acc;
 }, {});
 
+// Choose the initial language based on the browser locale when available.
+const browserLang = typeof navigator !== 'undefined'
+  ? navigator.language.split('-')[0]
+  : 'en';
+const initialLang = translations[browserLang] ? browserLang : 'en';
+
 i18n.use(initReactI18next).init({
   resources,
-  lng: 'en',
+  lng: initialLang,
   fallbackLng: 'en',
   interpolation: { escapeValue: false },
 });
