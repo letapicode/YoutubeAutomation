@@ -8,6 +8,7 @@
   --spacing-8: 0.5rem;
   --spacing: calc(var(--spacing-8) * 3);
   --transition: 0.2s ease;
+  --focus-color: #ff9500;
 }
 [data-theme="dark"] {
   --bg-color: #333;
@@ -18,6 +19,7 @@
   --spacing-8: 0.5rem;
   --spacing: calc(var(--spacing-8) * 3);
   --transition: 0.2s ease;
+  --focus-color: #ff9500;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -34,4 +36,5 @@
   --spacing-8: 0.5rem;
   --spacing: calc(var(--spacing-8) * 3);
   --transition: 0.2s ease;
+  --focus-color: #fff;
 }

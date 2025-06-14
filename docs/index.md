@@ -12,5 +12,5 @@ This folder summarizes the key documents found in the repository.
 - **[prompt.md](../prompt.md)** – Original prompt that sparked development of the application.
 - **[prompttracking.md](../prompttracking.md)** – History of major prompt updates.
 - **[pullrequest_merge_conflict.md](../pullrequest_merge_conflict.md)** – Guide for resolving PR merge conflicts.
-- **[design/wireframes/README.md](../design/wireframes/README.md)** – Placeholder for future wireframe images.
+- **[design/wireframes/README.md](../design/wireframes/README.md)** – Basic ASCII diagrams of the current UI flow.
 

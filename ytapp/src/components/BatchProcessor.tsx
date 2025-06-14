@@ -93,6 +93,7 @@ const BatchProcessor: React.FC = () => {
           description: meta.description ?? options.description,
           tags: meta.tags ?? options.tags,
           publishAt: meta.publishAt ?? options.publishAt,
+          thumbnail: options.thumbnail,
         });
       }
     } else {

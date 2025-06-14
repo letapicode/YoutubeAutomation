@@ -67,6 +67,7 @@ const App: React.FC = () => {
     const [publishDate, setPublishDate] = useState('');
     const [privacy, setPrivacy] = useState('public');
     const [playlistId, setPlaylistId] = useState('');
+    const [thumbnail, setThumbnail] = useState('');
     const [showEditor, setShowEditor] = useState(false);
 
 
@@ -161,6 +162,7 @@ const App: React.FC = () => {
         description: description || undefined,
         tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : undefined,
         publishAt: publishDate || undefined,
+        thumbnail: thumbnail || undefined,
         privacy: privacy || undefined,
         playlistId: playlistId || undefined,
     });
@@ -190,6 +192,7 @@ const App: React.FC = () => {
             description: description || undefined,
             tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : undefined,
             publishAt: publishDate || undefined,
+            thumbnail: thumbnail || undefined,
         };
         await saveProfile(name, p);
     };
@@ -248,6 +251,7 @@ const App: React.FC = () => {
         setDescription(p.description || '');
         setTags(p.tags ? p.tags.join(', ') : '');
         setPublishDate(p.publishAt || '');
+        setThumbnail(p.thumbnail || '');
     };
 
     const handleGenerateUpload = async () => {
@@ -427,6 +431,17 @@ const App: React.FC = () => {
             </div>
             <div className="row">
                 <input type="text" placeholder="Playlist ID" value={playlistId} onChange={e => setPlaylistId(e.target.value)} />
+            </div>
+            <div className="row">
+                <FilePicker
+                    label={t('thumbnail')}
+                    onSelect={(p) => {
+                        if (typeof p === 'string') setThumbnail(p);
+                        else if (Array.isArray(p) && p.length) setThumbnail(p[0]);
+                    }}
+                    filters={[{ name: 'Image', extensions: ['png', 'jpg', 'jpeg'] }]}
+                />
+                {thumbnail && <span>{thumbnail}</span>}
             </div>
             <details>
                 <summary>{t('advanced_settings')}</summary>

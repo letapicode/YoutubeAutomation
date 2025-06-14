@@ -53,6 +53,7 @@
   "description": "Description",
   "tags": "Tags",
   "publish_date": "Publish Date",
+  "thumbnail": "Thumbnail",
   "captions": "Captions",
   "edit_captions": "Edit Captions",
   "watch_directory": "Watch Directory",

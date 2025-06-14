@@ -50,6 +50,7 @@ The interface was reviewed using Dieter Rams' ten principles of good design and 
 - Full keyboard navigation
 - High‑contrast theme option
 - Screen reader announcements for progress messages
+- Focus outlines use the `--focus-color` CSS variable for visibility
 
 ## Wireframes
 Early sketches live in `design/wireframes` outlining the flow: select audio → configure captions → preview → upload.

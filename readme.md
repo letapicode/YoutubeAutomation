@@ -188,11 +188,14 @@ If `cargo check` fails on Linux, run `scripts/install_tauri_deps.sh`.
 * Theme toggle (light/dark)
 * Accessible labels and full keyboard navigation
 * Improved focus outlines and ARIA labels on modal and file picker buttons
+* Thumbnail selector in the GUI
 * Settings page with persistent defaults
 * Profiles page to save and load sets of options
  * Interface translations are handled via i18n files in `public/locales`.
    Over 60 languages are supported and fall back to English when a
-   translation is missing. Contributions to improve translations are welcome.
+   translation is missing. The app selects your system language on first
+   launch when a matching translation exists. Contributions to improve
+   translations are welcome.
 * Video preview modal after generation
 
 ---
@@ -282,6 +285,8 @@ The first time you start the app a short guide appears explaining how to:
 3. Upload directly to YouTube.
 
 The guide only shows once and the preference is stored in `settings.json`.
+On first launch the interface language matches your system locale when a
+corresponding translation file exists.
 
 ### Design Guidelines
 
