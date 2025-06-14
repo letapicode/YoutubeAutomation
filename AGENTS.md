@@ -5,8 +5,10 @@ These guidelines apply to the entire repository.
 ## Devcontainer
 A pre-built development container image exists for this project: `ghcr.io/<OWNER>/ytapp-dev:latest`. Codex should
 start from this image (or run `devcontainer open` if supported) before executing
-`make verify`. The container runs `scripts/setup.sh` automatically via `.codex/bootstrap.sh`, so manual
-invocation of that script is unnecessary.
+`make verify`. Environment initialization is handled by `scripts/setup_codex.sh`
+(invoked automatically via `.codex/bootstrap.sh`). This script installs Tauri
+dependencies and writes `.env.tauri`. Source that file or restart your shell so
+its variables are available before running any checks.
 
 ## Project Structure
 - The Tauri desktop application is under `ytapp`.
@@ -28,7 +30,8 @@ cd .. && npx ts-node src/cli.ts --help
 
 `cargo check` may require system packages. Run the appropriate install script
 for your OS (`./scripts/install_tauri_deps.sh`, `./scripts/install_tauri_deps_macos.sh` or `./scripts/install_tauri_deps_windows.ps1`) if needed.
-After running the script, source the generated `.env.tauri` file (or export the `PKG_CONFIG_PATH` it contains) before running cargo.
+Be sure `.env.tauri` from `scripts/setup_codex.sh` is sourced (or export the
+`PKG_CONFIG_PATH` it contains) before running cargo.
 
 ## Additional Notes
 - Do not commit `.env.tauri` or build artifacts.
