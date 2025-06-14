@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { loadSettings } from '../features/settings';
 import { watchDirectory } from '../features/watch';
-import { listJobs, runQueue } from '../features/queue';
+import { listJobs, runQueue, clearCompleted } from '../features/queue';
 
 const WatchStatus: React.FC = () => {
     const { t } = useTranslation();
@@ -45,7 +45,12 @@ const WatchStatus: React.FC = () => {
                 {watching ? t('stop_watch') : t('start_watch')}
             </button>
             <span> {t('queue')}: {queueLen}</span>
-            {!auto && <button onClick={process}>{t('process_queue')}</button>}
+            {!auto && (
+                <>
+                    <button onClick={process}>{t('process_queue')}</button>
+                    <button onClick={() => clearCompleted()}>{t('clear_completed')}</button>
+                </>
+            )}
         </div>
     );
 };

@@ -11,7 +11,7 @@ import { translateSrt } from './utils/translate';
 import { parseCsv, CsvRow } from './utils/csv';
 import { watchDirectory } from './features/watch';
 import { generateBatchWithProgress } from './features/batch';
-import { addJob, listJobs, runQueue, clearQueue } from './features/queue';
+import { addJob, listJobs, runQueue, clearQueue, clearCompleted } from './features/queue';
 import { listProfiles, getProfile, saveProfile, deleteProfile } from './features/profiles';
 import type { Profile } from './schema';
 import { verifyDependencies } from './features/dependencies';
@@ -926,6 +926,18 @@ program
       await clearQueue();
     } catch (err) {
       console.error('Error clearing queue:', err);
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command('queue-clear-completed')
+  .description('Remove completed jobs from the queue')
+  .action(async () => {
+    try {
+      await clearCompleted();
+    } catch (err) {
+      console.error('Error clearing completed jobs:', err);
       process.exitCode = 1;
     }
   });

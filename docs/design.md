@@ -37,6 +37,8 @@ This project follows a minimalist approach inspired by the principle **"Less but
 - Action buttons may include small SVG icons for clarity.
 - Components should remain visually quiet, leaving generous whitespace around elements.
 - Typography scales in small increments (1.25x) for harmony.
+- The Font selector includes a search field to quickly filter large font lists.
+- The Queue status panel offers a **Clear Completed** button to remove finished jobs.
 
 Inspired by the work of Dieter Rams and Jony Ive, these rules emphasize clarity, restrained color use and quiet motion. Always strive for "as little design as possible".
 

@@ -49,10 +49,16 @@
   "watching": "Watching",
   "not_watching": "Not Watching",
   "start_watch": "Start Watching",
-  "stop_watch": "Stop Watching"
-  ,"profiles": "Profiles"
-  ,"save_profile": "Save Profile"
-  ,"delete_profile": "Delete Profile"
-  ,"load": "Load"
-  ,"edit": "Edit"
+  "stop_watch": "Stop Watching",
+  "profiles": "Profiles",
+  "save_profile": "Save Profile",
+  "delete_profile": "Delete Profile",
+  "load": "Load",
+  "edit": "Edit",
+  "clear_completed": "Clear Completed",
+  "update_available": "Update Available",
+  "update_prompt": "A new version is ready to install.",
+  "update_now": "Update Now",
+  "later": "Later",
+  "font_search": "Search fonts..."
 }
