@@ -18,12 +18,16 @@ interface FontSelectorProps {
 const FontSelector: React.FC<FontSelectorProps> = ({ value, onChange }) => {
     const { t } = useTranslation();
     const [fonts, setFonts] = useState<SystemFont[]>([]);
+    const [filter, setFilter] = useState('');
 
     useEffect(() => {
         invoke<SystemFont[]>('list_fonts').then(setFonts).catch(() => setFonts([]));
     }, []);
 
     const basename = (p: string) => p.split(/[/\\]/).pop() || p;
+    const filteredFonts = fonts.filter(f =>
+        f.name.toLowerCase().includes(filter.toLowerCase())
+    );
 
     const handleChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
         const val = e.target.value;
@@ -45,16 +49,25 @@ const FontSelector: React.FC<FontSelectorProps> = ({ value, onChange }) => {
     const currentValue = value?.path || '';
 
     return (
-        <select value={currentValue} onChange={handleChange}>
-            <option value="">{t('default')}</option>
-            {fonts.map(f => (
-                <option key={f.path} value={f.path}>{`${f.name} (${f.style})`}</option>
-            ))}
-            {value?.path && !fonts.find(f => f.path === value.path) && (
-                <option value={value.path}>{basename(value.path)}</option>
-            )}
-            <option value="__custom__">{t('select_file')}</option>
-        </select>
+        <div>
+            <input
+                aria-label={t('font_search')}
+                placeholder={t('font_search')}
+                value={filter}
+                onChange={e => setFilter(e.target.value)}
+                style={{ width: '100%', marginBottom: 4 }}
+            />
+            <select value={currentValue} onChange={handleChange} aria-label="Font selector">
+                <option value="">{t('default')}</option>
+                {filteredFonts.map(f => (
+                    <option key={f.path} value={f.path}>{`${f.name} (${f.style})`}</option>
+                ))}
+                {value?.path && !fonts.find(f => f.path === value.path) && (
+                    <option value={value.path}>{basename(value.path)}</option>
+                )}
+                <option value="__custom__">{t('select_file')}</option>
+            </select>
+        </div>
     );
 };
 

@@ -208,6 +208,7 @@ If `cargo check` fails on Linux, run `scripts/install_tauri_deps.sh`.
 * Bundle Whisper model downloader on first launch
 * Checks for FFmpeg and the Whisper model at startup. Missing dependencies
   trigger a dialog explaining how to install them.
+* Optional auto-update check notifies users when a new version is available.
 * `scripts/package.sh` builds installers for Windows, macOS and Linux
 
 ---
@@ -293,7 +294,7 @@ Use the **Font** dropdown in the settings page to load any font installed on you
 system. Fonts are now detected on Windows, macOS and Linux by scanning the
 standard font folders (on Linux `fc-list` is used when available). If your font
 does not appear in the list, choose **Select File** to pick a `.ttf` or `.otf`
-file. The selected font and style are stored in the application settings and
+file. A search field filters the font list as you type. The selected font and style are stored in the application settings and
 passed to FFmpeg so subtitles render with your custom font.
 
 ### CLI Usage
@@ -372,6 +373,10 @@ Clear the queue:
 
 ```bash
 npx ts-node src/cli.ts queue-clear
+```
+Remove only completed or failed jobs:
+```bash
+npx ts-node src/cli.ts queue-clear-completed
 ```
 
 Process all queued jobs (retry failed jobs with `--retry-failed`):

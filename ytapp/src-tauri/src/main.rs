@@ -889,6 +889,12 @@ fn queue_clear(app: tauri::AppHandle) -> Result<(), String> {
 }
 
 #[command]
+fn queue_clear_completed(app: tauri::AppHandle) -> Result<(), String> {
+    load_queue(&app).ok();
+    job_queue::clear_completed(&app)
+}
+
+#[command]
 async fn queue_process(window: Window, retry_failed: Option<bool>) -> Result<(), String> {
     let app = window.app_handle();
     load_queue(&app).ok();
@@ -1181,7 +1187,7 @@ fn main() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, watch_directory, youtube_sign_in, youtube_sign_out, youtube_is_signed_in, load_settings, save_settings, load_srt, save_srt, cancel_generate, cancel_upload, queue_add, queue_list, queue_clear, queue_process, profile_list, profile_get, profile_save, profile_delete, verify_dependencies, install_tauri_deps, list_fonts])
+        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, watch_directory, youtube_sign_in, youtube_sign_out, youtube_is_signed_in, load_settings, save_settings, load_srt, save_srt, cancel_generate, cancel_upload, queue_add, queue_list, queue_clear, queue_clear_completed, queue_process, profile_list, profile_get, profile_save, profile_delete, verify_dependencies, install_tauri_deps, list_fonts])
         .run(context)
         .expect("error while running tauri application");
 }

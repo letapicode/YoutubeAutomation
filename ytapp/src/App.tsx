@@ -26,6 +26,9 @@ import OnboardingModal from './components/OnboardingModal';
 import WatchStatus from './components/WatchStatus';
 import SubtitleEditor from './components/SubtitleEditor';
 import { notify } from './utils/notify';
+import UpdateModal from './components/UpdateModal';
+import { check } from '@tauri-apps/plugin-updater';
+import { relaunch } from '@tauri-apps/plugin-process';
 
 const App: React.FC = () => {
     const { t, i18n } = useTranslation();
@@ -57,6 +60,7 @@ const App: React.FC = () => {
     const [outputs, setOutputs] = useState<string[]>([]);
     const [preview, setPreview] = useState('');
     const [showGuide, setShowGuide] = useState(false);
+    const [showUpdate, setShowUpdate] = useState(false);
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [tags, setTags] = useState('');
@@ -82,6 +86,9 @@ const App: React.FC = () => {
             if (s.watermarkPosition) setWatermarkPos(s.watermarkPosition as any);
             if (s.showGuide !== false) setShowGuide(true);
         });
+        check().then(res => {
+            if (res) setShowUpdate(true);
+        }).catch(() => {});
     }, []);
 
     useEffect(() => {
@@ -262,6 +269,14 @@ const App: React.FC = () => {
 
     const cancelUpload = async () => {
         await invoke('cancel_upload');
+    };
+
+    const handleUpdateApp = async () => {
+        const res = await check();
+        if (res) {
+            await res.downloadAndInstall();
+            await relaunch();
+        }
     };
 
     useEffect(() => {
@@ -555,6 +570,7 @@ const App: React.FC = () => {
                 )}
             </Modal>
             <WatchStatus />
+            <UpdateModal open={showUpdate} onUpdate={handleUpdateApp} onClose={() => setShowUpdate(false)} />
             <OnboardingModal open={showGuide} onClose={dismissGuide} />
         </div>
     );

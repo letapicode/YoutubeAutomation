@@ -129,6 +129,13 @@ pub fn clear_queue(app: &tauri::AppHandle) -> Result<(), String> {
     save_queue(app)
 }
 
+/// Remove finished jobs from the queue.
+pub fn clear_completed(app: &tauri::AppHandle) -> Result<(), String> {
+    let mut q = QUEUE.lock().unwrap();
+    q.retain(|item| item.status == JobStatus::Pending || item.status == JobStatus::Running);
+    save_queue(app)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
