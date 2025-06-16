@@ -31,8 +31,8 @@ import SubtitleEditor from './components/SubtitleEditor';
 import { notify } from './utils/notify';
 import UpdateModal from './components/UpdateModal';
 import QueuePage from './components/QueuePage';
-import { check } from '@tauri-apps/api/updater';
-import { relaunch } from '@tauri-apps/api/process';
+import { check } from '@tauri-apps/plugin-updater';
+import { relaunch } from '@tauri-apps/plugin-process';
 
 const App: React.FC = () => {
     const { t, i18n } = useTranslation();
