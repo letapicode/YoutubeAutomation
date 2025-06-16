@@ -7,6 +7,7 @@ use whisper_cli::{Model, Size};
 
 /// Ensure the default Whisper model is present. Downloads it if missing.
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct PartialSettings {
     model_size: Option<String>,
 }
