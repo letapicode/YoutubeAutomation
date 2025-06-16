@@ -240,6 +240,7 @@ Use the matching dependency script for your OS which installs GTK/WebKit
 packages and writes `.env.tauri`:
 
 * Linux: `scripts/install_tauri_deps.sh`
+  - Requires `clang` and `libclang-dev` on Linux; the script installs them automatically.
 * macOS: `scripts/install_tauri_deps_macos.sh`
 * Windows (PowerShell): `scripts/install_tauri_deps_windows.ps1`
 

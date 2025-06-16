@@ -13,6 +13,7 @@ DEPS=(
     build-essential
     pkg-config
     libssl-dev
+    clang
 )
 
 if ! command -v apt-get >/dev/null; then
@@ -21,6 +22,15 @@ if ! command -v apt-get >/dev/null; then
 fi
 
 sudo apt-get update
+
+# Determine the libclang development package to install.
+LIBCLANG_PKG=$(apt-cache search --names-only '^libclang-[0-9]+-dev$' | \
+    sort -V | grep -o 'libclang-[0-9]*-dev' | tail -n1)
+if [ -z "$LIBCLANG_PKG" ]; then
+    LIBCLANG_PKG="libclang-dev"
+fi
+DEPS+=("$LIBCLANG_PKG")
+
 sudo apt-get install -y "${DEPS[@]}"
 
 PKGCONFIG_DIR=/usr/lib/x86_64-linux-gnu/pkgconfig
