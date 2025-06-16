@@ -1,4 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
 import { GenerateParams } from './processing';
 
 export type QueueJob =
@@ -32,4 +33,12 @@ export async function clearCompleted(): Promise<void> {
 
 export async function runQueue(retryFailed = false): Promise<void> {
   await invoke('queue_process', { retryFailed });
+}
+
+/** Listen for queue updates emitted by the backend. Returns an unsubscribe function. */
+export async function listenQueue(onChange: () => void): Promise<() => void> {
+  const unlisten = await listen('queue_changed', onChange);
+  return () => {
+    unlisten();
+  };
 }

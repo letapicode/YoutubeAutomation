@@ -29,6 +29,8 @@ mod token_store;
 use token_store::EncryptedTokenStorage;
 mod job_queue;
 use job_queue::{Job, QueueItem, enqueue, dequeue, peek_all, load_queue, clear_queue as clear_in_memory, notifier, mark_complete, mark_failed};
+mod logger;
+use logger::log;
 use tauri::api::dialog::{blocking::MessageDialogBuilder, MessageDialogKind};
 use notify::{RecommendedWatcher, RecursiveMode, Watcher, Config, EventKind, Event, Error as NotifyError};
 use once_cell::sync::Lazy;
@@ -399,10 +401,17 @@ fn build_main_section(window: Option<&Window>, params: &GenerateParams, duration
 
 #[command]
 fn generate_video(window: Window, params: GenerateParams) -> Result<String, String> {
+    log(&window.app_handle(), "info", "generate_video start");
     let output_path = params
         .output
         .clone()
         .unwrap_or_else(|| "output.mp4".to_string());
+
+    if let Some(parent) = Path::new(&output_path).parent() {
+        if !parent.as_os_str().is_empty() {
+            fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+        }
+    }
 
     let width = params.width.unwrap_or(1280);
     let height = params.height.unwrap_or(720);
@@ -449,11 +458,13 @@ fn generate_video(window: Window, params: GenerateParams) -> Result<String, Stri
     }
 
     let _ = window.emit("generate_progress", 100f64);
+    log(&window.app_handle(), "info", "generate_video done");
 
     Ok(output_path)
 }
 
 async fn upload_video_impl(window: Window, file: String, opts: UploadOptions) -> Result<String, String> {
+    log(&window.app_handle(), "info", &format!("upload_video start: {}", file));
     let auth = build_authenticator().await?;
 
     let client = Client::builder(TokioExecutor::new())
@@ -520,9 +531,9 @@ async fn upload_video_impl(window: Window, file: String, opts: UploadOptions) ->
         *active = None;
     }
     match result {
-        Ok(Ok(response)) => {
-            let _ = window.emit("upload_progress", 100f64);
-            let id = response.1.id.unwrap_or_default();
+            Ok(Ok(response)) => {
+                let _ = window.emit("upload_progress", 100f64);
+                let id = response.1.id.unwrap_or_default();
             if let Some(th) = opts.thumbnail.as_ref() {
                 if Path::new(th).exists() {
                     if let Ok(mut tf) = File::open(th) {
@@ -555,14 +566,19 @@ async fn upload_video_impl(window: Window, file: String, opts: UploadOptions) ->
                     .doit()
                     .await;
             }
-            Ok(format!("Uploaded video ID: {}", id))
+                log(&window.app_handle(), "info", &format!("upload complete: {}", id));
+                Ok(format!("Uploaded video ID: {}", id))
+            }
+            Ok(Err(e)) => {
+                log(&window.app_handle(), "error", &e);
+                Err(e)
+            },
+            Err(_) => {
+                let _ = window.emit("upload_canceled", ());
+                log(&window.app_handle(), "error", "upload canceled");
+                Err("upload canceled".into())
+            }
         }
-        Ok(Err(e)) => Err(e),
-        Err(_) => {
-            let _ = window.emit("upload_canceled", ());
-            Err("upload canceled".into())
-        }
-    }
 }
 
 async fn build_authenticator() -> Result<Authenticator<HttpsConnector<HttpConnector>>, String> {
@@ -919,6 +935,7 @@ fn cancel_upload(window: Window) -> Result<(), String> {
 #[command]
 fn queue_add(app: tauri::AppHandle, job: Job) -> Result<(), String> {
     load_queue(&app).ok();
+    log(&app, "info", "queue_add");
     enqueue(&app, job)
 }
 
@@ -931,12 +948,14 @@ fn queue_list(app: tauri::AppHandle) -> Result<Vec<QueueItem>, String> {
 #[command]
 fn queue_clear(app: tauri::AppHandle) -> Result<(), String> {
     load_queue(&app).ok();
+    log(&app, "info", "queue_clear");
     clear_in_memory(&app)
 }
 
 #[command]
 fn queue_clear_completed(app: tauri::AppHandle) -> Result<(), String> {
     load_queue(&app).ok();
+    log(&app, "info", "queue_clear_completed");
     job_queue::clear_completed(&app)
 }
 
@@ -960,8 +979,8 @@ async fn queue_process(window: Window, retry_failed: Option<bool>) -> Result<(),
             }
         };
         match res {
-            Ok(_) => { mark_complete(&app, idx)?; },
-            Err(e) => { mark_failed(&app, idx, e)?; },
+            Ok(_) => { mark_complete(&app, idx)?; log(&app, "info", "job_complete"); },
+            Err(e) => { log(&app, "error", &e); mark_failed(&app, idx, e)?; },
         }
     }
     Ok(())
@@ -992,8 +1011,8 @@ fn start_queue_worker(window: Window) {
                     }
                 };
                 match res {
-                    Ok(_) => { let _ = mark_complete(&app, idx); },
-                    Err(e) => { let _ = mark_failed(&app, idx, e); },
+                    Ok(_) => { let _ = mark_complete(&app, idx); log(&app, "info", "job_complete"); },
+                    Err(e) => { log(&app, "error", &e); let _ = mark_failed(&app, idx, e); },
                 }
             } else {
                 notify.notified().await;
