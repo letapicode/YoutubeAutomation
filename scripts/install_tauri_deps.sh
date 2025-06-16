@@ -14,6 +14,7 @@ DEPS=(
     pkg-config
     libssl-dev
     clang
+    cmake
 )
 
 if ! command -v apt-get >/dev/null; then
