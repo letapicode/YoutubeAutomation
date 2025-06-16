@@ -23,6 +23,7 @@ const SettingsPage: React.FC = () => {
     const [watchDir, setWatchDir] = useState('');
     const [autoUpload, setAutoUpload] = useState(false);
     const [modelSize, setModelSize] = useState('base');
+    const [output, setOutput] = useState('');
 
     useEffect(() => {
         loadSettings().then(s => {
@@ -40,6 +41,7 @@ const SettingsPage: React.FC = () => {
             setGuide(s.showGuide !== false);
             setWatchDir(s.watchDir || '');
             setAutoUpload(!!s.autoUpload);
+            setOutput(s.output || '');
             if (s.modelSize) setModelSize(s.modelSize);
         });
     }, []);
@@ -60,6 +62,7 @@ const SettingsPage: React.FC = () => {
             showGuide: guide,
             watchDir: watchDir || undefined,
             autoUpload,
+            output: output || undefined,
             modelSize,
         });
     };
@@ -99,6 +102,17 @@ const SettingsPage: React.FC = () => {
                     filters={[{ name: 'Media', extensions: ['mp4', 'mov', 'mkv', 'png', 'jpg', 'jpeg'] }]}
                 />
                 {outro && <span>{outro}</span>}
+            </div>
+            <div>
+                <FilePicker
+                    label="Output"
+                    onSelect={p => {
+                        if (typeof p === 'string') setOutput(p);
+                        else if (Array.isArray(p) && p.length) setOutput(p[0]);
+                    }}
+                    filters={[{ name: 'Video', extensions: ['mp4'] }]}
+                />
+                {output && <span>{output}</span>}
             </div>
             <div>
                 <FilePicker

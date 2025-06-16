@@ -189,6 +189,7 @@ If `cargo check` fails on Linux, run `scripts/install_tauri_deps.sh`.
 * Accessible labels and full keyboard navigation
 * Improved focus outlines and ARIA labels on modal and file picker buttons
 * Thumbnail selector in the GUI
+* Output path picker for generated videos
 * Settings page with persistent defaults
 * Profiles page to save and load sets of options
  * Interface translations are handled via i18n files in `public/locales`.
@@ -410,6 +411,8 @@ List or delete profiles:
 npx ts-node src/cli.ts profile-list
 npx ts-node src/cli.ts profile-delete gaming
 ```
+
+Profiles can also be imported or exported from the Profiles page in the GUI using JSON files.
 
 Use a profile with other commands using `--profile <name>`:
 
