@@ -24,6 +24,7 @@ const SettingsPage: React.FC = () => {
     const [autoUpload, setAutoUpload] = useState(false);
     const [modelSize, setModelSize] = useState('base');
     const [output, setOutput] = useState('');
+    const [maxRetries, setMaxRetries] = useState(3);
 
     useEffect(() => {
         loadSettings().then(s => {
@@ -43,6 +44,7 @@ const SettingsPage: React.FC = () => {
             setAutoUpload(!!s.autoUpload);
             setOutput(s.output || '');
             if (s.modelSize) setModelSize(s.modelSize);
+            if (typeof s.maxRetries === 'number') setMaxRetries(s.maxRetries);
         });
     }, []);
 
@@ -64,6 +66,7 @@ const SettingsPage: React.FC = () => {
             autoUpload,
             output: output || undefined,
             modelSize,
+            maxRetries,
         });
     };
 
@@ -169,6 +172,10 @@ const SettingsPage: React.FC = () => {
                 <input type="text" value={watchDir} onChange={e => setWatchDir(e.target.value)} />
                 <label>{t('auto_upload')}</label>
                 <input type="checkbox" checked={autoUpload} onChange={e => setAutoUpload(e.target.checked)} />
+            </div>
+            <div>
+                <label>{t('max_retries')}</label>
+                <input type="number" min="1" value={maxRetries} onChange={e => setMaxRetries(parseInt(e.target.value, 10) || 1)} />
             </div>
             <button onClick={handleSave}>{t('save')}</button>
         </div>

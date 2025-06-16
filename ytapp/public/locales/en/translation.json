@@ -58,6 +58,7 @@
   "edit_captions": "Edit Captions",
   "watch_directory": "Watch Directory",
   "auto_upload": "Auto Upload",
+  "max_retries": "Max Retries",
   "watching": "Watching",
   "not_watching": "Not Watching",
   "start_watch": "Start Watching",

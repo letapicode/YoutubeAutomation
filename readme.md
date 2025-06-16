@@ -396,7 +396,7 @@ Process all queued jobs (retry failed jobs with `--retry-failed`):
 ```bash
 npx ts-node src/cli.ts queue-run --retry-failed
 ```
-The maximum retry count is configured by `max_retries` in `settings.json` (default `3`).
+The maximum retry count is configurable in the Settings page or by `max_retries` in `settings.json` (default `3`).
 
 Profiles can store commonly used generation options in `settings.json`.
 Save a profile from a JSON file:

@@ -18,6 +18,7 @@ export interface Settings {
     autoUpload?: boolean;
     output?: string;
     modelSize?: string;
+    maxRetries?: number;
 }
 
 export async function loadSettings(): Promise<Settings> {
