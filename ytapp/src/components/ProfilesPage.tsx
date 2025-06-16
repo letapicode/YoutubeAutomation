@@ -2,6 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { listProfiles, getProfile, saveProfile, deleteProfile } from '../features/profiles';
+import { open, save } from '@tauri-apps/plugin-dialog';
+import { readTextFile, writeTextFile } from '@tauri-apps/plugin-fs';
 import type { Profile } from '../schema';
 
 interface ProfilesPageProps {
@@ -125,6 +127,19 @@ const ProfilesPage: React.FC<ProfilesPageProps> = ({ onLoad }) => {
             <div className="row">
                 <input type="color" value={profile.captionOptions?.color || '#ffffff'} onChange={handleCaptionChange('color')} />
                 <input type="color" value={profile.captionOptions?.background || '#000000'} onChange={handleCaptionChange('background')} />
+            </div>
+            <div className="row">
+                <button onClick={async () => {
+                    const path = await open({ filters: [{ name: 'JSON', extensions: ['json'] }] });
+                    if (typeof path === 'string') {
+                        const txt = await readTextFile(path);
+                        try { setProfile(JSON.parse(txt) as Profile); } catch { }
+                    }
+                }}>Import JSON</button>
+                <button onClick={async () => {
+                    const path = await save({ filters: [{ name: 'JSON', extensions: ['json'] }] });
+                    if (path) await writeTextFile(path, JSON.stringify(profile, null, 2));
+                }}>Export JSON</button>
             </div>
             <div className="row">
                 <button onClick={handleSave}>{t('save_profile')}</button>

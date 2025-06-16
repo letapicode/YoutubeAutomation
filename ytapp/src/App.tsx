@@ -14,6 +14,7 @@ import BatchPage from './components/BatchPage';
 import SettingsPage from './components/SettingsPage';
 import ProfilesPage from './components/ProfilesPage';
 import FontSelector from './components/FontSelector';
+import LanguageSelector from './components/LanguageSelector';
 import SizeSlider from './components/SizeSlider';
 import { languages, Language } from './features/languages';
 import TranscribeButton from './components/TranscribeButton';
@@ -28,8 +29,8 @@ import WatchStatus from './components/WatchStatus';
 import SubtitleEditor from './components/SubtitleEditor';
 import { notify } from './utils/notify';
 import UpdateModal from './components/UpdateModal';
-import { check } from '@tauri-apps/plugin-updater';
-import { relaunch } from '@tauri-apps/plugin-process';
+import { check } from '@tauri-apps/api/updater';
+import { relaunch } from '@tauri-apps/api/process';
 
 const App: React.FC = () => {
     const { t, i18n } = useTranslation();
@@ -73,6 +74,7 @@ const App: React.FC = () => {
     const [playlistId, setPlaylistId] = useState('');
     const [thumbnail, setThumbnail] = useState('');
     const [showEditor, setShowEditor] = useState(false);
+    const [output, setOutput] = useState('');
 
 
 
@@ -89,6 +91,7 @@ const App: React.FC = () => {
             if (s.captionBg) setCaptionBg(s.captionBg);
             if (s.watermark) setWatermark(s.watermark);
             if (s.watermarkPosition) setWatermarkPos(s.watermarkPosition as any);
+            if (s.output) setOutput(s.output);
             if (s.showGuide !== false) setShowGuide(true);
             if (s.watchDir) {
                 watchDirectory(s.watchDir, { autoUpload: s.autoUpload });
@@ -127,6 +130,7 @@ const App: React.FC = () => {
         setProgress(0);
         const out = await generateVideo({
             file,
+            output: output || undefined,
             captions: captions || undefined,
             captionOptions: {
                 font: font || undefined,
@@ -152,6 +156,7 @@ const App: React.FC = () => {
 
     const buildParams = (): GenerateParams => ({
         file,
+        output: output || undefined,
         captions: captions || undefined,
         captionOptions: {
             font: font || undefined,
@@ -350,11 +355,7 @@ const App: React.FC = () => {
         <div className="app">
             <h1>{t('title')}</h1>
             <div className="row">
-                <select value={i18n.language} onChange={e => i18n.changeLanguage(e.target.value)}>
-                    {languages.map(lang => (
-                        <option key={lang.value} value={lang.value}>{lang.label}</option>
-                    ))}
-                </select>
+                <LanguageSelector value={i18n.language as Language} onChange={l => i18n.changeLanguage(l)} />
                 <button onClick={toggleTheme}>{t('toggle_theme')}</button>
             </div>
             <div className="row">
@@ -363,6 +364,13 @@ const App: React.FC = () => {
                     else if (Array.isArray(p) && p.length) setFile(p[0]);
                 }} />
                 {file && <span>{file}</span>}
+            </div>
+            <div className="row">
+                <FilePicker label="Output" onSelect={(p) => {
+                    if (typeof p === 'string') setOutput(p);
+                    else if (Array.isArray(p) && p.length) setOutput(p[0]);
+                }} filters={[{ name: 'Video', extensions: ['mp4'] }]} />
+                {output && <span>{output}</span>}
             </div>
             <div className="row">
                 <FilePicker
@@ -526,11 +534,7 @@ const App: React.FC = () => {
             </div>
             </details>
             <div className="row">
-                <select value={language} onChange={(e) => setLanguage(e.target.value as Language)}>
-                    {languages.map(opt => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
-                </select>
+                <LanguageSelector value={language} onChange={(l) => setLanguage(l)} />
             </div>
             <div className="row">
                 {languages.filter(opt => opt.value !== 'auto').map(opt => (

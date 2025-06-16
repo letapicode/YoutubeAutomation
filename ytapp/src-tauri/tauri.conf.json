@@ -7,6 +7,11 @@
     "bundle": {
       "identifier": "com.example.ytapp",
       "icon": ["icons/icon.png"]
+    },
+    "updater": {
+      "active": true,
+      "endpoints": [],
+      "pubkey": ""
     }
   }
 }
