@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { listJobs, runQueue, clearCompleted, clearQueue } from '../features/queue';
+import { listJobs, runQueue, clearCompleted, clearQueue, listenQueue } from '../features/queue';
 
 const QueuePage: React.FC = () => {
   const { t } = useTranslation();
@@ -12,8 +12,13 @@ const QueuePage: React.FC = () => {
 
   useEffect(() => {
     refresh();
-    const id = setInterval(refresh, 1000);
-    return () => clearInterval(id);
+    let unlisten: (() => void) | undefined;
+    listenQueue(refresh).then((u) => {
+      unlisten = u;
+    });
+    return () => {
+      if (unlisten) unlisten();
+    };
   }, []);
 
   return (

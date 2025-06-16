@@ -6,6 +6,7 @@ use serde::{Serialize, Deserialize};
 use tauri::api::path::app_config_dir;
 
 use crate::schema::GenerateParams;
+use crate::logger;
 
 #[derive(Serialize, Deserialize, Clone, PartialEq)]
 pub enum JobStatus {
@@ -36,6 +37,11 @@ pub fn notifier() -> Arc<Notify> {
     NOTIFY.clone()
 }
 
+fn emit_changed(app: &tauri::AppHandle) {
+    let _ = app.emit_all("queue_changed", ());
+    logger::log(app, "info", "queue_changed");
+}
+
 fn queue_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
     if let Ok(p) = std::env::var("YTAPP_TEST_DIR") {
         let mut dir = PathBuf::from(p);
@@ -53,7 +59,9 @@ pub fn enqueue(app: &tauri::AppHandle, job: Job) -> Result<(), String> {
     let mut q = QUEUE.lock().unwrap();
     q.push(QueueItem { job, status: JobStatus::Pending, retries: 0, error: None });
     NOTIFY.notify_one();
-    save_queue(app)
+    save_queue(app)?;
+    emit_changed(app);
+    Ok(())
 }
 
 pub fn dequeue(app: &tauri::AppHandle, retry_failed: bool, max_retries: u32) -> Result<Option<(usize, QueueItem)>, String> {
@@ -74,7 +82,9 @@ pub fn mark_complete(app: &tauri::AppHandle, index: usize) -> Result<(), String>
     if index < q.len() {
         q.remove(index);
     }
-    save_queue(app)
+    save_queue(app)?;
+    emit_changed(app);
+    Ok(())
 }
 
 pub fn mark_failed(app: &tauri::AppHandle, index: usize, error: String) -> Result<(), String> {
@@ -84,7 +94,9 @@ pub fn mark_failed(app: &tauri::AppHandle, index: usize, error: String) -> Resul
         item.retries += 1;
         item.error = Some(error);
     }
-    save_queue(app)
+    save_queue(app)?;
+    emit_changed(app);
+    Ok(())
 }
 
 pub fn peek_all() -> Vec<QueueItem> {
@@ -96,7 +108,9 @@ pub fn save_queue(app: &tauri::AppHandle) -> Result<(), String> {
     let path = queue_path(app)?;
     let q = QUEUE.lock().unwrap();
     let data = serde_json::to_string(&*q).map_err(|e| e.to_string())?;
-    fs::write(path, data).map_err(|e| e.to_string())
+    fs::write(path, data).map_err(|e| e.to_string())?;
+    emit_changed(app);
+    Ok(())
 }
 
 pub fn load_queue(app: &tauri::AppHandle) -> Result<(), String> {
@@ -126,14 +140,18 @@ pub fn load_queue(app: &tauri::AppHandle) -> Result<(), String> {
 pub fn clear_queue(app: &tauri::AppHandle) -> Result<(), String> {
     let mut q = QUEUE.lock().unwrap();
     q.clear();
-    save_queue(app)
+    save_queue(app)?;
+    emit_changed(app);
+    Ok(())
 }
 
 /// Remove finished jobs from the queue.
 pub fn clear_completed(app: &tauri::AppHandle) -> Result<(), String> {
     let mut q = QUEUE.lock().unwrap();
     q.retain(|item| item.status == JobStatus::Pending || item.status == JobStatus::Running);
-    save_queue(app)
+    save_queue(app)?;
+    emit_changed(app);
+    Ok(())
 }
 
 #[cfg(test)]

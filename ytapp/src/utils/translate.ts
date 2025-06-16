@@ -17,6 +17,7 @@ export function translateSrt(
       '--from-lang', fromLang,
       '--to-lang', target,
     ]);
+    child.on('error', (err) => reject(err));
     child.on('exit', (code) => {
       if (code === 0) resolve(output);
       else reject(new Error('translation failed'));
