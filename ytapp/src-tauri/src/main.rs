@@ -65,6 +65,7 @@ struct UploadOptions {
 }
 
 #[derive(Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
 struct AppSettings {
     intro: Option<String>,
     outro: Option<String>,
