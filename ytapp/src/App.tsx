@@ -29,12 +29,13 @@ import WatchStatus from './components/WatchStatus';
 import SubtitleEditor from './components/SubtitleEditor';
 import { notify } from './utils/notify';
 import UpdateModal from './components/UpdateModal';
+import QueuePage from './components/QueuePage';
 import { check } from '@tauri-apps/api/updater';
 import { relaunch } from '@tauri-apps/api/process';
 
 const App: React.FC = () => {
     const { t, i18n } = useTranslation();
-    const [page, setPage] = useState<'single' | 'batch' | 'settings' | 'profiles'>('single');
+    const [page, setPage] = useState<'single' | 'batch' | 'settings' | 'profiles' | 'queue'>('single');
     const [file, setFile] = useState('');
     const [background, setBackground] = useState('');
     const [captions, setCaptions] = useState('');
@@ -61,6 +62,7 @@ const App: React.FC = () => {
     const [captionColor, setCaptionColor] = useState('#ffffff');
     const [captionBg, setCaptionBg] = useState('#000000');
     const [progress, setProgress] = useState(0);
+    const [announcement, setAnnouncement] = useState('');
     const [generating, setGenerating] = useState(false);
     const [outputs, setOutputs] = useState<string[]>([]);
     const [preview, setPreview] = useState('');
@@ -148,9 +150,14 @@ const App: React.FC = () => {
             outro: outro || undefined,
             width,
             height,
-        }, p => setProgress(Math.round(p)), () => setGenerating(false));
+        }, p => {
+            const pct = Math.round(p);
+            setProgress(pct);
+            setAnnouncement(`Generating... ${pct}%`);
+        }, () => setGenerating(false));
         setOutputs(o => [...o, out]);
         setGenerating(false);
+        setAnnouncement('');
         notify('Generation complete', 'Video created successfully');
     };
 
@@ -275,11 +282,16 @@ const App: React.FC = () => {
         setGenerating(true);
         setProgress(0);
         const unlisten = await listen<number>('generate_progress', e => {
-            if (typeof e.payload === 'number') setProgress(Math.round(e.payload));
+            if (typeof e.payload === 'number') {
+                const pct = Math.round(e.payload);
+                setProgress(pct);
+                setAnnouncement(`Upload... ${pct}%`);
+            }
         });
         await generateUpload(buildParams(), () => setGenerating(false));
         unlisten();
         setGenerating(false);
+        setAnnouncement('');
         notify('Upload complete', 'Video uploaded successfully');
     };
 
@@ -347,6 +359,17 @@ const App: React.FC = () => {
                     <button onClick={() => setPage('single')}>{t('back')}</button>
                 </div>
                 <SettingsPage />
+            </div>
+        );
+    }
+
+    if (page === 'queue') {
+        return (
+            <div className="app">
+                <div className="row">
+                    <button onClick={() => setPage('single')}>{t('back')}</button>
+                </div>
+                <QueuePage />
             </div>
         );
     }
@@ -567,6 +590,7 @@ const App: React.FC = () => {
                     <SettingsIcon />
                     {t('settings')}
                 </button>
+                <button onClick={() => setPage('queue')}>{t('queue')}</button>
             </div>
             {generating && (
                 <div className="row">
@@ -600,6 +624,7 @@ const App: React.FC = () => {
                 )}
             </Modal>
             <WatchStatus />
+            <div aria-live="polite" className="sr-only">{announcement}</div>
             <UpdateModal open={showUpdate} onUpdate={handleUpdateApp} onClose={() => setShowUpdate(false)} />
             <OnboardingModal open={showGuide} onClose={dismissGuide} />
         </div>
