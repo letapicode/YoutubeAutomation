@@ -4,6 +4,7 @@ use std::sync::{Mutex, Arc};
 use tokio::sync::Notify;
 use serde::{Serialize, Deserialize};
 use tauri::api::path::app_config_dir;
+use tauri::Manager;
 
 use crate::schema::GenerateParams;
 use crate::logger;
