@@ -100,6 +100,17 @@ pub fn mark_failed(app: &tauri::AppHandle, index: usize, error: String) -> Resul
     Ok(())
 }
 
+/// Remove a job from the queue by index.
+pub fn remove_job(app: &tauri::AppHandle, index: usize) -> Result<(), String> {
+    let mut q = QUEUE.lock().unwrap();
+    if index < q.len() {
+        q.remove(index);
+    }
+    save_queue(app)?;
+    emit_changed(app);
+    Ok(())
+}
+
 pub fn peek_all() -> Vec<QueueItem> {
     let q = QUEUE.lock().unwrap();
     q.clone()

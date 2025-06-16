@@ -379,6 +379,10 @@ Show queued jobs:
 ```bash
 npx ts-node src/cli.ts queue-list
 ```
+Remove a job by its index:
+```bash
+npx ts-node src/cli.ts queue-remove 0
+```
 Each job now tracks a `status` and `retries` count in `queue.json`.
 Failed jobs remain in the queue until they succeed or exceed the retry limit.
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { listJobs, runQueue, clearCompleted, clearQueue, listenQueue } from '../features/queue';
+import { listJobs, runQueue, clearCompleted, clearQueue, listenQueue, removeJob } from '../features/queue';
 
 const QueuePage: React.FC = () => {
   const { t } = useTranslation();
@@ -32,6 +32,7 @@ const QueuePage: React.FC = () => {
           <span>{JSON.stringify(j.job)}</span>
           <span>{j.status}</span>
           <span>{j.retries}</span>
+          <button onClick={() => removeJob(i).then(refresh)}>{t('remove')}</button>
         </div>
       ))}
     </div>

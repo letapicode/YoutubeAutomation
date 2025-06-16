@@ -11,7 +11,7 @@ import { translateSrt } from './utils/translate';
 import { parseCsv, CsvRow } from './utils/csv';
 import { watchDirectory } from './features/watch';
 import { generateBatchWithProgress } from './features/batch';
-import { addJob, listJobs, runQueue, clearQueue, clearCompleted } from './features/queue';
+import { addJob, listJobs, runQueue, clearQueue, clearCompleted, removeJob } from './features/queue';
 import { listProfiles, getProfile, saveProfile, deleteProfile } from './features/profiles';
 import type { Profile } from './schema';
 import { verifyDependencies } from './features/dependencies';
@@ -914,6 +914,19 @@ program
       console.log(JSON.stringify(jobs, null, 2));
     } catch (err) {
       console.error('Error listing queue:', err);
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command('queue-remove')
+  .description('Remove a job from the queue by index')
+  .argument('<index>', 'job index')
+  .action(async (index: string) => {
+    try {
+      await removeJob(parseInt(index, 10));
+    } catch (err) {
+      console.error('Error removing job:', err);
       process.exitCode = 1;
     }
   });
