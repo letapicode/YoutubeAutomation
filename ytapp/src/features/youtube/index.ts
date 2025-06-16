@@ -125,3 +125,12 @@ export async function signOut(): Promise<void> {
 export async function isSignedIn(): Promise<boolean> {
     return await invoke('youtube_is_signed_in');
 }
+
+export interface Playlist {
+    id: string;
+    title: string;
+}
+
+export async function fetchPlaylists(): Promise<Playlist[]> {
+    return await invoke('list_playlists');
+}
