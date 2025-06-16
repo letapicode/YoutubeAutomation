@@ -12,6 +12,7 @@ const BatchUploader: React.FC = () => {
     const { t } = useTranslation();
     const [files, setFiles] = useState<string[]>([]);
     const [progressMap, setProgressMap] = useState<Record<string, number>>({});
+    const [announcement, setAnnouncement] = useState('');
     const [running, setRunning] = useState(false);
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
@@ -46,6 +47,7 @@ const BatchUploader: React.FC = () => {
     const startUpload = async () => {
         if (!files.length) return;
         setRunning(true);
+        setAnnouncement('Upload... 0%');
         const prog: Record<string, number> = {};
         setProgressMap({});
         for (const file of files) {
@@ -65,10 +67,12 @@ const BatchUploader: React.FC = () => {
                 (p) => {
                     prog[file] = Math.round(p);
                     setProgressMap({ ...prog });
+                    setAnnouncement(`Upload... ${prog[file]}%`);
                 },
             );
         }
         setRunning(false);
+        setAnnouncement('');
         notify('Batch upload complete', `${files.length} video(s) uploaded`);
     };
 
@@ -119,6 +123,7 @@ const BatchUploader: React.FC = () => {
                     {!running && progressMap[f] === 100 && <span>{t('done')}</span>}
                 </div>
             ))}
+            <div aria-live="polite" className="sr-only">{announcement}</div>
         </div>
     );
 };

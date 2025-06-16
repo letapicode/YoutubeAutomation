@@ -64,6 +64,8 @@
   "stop_watch": "Stop Watching",
   "queue": "Queue",
   "process_queue": "Process Queue",
+  "clear_all": "Clear All",
+  "next": "Next",
   "profiles": "Profiles",
   "save_profile": "Save Profile",
   "delete_profile": "Delete Profile",

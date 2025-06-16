@@ -16,6 +16,7 @@ const BatchProcessor: React.FC = () => {
   const { t } = useTranslation();
   const [files, setFiles] = useState<string[]>([]);
   const [progress, setProgress] = useState(0);
+  const [announcement, setAnnouncement] = useState('');
   const [running, setRunning] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [options, setOptions] = useState<BatchOptions>({});
@@ -64,14 +65,17 @@ const BatchProcessor: React.FC = () => {
         });
         const pct = Math.round(((i + 1) / files.length) * 100);
         setProgress(pct);
+        setAnnouncement(`Generating... ${pct}%`);
       }
     } else {
       await generateBatchWithProgress(files, options, (cur, total) => {
         const pct = Math.round(((cur + 1) / total) * 100);
         setProgress(pct);
+        setAnnouncement(`Generating... ${pct}%`);
       });
     }
     setRunning(false);
+    setAnnouncement('');
     notify('Batch generate complete', `${files.length} video(s) processed`);
   };
 
@@ -83,8 +87,10 @@ const BatchProcessor: React.FC = () => {
   const startBatchUpload = async () => {
     if (!files.length) return;
     setUploading(true);
+    setAnnouncement('Upload... 0%');
     if (Object.keys(csvMap).length) {
-      for (const f of files) {
+      for (let i = 0; i < files.length; i++) {
+        const f = files[i];
         const meta = csvMap[f] || {};
         await generateUpload({
           ...options,
@@ -95,11 +101,16 @@ const BatchProcessor: React.FC = () => {
           publishAt: meta.publishAt ?? options.publishAt,
           thumbnail: options.thumbnail,
         });
+        const pct = Math.round(((i + 1) / files.length) * 100);
+        setProgress(pct);
+        setAnnouncement(`Upload... ${pct}%`);
       }
     } else {
       await generateBatchUpload({ files, ...options });
+      setProgress(100);
     }
     setUploading(false);
+    setAnnouncement('');
     notify('Batch upload complete', `${files.length} video(s) uploaded`);
   };
 
@@ -141,6 +152,7 @@ const BatchProcessor: React.FC = () => {
           <button onClick={cancelUpload}>{t('cancel')}</button>
         </div>
       )}
+      <div aria-live="polite" className="sr-only">{announcement}</div>
     </div>
   );
 };

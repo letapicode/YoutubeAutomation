@@ -40,6 +40,7 @@ This project follows a minimalist approach inspired by the principle **"Less but
 - Typography scales in small increments (1.25x) for harmony.
 - The Font selector includes a search field to quickly filter large font lists.
 - The Queue status panel offers a **Clear Completed** button to remove finished jobs.
+- The onboarding modal uses a simple multi-step wizard with Next/Back controls.
 
 Inspired by the work of Dieter Rams and Jony Ive, these rules emphasize clarity, restrained color use and quiet motion. Always strive for "as little design as possible".
 
