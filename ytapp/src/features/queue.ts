@@ -21,6 +21,11 @@ export async function listJobs(): Promise<QueueItem[]> {
   return await invoke('queue_list');
 }
 
+/** Remove a job at the specified index. */
+export async function removeJob(index: number): Promise<void> {
+  await invoke('queue_remove', { index });
+}
+
 /** Clear all jobs from the queue. */
 export async function clearQueue(): Promise<void> {
   await invoke('queue_clear');
