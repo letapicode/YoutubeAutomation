@@ -641,7 +641,7 @@ async fn list_playlists() -> Result<Vec<PlaylistInfo>, String> {
 
     let resp = hub
         .playlists()
-        .list(&["snippet".to_string()])
+        .list(&vec!["snippet".to_string()])
         .mine(true)
         .max_results(50)
         .doit()
