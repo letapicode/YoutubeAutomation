@@ -15,6 +15,7 @@ import SettingsPage from './components/SettingsPage';
 import ProfilesPage from './components/ProfilesPage';
 import FontSelector from './components/FontSelector';
 import LanguageSelector from './components/LanguageSelector';
+import PlaylistSelector from './components/PlaylistSelector';
 import SizeSlider from './components/SizeSlider';
 import { languages, Language } from './features/languages';
 import TranscribeButton from './components/TranscribeButton';
@@ -472,7 +473,8 @@ const App: React.FC = () => {
                 </select>
             </div>
             <div className="row">
-                <input type="text" placeholder="Playlist ID" value={playlistId} onChange={e => setPlaylistId(e.target.value)} />
+                <label>{t('playlist')}</label>
+                <PlaylistSelector value={playlistId} onChange={setPlaylistId} />
             </div>
             <div className="row">
                 <FilePicker

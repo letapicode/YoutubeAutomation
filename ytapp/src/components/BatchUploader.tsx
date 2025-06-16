@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import FilePicker from './FilePicker';
+import PlaylistSelector from './PlaylistSelector';
 import { uploadVideo } from '../features/youtube';
 import UploadIcon from './UploadIcon';
 import { open } from '@tauri-apps/plugin-dialog';
@@ -108,7 +109,8 @@ const BatchUploader: React.FC = () => {
                 </select>
             </div>
             <div className="row">
-                <input type="text" placeholder="Playlist ID" value={playlistId} onChange={e => setPlaylistId(e.target.value)} />
+                <label>{t('playlist')}</label>
+                <PlaylistSelector value={playlistId} onChange={setPlaylistId} />
             </div>
             <div className="row">
                 <button onClick={startUpload} disabled={running || !files.length}>

@@ -617,6 +617,51 @@ async fn youtube_sign_out() -> Result<(), String> {
     }
 }
 
+#[derive(Serialize)]
+struct PlaylistInfo {
+    id: String,
+    title: String,
+}
+
+#[command]
+async fn list_playlists() -> Result<Vec<PlaylistInfo>, String> {
+    let auth = build_authenticator().await?;
+
+    let client = Client::builder(TokioExecutor::new())
+        .build(
+            HttpsConnectorBuilder::new()
+                .with_native_roots()
+                .map_err(|e| e.to_string())?
+                .https_or_http()
+                .enable_http1()
+                .build(),
+        );
+
+    let hub = YouTube::new(client, auth);
+
+    let resp = hub
+        .playlists()
+        .list(&["snippet".to_string()])
+        .mine(true)
+        .max_results(50)
+        .doit()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    let playlists = resp
+        .1
+        .items
+        .unwrap_or_default()
+        .into_iter()
+        .map(|p| PlaylistInfo {
+            id: p.id.unwrap_or_default(),
+            title: p.snippet.and_then(|s| s.title).unwrap_or_default(),
+        })
+        .collect();
+
+    Ok(playlists)
+}
+
 #[command]
 async fn generate_upload(window: Window, params: GenerateParams) -> Result<String, String> {
     let output = generate_video(window.clone(), params.clone())?;
@@ -1188,7 +1233,7 @@ fn main() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, watch_directory, youtube_sign_in, youtube_sign_out, youtube_is_signed_in, load_settings, save_settings, load_srt, save_srt, cancel_generate, cancel_upload, queue_add, queue_list, queue_clear, queue_clear_completed, queue_process, profile_list, profile_get, profile_save, profile_delete, verify_dependencies, install_tauri_deps, list_fonts])
+        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, watch_directory, youtube_sign_in, youtube_sign_out, youtube_is_signed_in, list_playlists, load_settings, save_settings, load_srt, save_srt, cancel_generate, cancel_upload, queue_add, queue_list, queue_clear, queue_clear_completed, queue_process, profile_list, profile_get, profile_save, profile_delete, verify_dependencies, install_tauri_deps, list_fonts])
         .run(context)
         .expect("error while running tauri application");
 }

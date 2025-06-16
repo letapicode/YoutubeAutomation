@@ -39,6 +39,7 @@ This project follows a minimalist approach inspired by the principle **"Less but
 - Components should remain visually quiet, leaving generous whitespace around elements.
 - Typography scales in small increments (1.25x) for harmony.
 - The Font selector includes a search field to quickly filter large font lists.
+- The Playlist picker lets users choose from existing YouTube playlists instead of typing IDs.
 - The Queue status panel offers a **Clear Completed** button to remove finished jobs.
 - The onboarding modal uses a simple multi-step wizard with Next/Back controls.
 
