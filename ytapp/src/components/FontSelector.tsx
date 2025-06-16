@@ -18,6 +18,7 @@ interface FontSelectorProps {
 const FontSelector: React.FC<FontSelectorProps> = ({ value, onChange }) => {
     const { t } = useTranslation();
     const [fonts, setFonts] = useState<SystemFont[]>([]);
+    const [search, setSearch] = useState('');
     const [filter, setFilter] = useState('');
 
     useEffect(() => {
@@ -25,6 +26,11 @@ const FontSelector: React.FC<FontSelectorProps> = ({ value, onChange }) => {
     }, []);
 
     const basename = (p: string) => p.split(/[/\\]/).pop() || p;
+    useEffect(() => {
+        const id = setTimeout(() => setFilter(search), 300);
+        return () => clearTimeout(id);
+    }, [search]);
+
     const filteredFonts = fonts.filter(f =>
         f.name.toLowerCase().includes(filter.toLowerCase())
     );
@@ -53,8 +59,8 @@ const FontSelector: React.FC<FontSelectorProps> = ({ value, onChange }) => {
             <input
                 aria-label={t('font_search')}
                 placeholder={t('font_search')}
-                value={filter}
-                onChange={e => setFilter(e.target.value)}
+                value={search}
+                onChange={e => setSearch(e.target.value)}
                 style={{ width: '100%', marginBottom: 4 }}
             />
             <select value={currentValue} onChange={handleChange} aria-label="Font selector">

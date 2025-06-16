@@ -211,7 +211,7 @@ If `cargo check` fails on Linux, run `scripts/install_tauri_deps.sh`.
 * Bundle Whisper model downloader on first launch
 * Checks for FFmpeg and the Whisper model at startup. Missing dependencies
   trigger a dialog explaining how to install them.
-* Optional auto-update check notifies users when a new version is available.
+* Optional auto-update check notifies users when a new version is available using the Tauri updater plugin.
 * `scripts/package.sh` builds installers for Windows, macOS and Linux
 
 ---
@@ -268,7 +268,7 @@ and then source `.env.tauri` (as noted in `AGENTS.md`) before re-running
 
 To automatically process files placed in a folder set the **Watch Directory**
 and enable **Auto Upload** in the settings page or use the CLI `watch` command.
-When the app starts it will immediately begin watching the configured folder.
+When the app starts it will immediately begin watching the configured folder using your saved settings.
 
 ### Contribution
 
@@ -305,7 +305,7 @@ Use the **Font** dropdown in the settings page to load any font installed on you
 system. Fonts are now detected on Windows, macOS and Linux by scanning the
 standard font folders (on Linux `fc-list` is used when available). If your font
 does not appear in the list, choose **Select File** to pick a `.ttf` or `.otf`
-file. A search field filters the font list as you type. The selected font and style are stored in the application settings and
+file. A search field filters the font list as you type with a short debounce so large libraries remain responsive. The selected font and style are stored in the application settings and
 passed to FFmpeg so subtitles render with your custom font.
 
 ### CLI Usage
