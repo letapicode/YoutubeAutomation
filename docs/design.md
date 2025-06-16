@@ -18,6 +18,7 @@ This project follows a minimalist approach inspired by the principle **"Less but
 - Buttons rely on `--button-radius` and `--button-shadow` for subtle depth.
 - Keep iconography simple and high-contrast.
 - Provide a `high` contrast theme for accessibility.
+- Detect the user's preferred color scheme and use it as the initial theme.
 
 ## Motion
 - Interactive elements use subtle transitions (`0.2s ease`) for background and shadow changes.

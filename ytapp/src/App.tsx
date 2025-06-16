@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { generateVideo } from './features/processing';
 import { listen } from '@tauri-apps/api/event';
 import { convertFileSrc, invoke } from '@tauri-apps/api/core';
+import { watchDirectory } from './features/watch';
 import { remove } from '@tauri-apps/plugin-fs';
 import { tempDir } from '@tauri-apps/api/path';
 import YouTubeAuthButton from './components/YouTubeAuthButton';
@@ -50,8 +51,11 @@ const App: React.FC = () => {
     const [width, setWidth] = useState(1280);
     const [height, setHeight] = useState(720);
     const [theme, setTheme] = useState<'light' | 'dark' | 'high'>(() => {
-        const t = localStorage.getItem('theme');
-        return t === 'dark' || t === 'high' ? (t as any) : 'light';
+        const stored = localStorage.getItem('theme');
+        if (stored === 'dark' || stored === 'high' || stored === 'light') {
+            return stored as any;
+        }
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     });
     const [captionColor, setCaptionColor] = useState('#ffffff');
     const [captionBg, setCaptionBg] = useState('#000000');
@@ -86,10 +90,17 @@ const App: React.FC = () => {
             if (s.watermark) setWatermark(s.watermark);
             if (s.watermarkPosition) setWatermarkPos(s.watermarkPosition as any);
             if (s.showGuide !== false) setShowGuide(true);
+            if (s.watchDir) {
+                watchDirectory(s.watchDir, { autoUpload: s.autoUpload });
+            }
         });
         check().then(res => {
             if (res) setShowUpdate(true);
         }).catch(() => {});
+        const unlisten = listen('tauri://update-available', () => setShowUpdate(true));
+        return () => {
+            unlisten.then(f => f());
+        };
     }, []);
 
     useEffect(() => {
