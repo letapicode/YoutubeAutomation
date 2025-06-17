@@ -263,11 +263,11 @@ The CI pipeline runs the same command using the devcontainer image.
 
 ### Troubleshooting `cargo check`
 
-Errors about `gobject-2.0` or `gobject-sys` usually mean `PKG_CONFIG_PATH` is not
-set. Run the appropriate install script (`scripts/install_tauri_deps.sh`,
-`scripts/install_tauri_deps_macos.sh` or `scripts/install_tauri_deps_windows.ps1`)
-and then source `.env.tauri` (as noted in `AGENTS.md`) before re-running
-`cargo check`.
+Errors about `glib-2.0`, `glib-sys` or `gobject-sys` usually mean
+`PKG_CONFIG_PATH` is not set. Run `./scripts/setup_codex.sh` (or the
+OS-specific install script such as `scripts/install_tauri_deps.sh`) to install
+the GTK/WebKit packages and create `.env.tauri`. Then **source `.env.tauri`**
+(as noted in `AGENTS.md`) before re-running `cargo check`.
 
 To automatically process files placed in a folder set the **Watch Directory**
 and enable **Auto Upload** in the settings page or use the CLI `watch` command.
