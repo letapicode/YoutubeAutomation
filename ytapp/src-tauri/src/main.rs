@@ -47,6 +47,12 @@ struct SystemFont {
     path: String,
 }
 
+#[derive(Serialize)]
+struct QueueProgress {
+    index: usize,
+    progress: f64,
+}
+
 static WATCHER: Lazy<Mutex<Option<RecommendedWatcher>>> = Lazy::new(|| Mutex::new(None));
 static ACTIVE_FFMPEG: Lazy<Mutex<Option<Arc<Mutex<Child>>>>> = Lazy::new(|| Mutex::new(None));
 static ACTIVE_UPLOAD: Lazy<Mutex<Option<AbortHandle>>> = Lazy::new(|| Mutex::new(None));
@@ -195,7 +201,7 @@ fn run_ffmpeg(mut cmd: Command) -> Result<(), String> {
     if status.success() { Ok(()) } else { Err("ffmpeg failed".into()) }
 }
 
-fn run_with_progress(mut cmd: Command, duration: f64, window: &Window) -> Result<(), String> {
+fn run_with_progress(mut cmd: Command, duration: f64, window: &Window, index: Option<usize>) -> Result<(), String> {
     use std::io::{BufRead, BufReader};
     cmd.args(["-progress", "pipe:1", "-nostats"]);
     cmd.stdout(std::process::Stdio::piped());
@@ -212,7 +218,11 @@ fn run_with_progress(mut cmd: Command, duration: f64, window: &Window) -> Result
             if let Some(ms) = l.strip_prefix("out_time_ms=") {
                 if let Ok(val) = ms.trim().parse::<u64>() {
                     let pct = (val as f64) / (duration * 1_000_000.0) * 100.0;
-                    let _ = window.emit("generate_progress", pct.min(100.0));
+                    let pct = pct.min(100.0);
+                    let _ = window.emit("generate_progress", pct);
+                    if let Some(i) = index {
+                        let _ = window.emit("queue_progress", QueueProgress { index: i, progress: pct });
+                    }
                 }
             }
         }
@@ -228,14 +238,15 @@ fn run_with_progress(mut cmd: Command, duration: f64, window: &Window) -> Result
 struct ProgressReader<R: Read + Seek> {
     inner: R,
     window: Window,
+    index: Option<usize>,
     total: u64,
     sent: u64,
     last: u64,
 }
 
 impl<R: Read + Seek> ProgressReader<R> {
-    fn new(inner: R, window: Window, total: u64) -> Self {
-        Self { inner, window, total, sent: 0, last: 0 }
+    fn new(inner: R, window: Window, total: u64, index: Option<usize>) -> Self {
+        Self { inner, window, index, total, sent: 0, last: 0 }
     }
 }
 
@@ -247,6 +258,9 @@ impl<R: Read + Seek> Read for ProgressReader<R> {
             let pct = ((self.sent as f64 / self.total as f64) * 100.0).floor() as u64;
             if pct != self.last {
                 let _ = self.window.emit("upload_progress", pct as f64);
+                if let Some(i) = self.index {
+                    let _ = self.window.emit("queue_progress", QueueProgress { index: i, progress: pct as f64 });
+                }
                 self.last = pct;
             }
         }
@@ -296,7 +310,7 @@ fn convert_media(path: &str, duration: Option<f64>, width: u32, height: u32) -> 
     Ok(out)
 }
 
-fn build_main_section(window: Option<&Window>, params: &GenerateParams, duration: f64, width: u32, height: u32) -> Result<PathBuf, String> {
+fn build_main_section(window: Option<&Window>, params: &GenerateParams, duration: f64, width: u32, height: u32, index: Option<usize>) -> Result<PathBuf, String> {
     let out = temp_file("main");
     let mut cmd = Command::new("ffmpeg");
     cmd.arg("-y");
@@ -392,7 +406,7 @@ fn build_main_section(window: Option<&Window>, params: &GenerateParams, duration
 
     cmd.arg(out.to_str().unwrap());
     if let Some(w) = window {
-        run_with_progress(cmd, duration, w)?;
+        run_with_progress(cmd, duration, w, index)?;
     } else {
         run_ffmpeg(cmd)?;
     }
@@ -400,7 +414,7 @@ fn build_main_section(window: Option<&Window>, params: &GenerateParams, duration
 }
 
 #[command]
-fn generate_video(window: Window, params: GenerateParams) -> Result<String, String> {
+fn generate_video(window: Window, params: GenerateParams, queue_index: Option<usize>) -> Result<String, String> {
     log(&window.app_handle(), "info", "generate_video start");
     let output_path = params
         .output
@@ -418,7 +432,7 @@ fn generate_video(window: Window, params: GenerateParams) -> Result<String, Stri
 
     let duration = audio_duration(&params.file)?;
     let _ = window.emit("generate_progress", 0f64);
-    let main = build_main_section(Some(&window), &params, duration, width, height)?;
+    let main = build_main_section(Some(&window), &params, duration, width, height, queue_index)?;
 
     let mut segments = Vec::new();
     if let Some(ref intro) = params.intro {
@@ -463,7 +477,7 @@ fn generate_video(window: Window, params: GenerateParams) -> Result<String, Stri
     Ok(output_path)
 }
 
-async fn upload_video_impl(window: Window, file: String, opts: UploadOptions) -> Result<String, String> {
+async fn upload_video_impl(window: Window, file: String, opts: UploadOptions, index: Option<usize>) -> Result<String, String> {
     log(&window.app_handle(), "info", &format!("upload_video start: {}", file));
     let auth = build_authenticator().await?;
 
@@ -504,7 +518,7 @@ async fn upload_video_impl(window: Window, file: String, opts: UploadOptions) ->
 
     let f = std::fs::File::open(&file).map_err(|e| format!("Failed to open file: {}", e))?;
     let size = f.metadata().map_err(|e| e.to_string())?.len();
-    let reader = ProgressReader::new(f, window.clone(), size);
+    let reader = ProgressReader::new(f, window.clone(), size, index);
     let mut reader = std::io::BufReader::new(reader);
     let _ = window.emit("upload_progress", 0f64);
 
@@ -609,7 +623,7 @@ async fn build_authenticator() -> Result<Authenticator<HttpsConnector<HttpConnec
 
 #[command]
 async fn upload_video(window: Window, file: String, opts: Option<UploadOptions>) -> Result<String, String> {
-    upload_video_impl(window, file, opts.unwrap_or_default()).await
+    upload_video_impl(window, file, opts.unwrap_or_default(), None).await
 }
 
 #[command]
@@ -679,8 +693,8 @@ async fn list_playlists() -> Result<Vec<PlaylistInfo>, String> {
 }
 
 #[command]
-async fn generate_upload(window: Window, params: GenerateParams) -> Result<String, String> {
-    let output = generate_video(window.clone(), params.clone())?;
+async fn generate_upload(window: Window, params: GenerateParams, queue_index: Option<usize>) -> Result<String, String> {
+    let output = generate_video(window.clone(), params.clone(), queue_index)?;
     let result = upload_video_impl(window.clone(), output.clone(), UploadOptions {
         title: params.title,
         description: params.description,
@@ -690,7 +704,7 @@ async fn generate_upload(window: Window, params: GenerateParams) -> Result<Strin
         privacy: params.privacy.clone(),
         playlist_id: params.playlist_id.clone(),
         ..Default::default()
-    }).await?;
+    }, queue_index).await?;
     let _ = fs::remove_file(output);
     Ok(result)
 }
@@ -700,7 +714,7 @@ async fn upload_videos(window: Window, files: Vec<String>, opts: Option<UploadOp
     let mut results = Vec::new();
     let o = opts.unwrap_or_default();
     for file in files {
-        results.push(upload_video_impl(window.clone(), file, o.clone()).await?);
+        results.push(upload_video_impl(window.clone(), file, o.clone(), None).await?);
     }
     Ok(results)
 }
@@ -788,7 +802,7 @@ async fn generate_batch_upload(window: Window, params: BatchGenerateParams) -> R
             thumbnail: params.thumbnail.clone(),
             privacy: params.privacy.clone(),
             playlist_id: params.playlist_id.clone(),
-        })?;
+        }, None)?;
         let res = upload_video_impl(window.clone(), video.clone(), UploadOptions {
             title: params.title.clone(),
             description: params.description.clone(),
@@ -798,7 +812,7 @@ async fn generate_batch_upload(window: Window, params: BatchGenerateParams) -> R
             privacy: params.privacy.clone(),
             playlist_id: params.playlist_id.clone(),
             ..Default::default()
-        }).await?;
+        }, None).await?;
         let _ = fs::remove_file(video);
         results.push(res);
     }
@@ -960,6 +974,13 @@ fn queue_remove(app: tauri::AppHandle, index: usize) -> Result<(), String> {
 }
 
 #[command]
+fn queue_move(app: tauri::AppHandle, from: usize, to: usize) -> Result<(), String> {
+    load_queue(&app).ok();
+    log(&app, "info", "queue_move");
+    job_queue::move_job(&app, from, to)
+}
+
+#[command]
 fn queue_clear_completed(app: tauri::AppHandle) -> Result<(), String> {
     load_queue(&app).ok();
     log(&app, "info", "queue_clear_completed");
@@ -977,12 +998,12 @@ async fn queue_process(window: Window, retry_failed: Option<bool>) -> Result<(),
         let res: Result<(), String> = match item.job {
             Job::Generate { mut params, dest } => {
                 params.output = Some(dest);
-                generate_video(window.clone(), params).map(|_| ())
+                generate_video(window.clone(), params, Some(idx)).map(|_| ())
             }
             Job::GenerateUpload { mut params, dest, thumbnail } => {
                 params.output = Some(dest);
                 if params.thumbnail.is_none() { params.thumbnail = thumbnail.clone(); }
-                generate_upload(window.clone(), params).await.map(|_| ())
+                generate_upload(window.clone(), params, Some(idx)).await.map(|_| ())
             }
         };
         match res {
@@ -1009,12 +1030,12 @@ fn start_queue_worker(window: Window) {
                 let res: Result<(), String> = match item.job {
                     Job::Generate { mut params, dest } => {
                         params.output = Some(dest);
-                        generate_video(window.clone(), params).map(|_| ())
+                        generate_video(window.clone(), params, Some(idx)).map(|_| ())
                     }
                     Job::GenerateUpload { mut params, dest, thumbnail } => {
                         params.output = Some(dest);
                         if params.thumbnail.is_none() { params.thumbnail = thumbnail.clone(); }
-                        generate_upload(window.clone(), params).await.map(|_| ())
+                        generate_upload(window.clone(), params, Some(idx)).await.map(|_| ())
                     }
                 };
                 match res {
@@ -1259,7 +1280,7 @@ fn main() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, watch_directory, youtube_sign_in, youtube_sign_out, youtube_is_signed_in, list_playlists, load_settings, save_settings, load_srt, save_srt, cancel_generate, cancel_upload, queue_add, queue_list, queue_remove, queue_clear, queue_clear_completed, queue_process, profile_list, profile_get, profile_save, profile_delete, verify_dependencies, install_tauri_deps, list_fonts])
+        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, watch_directory, youtube_sign_in, youtube_sign_out, youtube_is_signed_in, list_playlists, load_settings, save_settings, load_srt, save_srt, cancel_generate, cancel_upload, queue_add, queue_list, queue_remove, queue_move, queue_clear, queue_clear_completed, queue_process, profile_list, profile_get, profile_save, profile_delete, verify_dependencies, install_tauri_deps, list_fonts])
         .run(context)
         .expect("error while running tauri application");
 }
