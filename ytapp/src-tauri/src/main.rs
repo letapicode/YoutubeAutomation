@@ -988,18 +988,37 @@ fn queue_clear_completed(app: tauri::AppHandle) -> Result<(), String> {
 }
 
 #[command]
+fn queue_pause(_app: tauri::AppHandle) {
+    job_queue::set_paused(true);
+    job_queue::notifier().notify_one();
+}
+
+#[command]
+fn queue_resume(_app: tauri::AppHandle) {
+    job_queue::set_paused(false);
+    job_queue::notifier().notify_one();
+}
+
+#[command]
 async fn queue_process(window: Window, retry_failed: Option<bool>) -> Result<(), String> {
     let app = window.app_handle();
     load_queue(&app).ok();
     let settings = load_settings(app.clone()).unwrap_or_default();
     let max_retries = settings.max_retries.unwrap_or(3);
     let retry = retry_failed.unwrap_or(false);
-    while let Some((idx, item)) = dequeue(&app, retry, max_retries)? {
-        let res: Result<(), String> = match item.job {
-            Job::Generate { mut params, dest } => {
-                params.output = Some(dest);
-                generate_video(window.clone(), params, Some(idx)).map(|_| ())
-            }
+    let notify = notifier();
+    loop {
+        if job_queue::is_paused() {
+            notify.notified().await;
+            continue;
+        }
+        let maybe = dequeue(&app, retry, max_retries)?;
+        if let Some((idx, item)) = maybe {
+            let res: Result<(), String> = match item.job {
+                Job::Generate { mut params, dest } => {
+                    params.output = Some(dest);
+                    generate_video(window.clone(), params, Some(idx)).map(|_| ())
+                }
             Job::GenerateUpload { mut params, dest, thumbnail } => {
                 params.output = Some(dest);
                 if params.thumbnail.is_none() { params.thumbnail = thumbnail.clone(); }
@@ -1009,6 +1028,9 @@ async fn queue_process(window: Window, retry_failed: Option<bool>) -> Result<(),
         match res {
             Ok(_) => { mark_complete(&app, idx)?; log(&app, "info", "job_complete"); },
             Err(e) => { log(&app, "error", &e); mark_failed(&app, idx, e)?; },
+        }
+        } else {
+            break;
         }
     }
     Ok(())
@@ -1026,6 +1048,10 @@ fn start_queue_worker(window: Window) {
             load_queue(&app).ok();
             let settings = load_settings(app.clone()).unwrap_or_default();
             let max_retries = settings.max_retries.unwrap_or(3);
+            if job_queue::is_paused() {
+                notify.notified().await;
+                continue;
+            }
             if let Some((idx, item)) = dequeue(&app, true, max_retries).unwrap_or(None) {
                 let res: Result<(), String> = match item.job {
                     Job::Generate { mut params, dest } => {
@@ -1280,7 +1306,7 @@ fn main() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, watch_directory, youtube_sign_in, youtube_sign_out, youtube_is_signed_in, list_playlists, load_settings, save_settings, load_srt, save_srt, cancel_generate, cancel_upload, queue_add, queue_list, queue_remove, queue_move, queue_clear, queue_clear_completed, queue_process, profile_list, profile_get, profile_save, profile_delete, verify_dependencies, install_tauri_deps, list_fonts])
+        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, watch_directory, youtube_sign_in, youtube_sign_out, youtube_is_signed_in, list_playlists, load_settings, save_settings, load_srt, save_srt, cancel_generate, cancel_upload, queue_add, queue_list, queue_remove, queue_move, queue_clear, queue_clear_completed, queue_pause, queue_resume, queue_process, profile_list, profile_get, profile_save, profile_delete, verify_dependencies, install_tauri_deps, list_fonts])
         .run(context)
         .expect("error while running tauri application");
 }

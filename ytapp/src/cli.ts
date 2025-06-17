@@ -11,7 +11,7 @@ import { translateSrt } from './utils/translate';
 import { parseCsv, CsvRow } from './utils/csv';
 import { watchDirectory } from './features/watch';
 import { generateBatchWithProgress } from './features/batch';
-import { addJob, listJobs, runQueue, clearQueue, clearCompleted, removeJob } from './features/queue';
+import { addJob, listJobs, runQueue, clearQueue, clearCompleted, removeJob, pauseQueue, resumeQueue } from './features/queue';
 import { listProfiles, getProfile, saveProfile, deleteProfile } from './features/profiles';
 import type { Profile } from './schema';
 import { verifyDependencies } from './features/dependencies';
@@ -965,6 +965,30 @@ program
       await runQueue(!!opts.retryFailed);
     } catch (err) {
       console.error('Error running queue:', err);
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command('queue-pause')
+  .description('Pause queue processing')
+  .action(async () => {
+    try {
+      await pauseQueue();
+    } catch (err) {
+      console.error('Error pausing queue:', err);
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command('queue-resume')
+  .description('Resume queue processing')
+  .action(async () => {
+    try {
+      await resumeQueue();
+    } catch (err) {
+      console.error('Error resuming queue:', err);
       process.exitCode = 1;
     }
   });
