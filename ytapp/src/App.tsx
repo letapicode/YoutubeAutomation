@@ -31,6 +31,7 @@ import SubtitleEditor from './components/SubtitleEditor';
 import { notify } from './utils/notify';
 import UpdateModal from './components/UpdateModal';
 import QueuePage from './components/QueuePage';
+import HelpOverlay from './components/HelpOverlay';
 import { check } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
 
@@ -68,6 +69,7 @@ const App: React.FC = () => {
     const [outputs, setOutputs] = useState<string[]>([]);
     const [preview, setPreview] = useState('');
     const [showGuide, setShowGuide] = useState(false);
+    const [showHelp, setShowHelp] = useState(false);
     const [showUpdate, setShowUpdate] = useState(false);
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
@@ -323,6 +325,9 @@ const App: React.FC = () => {
                     e.preventDefault();
                 } else if (e.key === 's') {
                     setPage('settings');
+                    e.preventDefault();
+                } else if (e.key === 'h') {
+                    setShowHelp(true);
                     e.preventDefault();
                 }
             }
@@ -627,6 +632,7 @@ const App: React.FC = () => {
             </Modal>
             <WatchStatus />
             <div aria-live="polite" className="sr-only">{announcement}</div>
+            <HelpOverlay open={showHelp} onClose={() => setShowHelp(false)} />
             <UpdateModal open={showUpdate} onUpdate={handleUpdateApp} onClose={() => setShowUpdate(false)} />
             <OnboardingModal open={showGuide} onClose={dismissGuide} />
         </div>

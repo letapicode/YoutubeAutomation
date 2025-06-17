@@ -111,6 +111,19 @@ pub fn remove_job(app: &tauri::AppHandle, index: usize) -> Result<(), String> {
     Ok(())
 }
 
+/// Move a job from one position to another.
+pub fn move_job(app: &tauri::AppHandle, from: usize, to: usize) -> Result<(), String> {
+    let mut q = QUEUE.lock().unwrap();
+    let len = q.len();
+    if from < len && to < len && from != to {
+        let item = q.remove(from);
+        q.insert(to, item);
+        save_queue(app)?;
+        emit_changed(app);
+    }
+    Ok(())
+}
+
 pub fn peek_all() -> Vec<QueueItem> {
     let q = QUEUE.lock().unwrap();
     q.clone()

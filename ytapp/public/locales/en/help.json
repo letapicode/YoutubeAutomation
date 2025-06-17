@@ -1,0 +1,10 @@
+{
+  "title": "Help",
+  "lines": [
+    "Use Generate to create a video from audio files.",
+    "Generate & Upload posts the video directly to YouTube.",
+    "Batch Tools let you process multiple files at once.",
+    "Open Settings for more options and watch directory support."
+  ],
+  "close": "Close"
+}

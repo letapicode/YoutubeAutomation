@@ -16,3 +16,5 @@ Thank you for helping improve this project!
 Please read `AGENTS.md` for coding standards and required commands.
 
 Binary files cannot be meaningfully reviewed by Codex. Avoid committing them and exclude large compiled artifacts (e.g., `ytapp/src-tauri/target`) from pull requests.
+
+Before submitting changes run `npm run a11y-test` inside `ytapp` to check accessibility.
