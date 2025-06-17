@@ -4,16 +4,19 @@ import Modal from './Modal';
 
 interface HelpOverlayProps {
   open: boolean;
+  page?: string;
   onClose: () => void;
 }
 
-const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, onClose }) => {
+const HelpOverlay: React.FC<HelpOverlayProps> = ({ open, page, onClose }) => {
   const { t } = useTranslation('help');
   if (!open) return null;
-  const lines: string[] = t('lines', { returnObjects: true }) as any;
+  const titleKey = page ? `${page}.title` : 'title';
+  const linesKey = page ? `${page}.lines` : 'lines';
+  const lines: string[] = t(linesKey, { returnObjects: true }) as any;
   return (
     <Modal open={open} onClose={onClose}>
-      <h2>{t('title')}</h2>
+      <h2>{t(titleKey)}</h2>
       <ul>
         {lines.map((l, i) => (
           <li key={i}>{l}</li>

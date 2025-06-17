@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import FilePicker from './FilePicker';
 import FontSelector from './FontSelector';
 import SizeSlider from './SizeSlider';
+import CaptionPreview from './CaptionPreview';
 import { loadSettings, saveSettings } from '../features/settings';
 
 const SettingsPage: React.FC = () => {
@@ -157,6 +158,13 @@ const SettingsPage: React.FC = () => {
                 <label>{t('caption_bg')}</label>
                 <input type="color" value={captionBg} onChange={e => setCaptionBg(e.target.value)} />
             </div>
+            <CaptionPreview
+                font={font}
+                size={size}
+                color={captionColor}
+                background={captionBg}
+                position="bottom"
+            />
             <div>
                 <label>{t('whisper_size')}</label>
                 <select value={modelSize} onChange={e => setModelSize(e.target.value)}>

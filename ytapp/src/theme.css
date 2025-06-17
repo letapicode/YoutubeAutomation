@@ -38,3 +38,14 @@
   --transition: 0.2s ease;
   --focus-color: #fff;
 }
+[data-theme="solarized"] {
+  --bg-color: #fdf6e3;
+  --text-color: #657b83;
+  --button-bg: #eee8d5;
+  --button-text: #586e75;
+  --button-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --spacing-8: 0.5rem;
+  --spacing: calc(var(--spacing-8) * 3);
+  --transition: 0.2s ease;
+  --focus-color: #b58900;
+}

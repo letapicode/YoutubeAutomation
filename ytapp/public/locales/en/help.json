@@ -6,5 +6,30 @@
     "Batch Tools let you process multiple files at once.",
     "Open Settings for more options and watch directory support."
   ],
+  "main": {
+    "title": "Workflow Help",
+    "lines": [
+      "Select audio then click Generate to create your video."
+    ]
+  },
+  "batch": {
+    "title": "Batch Help",
+    "lines": [
+      "Batch Processor handles multiple files and Batch Upload posts them."
+    ]
+  },
+  "queue": {
+    "title": "Queue Help",
+    "lines": [
+      "Process Queue runs all pending jobs.",
+      "Pause stops processing until resumed."
+    ]
+  },
+  "settings_page": {
+    "title": "Settings Help",
+    "lines": [
+      "Save default values for captions and watch directory."
+    ]
+  },
   "close": "Close"
 }
