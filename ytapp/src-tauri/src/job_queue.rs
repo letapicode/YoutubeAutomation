@@ -1,6 +1,7 @@
 use std::{fs, path::PathBuf};
 use once_cell::sync::Lazy;
 use std::sync::{Mutex, Arc};
+use std::sync::atomic::{AtomicBool, Ordering};
 use tokio::sync::Notify;
 use serde::{Serialize, Deserialize};
 use tauri::api::path::app_config_dir;
@@ -33,9 +34,21 @@ pub enum Job {
 
 static QUEUE: Lazy<Mutex<Vec<QueueItem>>> = Lazy::new(|| Mutex::new(Vec::new()));
 static NOTIFY: Lazy<Arc<Notify>> = Lazy::new(|| Arc::new(Notify::new()));
+/// Global flag to stop dequeueing
+static PAUSED: Lazy<AtomicBool> = Lazy::new(|| AtomicBool::new(false));
 
 pub fn notifier() -> Arc<Notify> {
     NOTIFY.clone()
+}
+
+/// External toggle for queue processing
+pub fn set_paused(val: bool) {
+    PAUSED.store(val, Ordering::SeqCst);
+}
+
+/// Worker check for paused state
+pub fn is_paused() -> bool {
+    PAUSED.load(Ordering::SeqCst)
 }
 
 fn emit_changed(app: &tauri::AppHandle) {
@@ -66,6 +79,9 @@ pub fn enqueue(app: &tauri::AppHandle, job: Job) -> Result<(), String> {
 }
 
 pub fn dequeue(app: &tauri::AppHandle, retry_failed: bool, max_retries: u32) -> Result<Option<(usize, QueueItem)>, String> {
+    if is_paused() {
+        return Ok(None);
+    }
     let mut q = QUEUE.lock().unwrap();
     for (i, item) in q.iter_mut().enumerate() {
         if item.status == JobStatus::Pending ||

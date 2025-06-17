@@ -45,6 +45,14 @@ export async function runQueue(retryFailed = false): Promise<void> {
   await invoke('queue_process', { retryFailed });
 }
 
+export async function pauseQueue(): Promise<void> {
+  await invoke('queue_pause');
+}
+
+export async function resumeQueue(): Promise<void> {
+  await invoke('queue_resume');
+}
+
 export async function moveJob(from: number, to: number): Promise<void> {
   await invoke('queue_move', { from, to });
 }
