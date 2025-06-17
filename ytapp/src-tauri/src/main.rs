@@ -30,7 +30,7 @@ use token_store::EncryptedTokenStorage;
 mod job_queue;
 use job_queue::{Job, QueueItem, enqueue, dequeue, peek_all, load_queue, clear_queue as clear_in_memory, notifier, mark_complete, mark_failed};
 mod logger;
-use logger::log;
+use logger::{log, read_logs};
 use tauri::api::dialog::{blocking::MessageDialogBuilder, MessageDialogKind};
 use notify::{RecommendedWatcher, RecursiveMode, Watcher, Config, EventKind, Event, Error as NotifyError};
 use once_cell::sync::Lazy;
@@ -1296,6 +1296,11 @@ fn install_tauri_deps() -> Result<(), String> {
     }
 }
 
+#[command]
+fn get_logs(app: tauri::AppHandle, max_lines: Option<usize>) -> Result<String, String> {
+    read_logs(&app, max_lines.unwrap_or(200))
+}
+
 fn main() {
     let context = tauri::generate_context!();
     ensure_whisper_model(&context.config());
@@ -1306,7 +1311,7 @@ fn main() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, watch_directory, youtube_sign_in, youtube_sign_out, youtube_is_signed_in, list_playlists, load_settings, save_settings, load_srt, save_srt, cancel_generate, cancel_upload, queue_add, queue_list, queue_remove, queue_move, queue_clear, queue_clear_completed, queue_pause, queue_resume, queue_process, profile_list, profile_get, profile_save, profile_delete, verify_dependencies, install_tauri_deps, list_fonts])
+        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, watch_directory, youtube_sign_in, youtube_sign_out, youtube_is_signed_in, list_playlists, load_settings, save_settings, load_srt, save_srt, cancel_generate, cancel_upload, queue_add, queue_list, queue_remove, queue_move, queue_clear, queue_clear_completed, queue_pause, queue_resume, queue_process, profile_list, profile_get, profile_save, profile_delete, verify_dependencies, install_tauri_deps, list_fonts, get_logs])
         .run(context)
         .expect("error while running tauri application");
 }

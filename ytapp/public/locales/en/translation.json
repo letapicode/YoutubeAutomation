@@ -79,5 +79,7 @@
   "update_now": "Update Now",
   "later": "Later",
   "playlist": "Playlist",
-  "font_search": "Search fonts..."
+  "font_search": "Search fonts...",
+  "logs": "Logs",
+  "refresh": "Refresh"
 }

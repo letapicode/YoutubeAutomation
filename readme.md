@@ -198,6 +198,7 @@ If `cargo check` fails on Linux, run `scripts/install_tauri_deps.sh`.
    launch when a matching translation exists. Contributions to improve
    translations are welcome.
 * Video preview modal after generation
+* Logs page to view application logs
 
 ---
 
@@ -406,6 +407,11 @@ Pause or resume queue processing:
 ```bash
 npx ts-node src/cli.ts queue-pause
 npx ts-node src/cli.ts queue-resume
+```
+View recent logs:
+
+```bash
+npx ts-node src/cli.ts logs 200
 ```
 The maximum retry count is configurable in the Settings page or by `max_retries` in `settings.json` (default `3`).
 
