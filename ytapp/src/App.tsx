@@ -31,13 +31,14 @@ import SubtitleEditor from './components/SubtitleEditor';
 import { notify } from './utils/notify';
 import UpdateModal from './components/UpdateModal';
 import QueuePage from './components/QueuePage';
+import LogsPage from './components/LogsPage';
 import HelpOverlay from './components/HelpOverlay';
 import { check } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
 
 const App: React.FC = () => {
     const { t, i18n } = useTranslation();
-    const [page, setPage] = useState<'single' | 'batch' | 'settings' | 'profiles' | 'queue'>('single');
+    const [page, setPage] = useState<'single' | 'batch' | 'settings' | 'profiles' | 'queue' | 'logs'>('single');
     const [file, setFile] = useState('');
     const [background, setBackground] = useState('');
     const [captions, setCaptions] = useState('');
@@ -380,6 +381,17 @@ const App: React.FC = () => {
         );
     }
 
+    if (page === 'logs') {
+        return (
+            <div className="app">
+                <div className="row">
+                    <button onClick={() => setPage('single')}>{t('back')}</button>
+                </div>
+                <LogsPage />
+            </div>
+        );
+    }
+
     return (
         <div className="app">
             <h1>{t('title')}</h1>
@@ -598,6 +610,7 @@ const App: React.FC = () => {
                     {t('settings')}
                 </button>
                 <button onClick={() => setPage('queue')}>{t('queue')}</button>
+                <button onClick={() => setPage('logs')}>{t('logs')}</button>
             </div>
             {generating && (
                 <div className="row">

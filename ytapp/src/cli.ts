@@ -15,6 +15,7 @@ import { addJob, listJobs, runQueue, clearQueue, clearCompleted, removeJob, paus
 import { listProfiles, getProfile, saveProfile, deleteProfile } from './features/profiles';
 import type { Profile } from './schema';
 import { verifyDependencies } from './features/dependencies';
+import { getLogs } from './features/logs';
 
 async function callWithProgress<T>(
   fn: () => Promise<T>,
@@ -989,6 +990,21 @@ program
       await resumeQueue();
     } catch (err) {
       console.error('Error resuming queue:', err);
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command('logs')
+  .description('Print recent log entries')
+  .argument('[maxLines]', 'number of lines to show')
+  .action(async (maxLines: string | undefined) => {
+    try {
+      const n = parseInt(maxLines || '', 10);
+      const text = await getLogs(isNaN(n) ? 100 : n);
+      console.log(text);
+    } catch (err) {
+      console.error('Error reading logs:', err);
       process.exitCode = 1;
     }
   });

@@ -33,3 +33,14 @@ pub fn log(app: &tauri::AppHandle, level: &str, message: &str) {
         }
     }
 }
+
+pub fn read_logs(app: &tauri::AppHandle, max_lines: usize) -> Result<String, String> {
+    let path = match log_path(app) {
+        Ok(p) => p,
+        Err(e) => return Err(e),
+    };
+    let data = std::fs::read_to_string(path).map_err(|e| e.to_string())?;
+    let lines: Vec<&str> = data.lines().collect();
+    let start = lines.len().saturating_sub(max_lines);
+    Ok(lines[start..].join("\n"))
+}
