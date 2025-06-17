@@ -47,7 +47,7 @@ struct SystemFont {
     path: String,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 struct QueueProgress {
     index: usize,
     progress: f64,
