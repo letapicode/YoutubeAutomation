@@ -81,5 +81,9 @@
   "playlist": "Playlist",
   "font_search": "Search fonts...",
   "logs": "Logs",
-  "refresh": "Refresh"
+  "refresh": "Refresh",
+  "help": "Help",
+  "pause": "Pause",
+  "resume": "Resume",
+  "solarized": "Solarized"
 }

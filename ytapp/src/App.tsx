@@ -33,6 +33,7 @@ import UpdateModal from './components/UpdateModal';
 import QueuePage from './components/QueuePage';
 import LogsPage from './components/LogsPage';
 import HelpOverlay from './components/HelpOverlay';
+import HelpIcon from './components/HelpIcon';
 import { check } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
 
@@ -55,9 +56,9 @@ const App: React.FC = () => {
     const [language, setLanguage] = useState<Language>('auto');
     const [width, setWidth] = useState(1280);
     const [height, setHeight] = useState(720);
-    const [theme, setTheme] = useState<'light' | 'dark' | 'high'>(() => {
+    const [theme, setTheme] = useState<'light' | 'dark' | 'high' | 'solarized'>(() => {
         const stored = localStorage.getItem('theme');
-        if (stored === 'dark' || stored === 'high' || stored === 'light') {
+        if (stored === 'dark' || stored === 'high' || stored === 'light' || stored === 'solarized') {
             return stored as any;
         }
         return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
@@ -71,6 +72,7 @@ const App: React.FC = () => {
     const [preview, setPreview] = useState('');
     const [showGuide, setShowGuide] = useState(false);
     const [showHelp, setShowHelp] = useState(false);
+    const [helpPage, setHelpPage] = useState('main');
     const [showUpdate, setShowUpdate] = useState(false);
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
@@ -123,7 +125,15 @@ const App: React.FC = () => {
     }, [i18n.language]);
 
     const toggleTheme = () =>
-        setTheme(theme === 'light' ? 'dark' : theme === 'dark' ? 'high' : 'light');
+        setTheme(
+            theme === 'light'
+                ? 'dark'
+                : theme === 'dark'
+                ? 'high'
+                : theme === 'high'
+                ? 'solarized'
+                : 'light'
+        );
 
 
     const handleTranscriptionComplete = (srts: string[]) => {
@@ -328,6 +338,7 @@ const App: React.FC = () => {
                     setPage('settings');
                     e.preventDefault();
                 } else if (e.key === 'h') {
+                    setHelpPage(page);
                     setShowHelp(true);
                     e.preventDefault();
                 }
@@ -342,6 +353,9 @@ const App: React.FC = () => {
             <div className="app">
                 <div className="row">
                     <button onClick={() => setPage('single')}>{t('back')}</button>
+                    <button onClick={() => { setHelpPage('batch'); setShowHelp(true); }} aria-label={t('help')}>
+                        <HelpIcon />
+                    </button>
                 </div>
                 <BatchPage />
             </div>
@@ -364,6 +378,9 @@ const App: React.FC = () => {
             <div className="app">
                 <div className="row">
                     <button onClick={() => setPage('single')}>{t('back')}</button>
+                    <button onClick={() => { setHelpPage('settings_page'); setShowHelp(true); }} aria-label={t('help')}>
+                        <HelpIcon />
+                    </button>
                 </div>
                 <SettingsPage />
             </div>
@@ -375,6 +392,9 @@ const App: React.FC = () => {
             <div className="app">
                 <div className="row">
                     <button onClick={() => setPage('single')}>{t('back')}</button>
+                    <button onClick={() => { setHelpPage('queue'); setShowHelp(true); }} aria-label={t('help')}>
+                        <HelpIcon />
+                    </button>
                 </div>
                 <QueuePage />
             </div>
@@ -398,6 +418,9 @@ const App: React.FC = () => {
             <div className="row">
                 <LanguageSelector value={i18n.language as Language} onChange={l => i18n.changeLanguage(l)} />
                 <button onClick={toggleTheme}>{t('toggle_theme')}</button>
+                <button onClick={() => { setHelpPage('main'); setShowHelp(true); }} aria-label={t('help')}>
+                    <HelpIcon />
+                </button>
             </div>
             <div className="row">
                 <FilePicker label={t('select_audio')} useDropZone onSelect={(p) => {
@@ -645,7 +668,7 @@ const App: React.FC = () => {
             </Modal>
             <WatchStatus />
             <div aria-live="polite" className="sr-only">{announcement}</div>
-            <HelpOverlay open={showHelp} onClose={() => setShowHelp(false)} />
+            <HelpOverlay page={helpPage} open={showHelp} onClose={() => setShowHelp(false)} />
             <UpdateModal open={showUpdate} onUpdate={handleUpdateApp} onClose={() => setShowUpdate(false)} />
             <OnboardingModal open={showGuide} onClose={dismissGuide} />
         </div>

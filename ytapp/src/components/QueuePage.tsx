@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { listJobs, runQueue, clearCompleted, clearQueue, listenQueue, removeJob, listenProgress, moveJob, QueueProgress } from '../features/queue';
+import { listJobs, runQueue, pauseQueue, resumeQueue, clearCompleted, clearQueue, listenQueue, removeJob, listenProgress, moveJob, QueueProgress } from '../features/queue';
 
 const QueuePage: React.FC = () => {
   const { t } = useTranslation();
@@ -32,6 +32,12 @@ const QueuePage: React.FC = () => {
     <div>
       <h2>{t('queue')}</h2>
       <button onClick={() => runQueue().then(refresh)}>{t('process_queue')}</button>
+      <button onClick={() => pauseQueue().then(refresh)} aria-label={t('pause')}>
+        {t('pause')}
+      </button>
+      <button onClick={() => resumeQueue().then(refresh)} aria-label={t('resume')}>
+        {t('resume')}
+      </button>
       <button onClick={() => clearCompleted().then(refresh)}>{t('clear_completed')}</button>
       <button onClick={() => clearQueue().then(refresh)}>{t('clear_all')}</button>
       {jobs.map((j, i) => (
