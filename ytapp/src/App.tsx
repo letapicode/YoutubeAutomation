@@ -67,6 +67,7 @@ const App: React.FC = () => {
     });
     const [captionColor, setCaptionColor] = useState('#ffffff');
     const [captionBg, setCaptionBg] = useState('#000000');
+    const [uiFont, setUiFont] = useState('');
     const [accentColor, setAccentColor] = useState('#ff9500');
     const [progress, setProgress] = useState(0);
     const [announcement, setAnnouncement] = useState('');
@@ -100,6 +101,10 @@ const App: React.FC = () => {
             if (s.captionSize) setSize(s.captionSize);
             if (s.captionColor) setCaptionColor(s.captionColor);
             if (s.captionBg) setCaptionBg(s.captionBg);
+            if (s.uiFont) {
+                setUiFont(s.uiFont);
+                document.body.style.fontFamily = s.uiFont;
+            }
             if (s.accentColor) setAccentColor(s.accentColor);
             if (s.watermark) setWatermark(s.watermark);
             if (s.watermarkPosition) setWatermarkPos(s.watermarkPosition as any);
@@ -126,6 +131,10 @@ const App: React.FC = () => {
     useEffect(() => {
         document.documentElement.style.setProperty('--accent-color', accentColor);
     }, [accentColor]);
+
+    useEffect(() => {
+        document.body.style.fontFamily = uiFont || '';
+    }, [uiFont]);
 
     useEffect(() => {
         const lang = languages.find(l => l.value === i18n.language);
