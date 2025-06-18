@@ -216,7 +216,13 @@ If `cargo check` fails on Linux, run `scripts/install_tauri_deps.sh`.
 * Checks for FFmpeg and the Whisper model at startup. Missing dependencies
   trigger a dialog explaining how to install them.
 * Optional auto-update check notifies users when a new version is available using the Tauri updater plugin.
+* Install the Tauri CLI first: `cargo install tauri-cli`
 * `scripts/package.sh` builds installers for Windows, macOS and Linux
+
+```bash
+cargo install tauri-cli
+./scripts/package.sh
+```
 
 ---
 
