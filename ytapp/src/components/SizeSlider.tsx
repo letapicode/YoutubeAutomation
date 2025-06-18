@@ -15,6 +15,7 @@ const SizeSlider: React.FC<SizeSliderProps> = ({ value, onChange, min = 12, max 
         max={max}
         value={value}
         onChange={e => onChange(parseInt(e.target.value, 10))}
+        aria-label="Caption size"
     />
 );
 

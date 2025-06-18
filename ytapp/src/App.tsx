@@ -673,11 +673,12 @@ const App: React.FC = () => {
             ))}
             <Modal open={!!preview} onClose={closePreview}>
                 {preview && (
-                    <video
-                        src={convertFileSrc(preview)}
-                        controls
-                        style={{ maxWidth: '100%', maxHeight: '80vh' }}
-                    />
+                    <div className="video-preview">
+                        <video
+                            src={convertFileSrc(preview)}
+                            controls
+                        />
+                    </div>
                 )}
             </Modal>
             <Modal open={showEditor} onClose={() => setShowEditor(false)}>

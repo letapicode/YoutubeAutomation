@@ -1,6 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { listJobs, runQueue, pauseQueue, resumeQueue, clearCompleted, clearQueue, listenQueue, removeJob, listenProgress, moveJob, QueueProgress } from '../features/queue';
+import {
+  listJobs,
+  runQueue,
+  pauseQueue,
+  resumeQueue,
+  clearCompleted,
+  clearQueue,
+  listenQueue,
+  removeJob,
+  listenProgress,
+  moveJob,
+  QueueProgress,
+  listenNotify,
+  QueueNotify,
+} from '../features/queue';
+import { notify } from '../utils/notify';
 
 const QueuePage: React.FC = () => {
   const { t } = useTranslation();
@@ -16,15 +31,21 @@ const QueuePage: React.FC = () => {
     refresh();
     let unlisten: (() => void) | undefined;
     let progUn: (() => void) | undefined;
+    let notifyUn: (() => void) | undefined;
     listenQueue(refresh).then((u) => {
       unlisten = u;
     });
     listenProgress((p: QueueProgress) => {
       setProgressMap(m => ({ ...m, [p.index]: p.progress }));
     }).then(u => { progUn = u; });
+    listenNotify((n: QueueNotify) => {
+      notify('Queue', n.success ? 'Job completed' : 'Job failed');
+      refresh();
+    }).then(u => { notifyUn = u; });
     return () => {
       if (unlisten) unlisten();
       if (progUn) progUn();
+      if (notifyUn) notifyUn();
     };
   }, []);
 

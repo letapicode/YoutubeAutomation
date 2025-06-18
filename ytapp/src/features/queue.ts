@@ -71,3 +71,18 @@ export async function listenQueue(onChange: () => void): Promise<() => void> {
     unlisten();
   };
 }
+
+export interface QueueNotify {
+  index: number;
+  success: boolean;
+  error?: string;
+}
+
+export async function listenNotify(onNotify: (n: QueueNotify) => void): Promise<() => void> {
+  const unlisten = await listen<QueueNotify>('queue_notify', e => {
+    if (e.payload) onNotify(e.payload as QueueNotify);
+  });
+  return () => {
+    unlisten();
+  };
+}
