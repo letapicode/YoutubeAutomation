@@ -276,6 +276,7 @@ const App: React.FC = () => {
             captionBg: captionBg,
             watermark: watermark || undefined,
             watermarkPosition: watermarkPos,
+            output: output || undefined,
             showGuide: false,
         });
     };
