@@ -28,6 +28,9 @@ cd src-tauri && cargo check
 cd .. && npx ts-node src/cli.ts --help
 ```
 
+Install `ts-node` globally with `npm install -g ts-node` or ensure `npx` can
+download it to run the CLI checks and examples.
+
 `cargo check` may require system packages. Run the appropriate install script
 for your OS (`./scripts/install_tauri_deps.sh`, `./scripts/install_tauri_deps_macos.sh` or `./scripts/install_tauri_deps_windows.ps1`) if needed.
 Be sure `.env.tauri` from `scripts/setup_codex.sh` is sourced (or export the

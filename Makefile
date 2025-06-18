@@ -1,5 +1,8 @@
 .PHONY: dev test package verify lint ts rust cli
 
+# Use globally installed ts-node if available, otherwise fallback to npx.
+TS_NODE := $(shell command -v ts-node >/dev/null 2>&1 && echo ts-node || echo npx ts-node)
+
 verify: lint ts rust cli
 	@echo "✅  All dev checks passed"
 
@@ -13,19 +16,19 @@ rust:
 	cd ytapp/src-tauri && cargo check --quiet
 
 cli:
-	cd ytapp && npx ts-node src/cli.ts --help >/dev/null
+    cd ytapp && $(TS_NODE) src/cli.ts --help >/dev/null
 
 dev:
 	@echo "Running development checks"
-	npx ts-node scripts/generate-schema.ts
+    $(TS_NODE) scripts/generate-schema.ts
 	cd ytapp && npm install
-	cd ytapp/src-tauri && cargo check
-	cd ../.. && npx ts-node ytapp/src/cli.ts --help
+    cd ytapp/src-tauri && cargo check
+    cd ../.. && $(TS_NODE) ytapp/src/cli.ts --help
 
 test:
-	npx ts-node scripts/generate-schema.ts
-	cd ytapp && npx tsc --noEmit
-	for f in ytapp/tests/*.ts; do npx ts-node "$f" || true; done
+    $(TS_NODE) scripts/generate-schema.ts
+    cd ytapp && npx tsc --noEmit
+    for f in ytapp/tests/*.ts; do $(TS_NODE) "$f" || true; done
 	cd ytapp/src-tauri && cargo test --all-targets || true
 
 package:
