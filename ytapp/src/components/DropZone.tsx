@@ -23,7 +23,12 @@ const DropZone: React.FC<DropZoneProps> = ({ onDropFiles, acceptExt, multiple = 
     });
 
     return (
-        <div {...getRootProps()} className="dropzone">
+        <div
+            {...getRootProps()}
+            className="dropzone"
+            role="button"
+            tabIndex={0}
+        >
             <input {...getInputProps()} />
             {isDragActive ? 'Drop files here...' : label || 'Drag & drop files here'}
         </div>

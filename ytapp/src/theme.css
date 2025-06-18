@@ -52,3 +52,15 @@
   --transition: 0.2s ease;
   --focus-color: #b58900;
 }
+
+.video-preview {
+  background: var(--bg-color);
+  display: flex;
+  justify-content: center;
+}
+
+.video-preview video {
+  width: 100%;
+  height: auto;
+  max-height: 80vh;
+}

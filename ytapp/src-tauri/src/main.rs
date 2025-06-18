@@ -53,6 +53,13 @@ struct QueueProgress {
     progress: f64,
 }
 
+#[derive(Serialize, Clone)]
+struct QueueNotify {
+    index: usize,
+    success: bool,
+    error: Option<String>,
+}
+
 static WATCHER: Lazy<Mutex<Option<RecommendedWatcher>>> = Lazy::new(|| Mutex::new(None));
 static ACTIVE_FFMPEG: Lazy<Mutex<Option<Arc<Mutex<Child>>>>> = Lazy::new(|| Mutex::new(None));
 static ACTIVE_UPLOAD: Lazy<Mutex<Option<AbortHandle>>> = Lazy::new(|| Mutex::new(None));
@@ -1084,8 +1091,22 @@ fn start_queue_worker(window: Window) {
                     }
                 };
                 match res {
-                    Ok(_) => { let _ = mark_complete(&app, idx); log(&app, "info", "job_complete"); },
-                    Err(e) => { log(&app, "error", &e); let _ = mark_failed(&app, idx, e); },
+                    Ok(_) => {
+                        let _ = mark_complete(&app, idx);
+                        log(&app, "info", "job_complete");
+                        let _ = window.emit(
+                            "queue_notify",
+                            QueueNotify { index: idx, success: true, error: None },
+                        );
+                    }
+                    Err(e) => {
+                        log(&app, "error", &e);
+                        let _ = mark_failed(&app, idx, e.clone());
+                        let _ = window.emit(
+                            "queue_notify",
+                            QueueNotify { index: idx, success: false, error: Some(e) },
+                        );
+                    }
                 }
             } else {
                 notify.notified().await;

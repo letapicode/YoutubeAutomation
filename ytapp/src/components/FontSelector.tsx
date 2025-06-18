@@ -66,10 +66,16 @@ const FontSelector: React.FC<FontSelectorProps> = ({ value, onChange }) => {
             <select value={currentValue} onChange={handleChange} aria-label="Font selector">
                 <option value="">{t('default')}</option>
                 {filteredFonts.map(f => (
-                    <option key={f.path} value={f.path}>{`${f.name} (${f.style})`}</option>
+                    <option
+                        key={f.path}
+                        value={f.path}
+                        style={{ fontFamily: f.name }}
+                    >{`${f.name} (${f.style})`}</option>
                 ))}
                 {value?.path && !fonts.find(f => f.path === value.path) && (
-                    <option value={value.path}>{basename(value.path)}</option>
+                    <option value={value.path} style={{ fontFamily: value.name }}>
+                        {basename(value.path)}
+                    </option>
                 )}
                 <option value="__custom__">{t('select_file')}</option>
             </select>

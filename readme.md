@@ -232,6 +232,10 @@ required GTK/WebKit packages. It also writes `.env.tauri` which defines
 After the script finishes **source `.env.tauri` or restart your shell** so
 the variables are available before running any Cargo commands.
 
+The application automatically verifies that FFmpeg and Whisper are installed at
+startup. To run this check manually use:
+`npx ts-node src/cli.ts check-deps`
+
 ```bash
 git clone https://github.com/letapicode/YoutubeAutomation.git
 cd YoutubeAutomation
