@@ -11,6 +11,7 @@ export interface Settings {
     captionSize?: number;
     captionColor?: string;
     captionBg?: string;
+    accentColor?: string;
     watermark?: string;
     watermarkPosition?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
     showGuide?: boolean;

@@ -53,7 +53,7 @@ const ProfilesPage: React.FC<ProfilesPageProps> = ({ onLoad }) => {
 
     const handleNumberChange = (key: keyof Profile) => (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value;
-        setProfile(prev => ({ ...prev, [key]: val ? parseInt(val, 10) : undefined }));
+        setProfile(prev => ({ ...prev, [key]: val ? Number(val) : undefined }));
     };
 
     const handleCaptionChange = (key: keyof NonNullable<Profile['captionOptions']>) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -93,6 +93,10 @@ const ProfilesPage: React.FC<ProfilesPageProps> = ({ onLoad }) => {
             </div>
             <div className="row">
                 <input type="text" placeholder="Watermark Position" value={profile.watermarkPosition || ''} onChange={handleProfileChange('watermarkPosition')} />
+            </div>
+            <div className="row">
+                <input type="number" step="0.05" placeholder="Opacity" value={profile.watermarkOpacity ?? 1} onChange={handleNumberChange('watermarkOpacity')} />
+                <input type="number" step="0.05" placeholder="Scale" value={profile.watermarkScale ?? 0.2} onChange={handleNumberChange('watermarkScale')} />
             </div>
             <div className="row">
                 <input type="number" placeholder="Width" value={profile.width || ''} onChange={handleNumberChange('width')} />

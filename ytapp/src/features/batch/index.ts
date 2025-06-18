@@ -11,6 +11,8 @@ export interface BatchOptions extends Omit<GenerateParams, 'file' | 'output'> {
     background?: string;
     watermark?: string;
     watermarkPosition?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+    watermarkOpacity?: number;
+    watermarkScale?: number;
 }
 
 // Derive an output file path based on the input file and optional directory.
@@ -29,6 +31,8 @@ async function generateOne(file: string, options: BatchOptions): Promise<string>
         background: options.background,
         watermark: options.watermark,
         watermarkPosition: options.watermarkPosition,
+        watermarkOpacity: options.watermarkOpacity,
+        watermarkScale: options.watermarkScale,
         intro: options.intro,
         outro: options.outro,
         width: options.width,

@@ -16,6 +16,8 @@ export interface Profile {
   outro?: string;
   watermark?: string;
   watermarkPosition?: string;
+  watermarkOpacity?: number;
+  watermarkScale?: number;
   width?: number;
   height?: number;
   title?: string;
@@ -37,6 +39,8 @@ export interface GenerateParams {
   outro?: string;
   watermark?: string;
   watermarkPosition?: string;
+  watermarkOpacity?: number;
+  watermarkScale?: number;
   width?: number;
   height?: number;
   title?: string;

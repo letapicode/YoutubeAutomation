@@ -51,6 +51,12 @@ const BatchOptionsForm: React.FC<BatchOptionsFormProps> = ({ value, onChange }) 
                 </select>
             </div>
             <div className="row">
+                <label>{t('watermark_opacity')}</label>
+                <input type="number" min="0" max="1" step="0.05" value={value.watermarkOpacity ?? 1} onChange={e => update({ watermarkOpacity: parseFloat(e.target.value) })} />
+                <label>{t('watermark_scale')}</label>
+                <input type="number" min="0" max="1" step="0.05" value={value.watermarkScale ?? 0.2} onChange={e => update({ watermarkScale: parseFloat(e.target.value) })} />
+            </div>
+            <div className="row">
                 <FilePicker
                     label={t('intro')}
                     onSelect={(p) => {

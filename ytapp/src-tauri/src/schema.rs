@@ -23,6 +23,10 @@ pub struct Profile {
     pub watermark: Option<String>,
     #[serde(rename = "watermarkPosition")]
     pub watermark_position: Option<String>,
+    #[serde(rename = "watermarkOpacity")]
+    pub watermark_opacity: Option<f32>,
+    #[serde(rename = "watermarkScale")]
+    pub watermark_scale: Option<f32>,
     pub width: Option<u32>,
     pub height: Option<u32>,
     pub title: Option<String>,
@@ -49,6 +53,10 @@ pub struct GenerateParams {
     pub watermark: Option<String>,
     #[serde(rename = "watermarkPosition")]
     pub watermark_position: Option<String>,
+    #[serde(rename = "watermarkOpacity")]
+    pub watermark_opacity: Option<f32>,
+    #[serde(rename = "watermarkScale")]
+    pub watermark_scale: Option<f32>,
     pub width: Option<u32>,
     pub height: Option<u32>,
     pub title: Option<String>,

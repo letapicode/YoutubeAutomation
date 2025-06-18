@@ -41,6 +41,8 @@
   "whisper_size": "Whisper Model Size",
   "watermark": "Watermark",
   "watermark_position": "Watermark Position",
+  "watermark_opacity": "Watermark Opacity",
+  "watermark_scale": "Watermark Scale",
   "top_left": "Top Left",
   "top_right": "Top Right",
   "bottom_left": "Bottom Left",
