@@ -89,6 +89,7 @@ struct AppSettings {
     show_guide: Option<bool>,
     watch_dir: Option<String>,
     auto_upload: Option<bool>,
+    output: Option<String>,
     model_size: Option<String>,
     max_retries: Option<u32>,
     profiles: HashMap<String, Profile>,
@@ -111,6 +112,7 @@ impl Default for AppSettings {
             show_guide: Some(true),
             watch_dir: None,
             auto_upload: Some(false),
+            output: None,
             model_size: Some("base".into()),
             max_retries: Some(3),
             profiles: HashMap::new(),
@@ -898,6 +900,9 @@ fn load_settings(app: tauri::AppHandle) -> Result<AppSettings, String> {
     }
     if settings.auto_upload.is_none() {
         settings.auto_upload = Some(false);
+    }
+    if settings.output.is_none() {
+        settings.output = None;
     }
     if settings.model_size.is_none() {
         settings.model_size = Some("base".into());
