@@ -1,6 +1,7 @@
 :root {
   --bg-color: #f5f5f5;
   --text-color: #333;
+  --accent-color: #ff9500;
   --button-bg: #ffffff;
   --button-text: #333;
   --button-radius: 4px;
@@ -8,18 +9,19 @@
   --spacing-8: 0.5rem;
   --spacing: calc(var(--spacing-8) * 3);
   --transition: 0.2s ease;
-  --focus-color: #ff9500;
+  --focus-color: var(--accent-color);
 }
 [data-theme="dark"] {
   --bg-color: #333;
   --text-color: #f5f5f5;
+  --accent-color: #ff9500;
   --button-bg: #444;
   --button-text: #f5f5f5;
   --button-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   --spacing-8: 0.5rem;
   --spacing: calc(var(--spacing-8) * 3);
   --transition: 0.2s ease;
-  --focus-color: #ff9500;
+  --focus-color: var(--accent-color);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -30,13 +32,14 @@
 [data-theme="high"] {
   --bg-color: #000;
   --text-color: #fff;
+  --accent-color: #fff;
   --button-bg: #000;
   --button-text: #fff;
   --button-shadow: none;
   --spacing-8: 0.5rem;
   --spacing: calc(var(--spacing-8) * 3);
   --transition: 0.2s ease;
-  --focus-color: #fff;
+  --focus-color: var(--accent-color);
 }
 [data-theme="solarized"] {
   --bg-color: #fdf6e3;

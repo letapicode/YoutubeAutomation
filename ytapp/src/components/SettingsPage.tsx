@@ -18,6 +18,7 @@ const SettingsPage: React.FC = () => {
     const [size, setSize] = useState(24);
     const [captionColor, setCaptionColor] = useState('#ffffff');
     const [captionBg, setCaptionBg] = useState('#000000');
+    const [accentColor, setAccentColor] = useState('#ff9500');
     const [watermark, setWatermark] = useState('');
     const [watermarkPos, setWatermarkPos] = useState<'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'>('top-right');
     const [guide, setGuide] = useState(true);
@@ -38,6 +39,7 @@ const SettingsPage: React.FC = () => {
             setSize(s.captionSize || 24);
             if (s.captionColor) setCaptionColor(s.captionColor);
             if (s.captionBg) setCaptionBg(s.captionBg);
+            if (s.accentColor) setAccentColor(s.accentColor);
             if (s.watermark) setWatermark(s.watermark);
             if (s.watermarkPosition) setWatermarkPos(s.watermarkPosition as any);
             setGuide(s.showGuide !== false);
@@ -68,6 +70,7 @@ const SettingsPage: React.FC = () => {
             output: output || undefined,
             modelSize,
             maxRetries,
+            accentColor,
         });
     };
 
@@ -157,6 +160,8 @@ const SettingsPage: React.FC = () => {
                 <input type="color" value={captionColor} onChange={e => setCaptionColor(e.target.value)} />
                 <label>{t('caption_bg')}</label>
                 <input type="color" value={captionBg} onChange={e => setCaptionBg(e.target.value)} />
+                <label>Accent</label>
+                <input type="color" value={accentColor} onChange={e => setAccentColor(e.target.value)} />
             </div>
             <CaptionPreview
                 font={font}

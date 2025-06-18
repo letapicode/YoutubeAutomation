@@ -84,6 +84,7 @@ struct AppSettings {
     caption_size: Option<u32>,
     caption_color: Option<String>,
     caption_bg: Option<String>,
+    accent_color: Option<String>,
     watermark: Option<String>,
     watermark_position: Option<String>,
     show_guide: Option<bool>,
@@ -106,6 +107,7 @@ impl Default for AppSettings {
             caption_size: None,
             caption_color: None,
             caption_bg: None,
+            accent_color: None,
             watermark: None,
             watermark_position: None,
             show_guide: Some(true),
@@ -393,10 +395,14 @@ fn build_main_section(window: Option<&Window>, params: &GenerateParams, duration
                 "bottom-left" => "10:H-h-10",
                 _ => "W-w-10:H-h-10",
             };
+            let scale = params.watermark_scale.unwrap_or(0.2);
+            let opacity = params.watermark_opacity.unwrap_or(1.0);
             filter_chain = format!(
-                "{},movie={},scale=iw/5:-1[wm];[in][wm]overlay={}",
+                "{},movie={},scale=iw*{:.3}:-1,format=rgba,colorchannelmixer=aa={:.3}[wm];[in][wm]overlay={}",
                 filter_chain,
                 escape_filter_path(wm),
+                scale,
+                opacity,
                 pos
             );
         }
@@ -791,6 +797,8 @@ async fn generate_batch_upload(window: Window, params: BatchGenerateParams) -> R
             background: params.background.clone(),
             watermark: params.watermark.clone(),
             watermark_position: params.watermark_position.clone(),
+            watermark_opacity: params.watermark_opacity,
+            watermark_scale: params.watermark_scale,
             intro: params.intro.clone(),
             outro: params.outro.clone(),
             width: params.width,
@@ -849,10 +857,12 @@ fn watch_directory(window: Window, params: WatchDirectoryParams) -> Result<(), S
                                         captions: opts.captions.clone(),
                                         caption_options: opts.caption_options.clone(),
                                         background: opts.background.clone(),
-                                        watermark: opts.watermark.clone(),
-                                        watermark_position: opts.watermark_position.clone(),
-                                        intro: opts.intro.clone(),
-                                        outro: opts.outro.clone(),
+                                       watermark: opts.watermark.clone(),
+                                       watermark_position: opts.watermark_position.clone(),
+                                        watermark_opacity: opts.watermark_opacity,
+                                        watermark_scale: opts.watermark_scale,
+                                       intro: opts.intro.clone(),
+                                       outro: opts.outro.clone(),
                                         width: opts.width,
                                         height: opts.height,
                                         title: opts.title.clone(),

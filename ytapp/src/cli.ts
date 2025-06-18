@@ -236,6 +236,8 @@ program
   .option('-b, --background <file>', 'background image or video')
   .option('--watermark <file>', 'watermark image')
   .option('--watermark-position <pos>', 'watermark position (top-left|top-right|bottom-left|bottom-right)')
+  .option('--watermark-opacity <n>', 'watermark opacity (0-1)', (v) => parseFloat(v))
+  .option('--watermark-scale <n>', 'watermark scale relative to width', (v) => parseFloat(v))
   .option('--intro <file>', 'intro video or image')
   .option('--outro <file>', 'outro video or image')
   .option('--width <width>', 'output width', (v) => parseInt(v, 10))
@@ -267,6 +269,8 @@ program
         outro: options.outro,
         watermark: options.watermark,
         watermarkPosition: options.watermarkPosition,
+        watermarkOpacity: options.watermarkOpacity,
+        watermarkScale: options.watermarkScale,
         width: options.width,
         height: options.height,
         title: options.title,
@@ -311,6 +315,8 @@ program
   .option('-b, --background <file>', 'background image or video')
   .option('--watermark <file>', 'watermark image')
   .option('--watermark-position <pos>', 'watermark position (top-left|top-right|bottom-left|bottom-right)')
+  .option('--watermark-opacity <n>', 'watermark opacity (0-1)', (v) => parseFloat(v))
+  .option('--watermark-scale <n>', 'watermark scale relative to width', (v) => parseFloat(v))
   .option('--intro <file>', 'intro video or image')
   .option('--outro <file>', 'outro video or image')
   .option('--width <width>', 'output width', (v) => parseInt(v, 10))
@@ -336,6 +342,8 @@ program
         background: options.background,
         watermark: options.watermark,
         watermarkPosition: options.watermarkPosition,
+        watermarkOpacity: options.watermarkOpacity,
+        watermarkScale: options.watermarkScale,
         intro: options.intro,
         outro: options.outro,
         width: options.width,
@@ -380,6 +388,8 @@ program
   .option('-b, --background <file>', 'background image or video')
   .option('--watermark <file>', 'watermark image')
   .option('--watermark-position <pos>', 'watermark position (top-left|top-right|bottom-left|bottom-right)')
+  .option('--watermark-opacity <n>', 'watermark opacity (0-1)', (v) => parseFloat(v))
+  .option('--watermark-scale <n>', 'watermark scale relative to width', (v) => parseFloat(v))
   .option('--intro <file>', 'intro video or image')
   .option('--outro <file>', 'outro video or image')
   .option('--width <width>', 'output width', (v) => parseInt(v, 10))
@@ -409,6 +419,8 @@ program
         background: options.background,
         watermark: options.watermark,
         watermarkPosition: options.watermarkPosition,
+        watermarkOpacity: options.watermarkOpacity,
+        watermarkScale: options.watermarkScale,
         intro: options.intro,
         outro: options.outro,
         width: options.width,
@@ -451,6 +463,8 @@ program
   .option('-b, --background <file>', 'background image or video')
   .option('--watermark <file>', 'watermark image')
   .option('--watermark-position <pos>', 'watermark position (top-left|top-right|bottom-left|bottom-right)')
+  .option('--watermark-opacity <n>', 'watermark opacity (0-1)', (v) => parseFloat(v))
+  .option('--watermark-scale <n>', 'watermark scale relative to width', (v) => parseFloat(v))
   .option('--intro <file>', 'intro video or image')
   .option('--outro <file>', 'outro video or image')
   .option('--width <width>', 'output width', (v) => parseInt(v, 10))
@@ -497,6 +511,8 @@ program
             background: options.background,
             watermark: options.watermark,
             watermarkPosition: options.watermarkPosition,
+            watermarkOpacity: options.watermarkOpacity,
+            watermarkScale: options.watermarkScale,
             intro: options.intro,
             outro: options.outro,
             width: options.width,
@@ -532,6 +548,8 @@ program
                 background: options.background,
                 watermark: options.watermark,
                 watermarkPosition: options.watermarkPosition,
+                watermarkOpacity: options.watermarkOpacity,
+                watermarkScale: options.watermarkScale,
                 intro: options.intro,
                 outro: options.outro,
                 width: options.width,
@@ -574,6 +592,8 @@ program
   .option('-b, --background <file>', 'background image or video')
   .option('--watermark <file>', 'watermark image')
   .option('--watermark-position <pos>', 'watermark position (top-left|top-right|bottom-left|bottom-right)')
+  .option('--watermark-opacity <n>', 'watermark opacity (0-1)', (v) => parseFloat(v))
+  .option('--watermark-scale <n>', 'watermark scale relative to width', (v) => parseFloat(v))
   .option('--intro <file>', 'intro video or image')
   .option('--outro <file>', 'outro video or image')
   .option('--width <width>', 'output width', (v) => parseInt(v, 10))
@@ -867,6 +887,8 @@ program
   .option('-b, --background <file>', 'background image or video')
   .option('--watermark <file>', 'watermark image')
   .option('--watermark-position <pos>', 'watermark position (top-left|top-right|bottom-left|bottom-right)')
+  .option('--watermark-opacity <n>', 'watermark opacity (0-1)', (v) => parseFloat(v))
+  .option('--watermark-scale <n>', 'watermark scale relative to width', (v) => parseFloat(v))
   .option('--intro <file>', 'intro video or image')
   .option('--outro <file>', 'outro video or image')
   .option('--width <width>', 'output width', (v) => parseInt(v, 10))
@@ -894,6 +916,8 @@ program
       background: options.background,
       watermark: options.watermark,
       watermarkPosition: options.watermarkPosition,
+      watermarkOpacity: options.watermarkOpacity,
+      watermarkScale: options.watermarkScale,
       intro: options.intro,
       outro: options.outro,
       width: options.width,

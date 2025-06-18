@@ -47,6 +47,8 @@ const App: React.FC = () => {
     const [outro, setOutro] = useState('');
     const [watermark, setWatermark] = useState('');
     const [watermarkPos, setWatermarkPos] = useState<'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'>('top-right');
+    const [watermarkOpacity, setWatermarkOpacity] = useState(1);
+    const [watermarkScale, setWatermarkScale] = useState(0.2);
     const [translations, setTranslations] = useState<string[]>([]);
     const [font, setFont] = useState('');
     const [fontPath, setFontPath] = useState('');
@@ -65,6 +67,7 @@ const App: React.FC = () => {
     });
     const [captionColor, setCaptionColor] = useState('#ffffff');
     const [captionBg, setCaptionBg] = useState('#000000');
+    const [accentColor, setAccentColor] = useState('#ff9500');
     const [progress, setProgress] = useState(0);
     const [announcement, setAnnouncement] = useState('');
     const [generating, setGenerating] = useState(false);
@@ -97,6 +100,7 @@ const App: React.FC = () => {
             if (s.captionSize) setSize(s.captionSize);
             if (s.captionColor) setCaptionColor(s.captionColor);
             if (s.captionBg) setCaptionBg(s.captionBg);
+            if (s.accentColor) setAccentColor(s.accentColor);
             if (s.watermark) setWatermark(s.watermark);
             if (s.watermarkPosition) setWatermarkPos(s.watermarkPosition as any);
             if (s.output) setOutput(s.output);
@@ -118,6 +122,10 @@ const App: React.FC = () => {
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem('theme', theme);
     }, [theme]);
+
+    useEffect(() => {
+        document.documentElement.style.setProperty('--accent-color', accentColor);
+    }, [accentColor]);
 
     useEffect(() => {
         const lang = languages.find(l => l.value === i18n.language);
@@ -160,6 +168,8 @@ const App: React.FC = () => {
             background: background || undefined,
             watermark: watermark || undefined,
             watermarkPosition: watermarkPos,
+            watermarkOpacity,
+            watermarkScale,
             intro: intro || undefined,
             outro: outro || undefined,
             width,
@@ -191,6 +201,8 @@ const App: React.FC = () => {
         background: background || undefined,
         watermark: watermark || undefined,
         watermarkPosition: watermarkPos,
+        watermarkOpacity,
+        watermarkScale,
         intro: intro || undefined,
         outro: outro || undefined,
         width,
@@ -223,6 +235,8 @@ const App: React.FC = () => {
             outro: outro || undefined,
             watermark: watermark || undefined,
             watermarkPosition: watermarkPos,
+            watermarkOpacity,
+            watermarkScale,
             width,
             height,
             title: title || undefined,
@@ -273,6 +287,8 @@ const App: React.FC = () => {
         setCaptions(p.captions || '');
         setWatermark(p.watermark || '');
         if (p.watermarkPosition) setWatermarkPos(p.watermarkPosition as any);
+        if (typeof p.watermarkOpacity === 'number') setWatermarkOpacity(p.watermarkOpacity);
+        if (typeof p.watermarkScale === 'number') setWatermarkScale(p.watermarkScale);
         if (p.captionOptions) {
             setFont(p.captionOptions.font || '');
             setFontPath(p.captionOptions.fontPath || '');
@@ -469,6 +485,12 @@ const App: React.FC = () => {
                     <option value="bottom-left">{t('bottom_left')}</option>
                     <option value="bottom-right">{t('bottom_right')}</option>
                 </select>
+            </div>
+            <div className="row">
+                <label>{t('watermark_opacity')}</label>
+                <input type="number" min="0" max="1" step="0.05" value={watermarkOpacity} onChange={e => setWatermarkOpacity(parseFloat(e.target.value))} />
+                <label>{t('watermark_scale')}</label>
+                <input type="number" min="0" max="1" step="0.05" value={watermarkScale} onChange={e => setWatermarkScale(parseFloat(e.target.value))} />
             </div>
             <div className="row">
                 <TranscribeButton
