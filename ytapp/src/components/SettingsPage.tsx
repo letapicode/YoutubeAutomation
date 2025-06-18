@@ -18,6 +18,7 @@ const SettingsPage: React.FC = () => {
     const [size, setSize] = useState(24);
     const [captionColor, setCaptionColor] = useState('#ffffff');
     const [captionBg, setCaptionBg] = useState('#000000');
+    const [uiFont, setUiFont] = useState('');
     const [accentColor, setAccentColor] = useState('#ff9500');
     const [watermark, setWatermark] = useState('');
     const [watermarkPos, setWatermarkPos] = useState<'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'>('top-right');
@@ -39,6 +40,7 @@ const SettingsPage: React.FC = () => {
             setSize(s.captionSize || 24);
             if (s.captionColor) setCaptionColor(s.captionColor);
             if (s.captionBg) setCaptionBg(s.captionBg);
+            if (s.uiFont) setUiFont(s.uiFont);
             if (s.accentColor) setAccentColor(s.accentColor);
             if (s.watermark) setWatermark(s.watermark);
             if (s.watermarkPosition) setWatermarkPos(s.watermarkPosition as any);
@@ -62,6 +64,7 @@ const SettingsPage: React.FC = () => {
             captionSize: size,
             captionColor,
             captionBg,
+            uiFont: uiFont || undefined,
             watermark: watermark || undefined,
             watermarkPosition: watermarkPos,
             showGuide: guide,
@@ -72,6 +75,7 @@ const SettingsPage: React.FC = () => {
             maxRetries,
             accentColor,
         });
+        document.body.style.fontFamily = uiFont || '';
     };
 
     return (
@@ -149,6 +153,13 @@ const SettingsPage: React.FC = () => {
                         setFontPath(f?.path || '');
                         setFontStyle(f?.style || '');
                     }}
+                />
+            </div>
+            <div>
+                <label>{t('ui_font')}</label>
+                <FontSelector
+                    value={uiFont ? { name: uiFont } : null}
+                    onChange={f => setUiFont(f?.name || '')}
                 />
             </div>
             <div>
