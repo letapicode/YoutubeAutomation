@@ -325,6 +325,10 @@ passed to FFmpeg so subtitles render with your custom font.
 
 ### CLI Usage
 
+All CLI commands use `ts-node`. If you do not have it installed globally run
+`npm install -g ts-node` or prefix the commands with `npx` (requires internet
+access).
+
 Verify dependencies:
 ```bash
 npx ts-node src/cli.ts check-deps
