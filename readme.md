@@ -346,6 +346,18 @@ Sign out again:
 npx ts-node src/cli.ts sign-out
 ```
 
+List available fonts:
+
+```bash
+npx ts-node src/cli.ts list-fonts
+```
+
+List YouTube playlists:
+
+```bash
+npx ts-node src/cli.ts list-playlists
+```
+
 Generate and schedule an upload:
 
 ```bash

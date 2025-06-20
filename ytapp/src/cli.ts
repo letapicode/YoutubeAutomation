@@ -14,6 +14,7 @@ import { generateBatchWithProgress } from './features/batch';
 import { addJob, listJobs, runQueue, clearQueue, clearCompleted, removeJob, pauseQueue, resumeQueue } from './features/queue';
 import { listProfiles, getProfile, saveProfile, deleteProfile } from './features/profiles';
 import { listFonts } from './features/fonts';
+import { fetchPlaylists } from './features/youtube';
 import type { Profile } from './schema';
 import { verifyDependencies } from './features/dependencies';
 import { getLogs } from './features/logs';
@@ -228,6 +229,19 @@ program
       fonts.forEach(f => console.log(`${f.name} (${f.style}) - ${f.path}`));
     } catch (err) {
       console.error('Error listing fonts:', err);
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command('list-playlists')
+  .description('List YouTube playlists')
+  .action(async () => {
+    try {
+      const playlists = await fetchPlaylists();
+      playlists.forEach(p => console.log(`${p.id} - ${p.title}`));
+    } catch (err) {
+      console.error('Error listing playlists:', err);
       process.exitCode = 1;
     }
   });
