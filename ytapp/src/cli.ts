@@ -247,6 +247,25 @@ program
   });
 
 program
+  .command('list-languages')
+  .description('List available transcription languages')
+  .action(async () => {
+    const dir = path.join(__dirname, 'features/languages/defs');
+    try {
+      const files = await fs.readdir(dir);
+      const defs = await Promise.all(files.map(async f => {
+        const data = await fs.readFile(path.join(dir, f), 'utf-8');
+        return JSON.parse(data) as { value: string; label: string };
+      }));
+      defs.sort((a, b) => a.label.localeCompare(b.label));
+      defs.forEach(l => console.log(`${l.value} - ${l.label}`));
+    } catch (err) {
+      console.error('Error listing languages:', err);
+      process.exitCode = 1;
+    }
+  });
+
+program
   .command('generate')
   .description('Generate video from audio')
   .argument('<file>', 'audio file path')

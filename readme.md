@@ -357,6 +357,10 @@ List YouTube playlists:
 ```bash
 npx ts-node src/cli.ts list-playlists
 ```
+List available languages:
+```bash
+npx ts-node src/cli.ts list-languages
+```
 
 Generate and schedule an upload:
 
