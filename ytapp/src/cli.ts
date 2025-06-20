@@ -13,6 +13,7 @@ import { watchDirectory } from './features/watch';
 import { generateBatchWithProgress } from './features/batch';
 import { addJob, listJobs, runQueue, clearQueue, clearCompleted, removeJob, pauseQueue, resumeQueue } from './features/queue';
 import { listProfiles, getProfile, saveProfile, deleteProfile } from './features/profiles';
+import { listFonts } from './features/fonts';
 import type { Profile } from './schema';
 import { verifyDependencies } from './features/dependencies';
 import { getLogs } from './features/logs';
@@ -214,6 +215,19 @@ program
       console.log('All dependencies present');
     } catch (err) {
       console.error('Dependency check failed:', err);
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command('list-fonts')
+  .description('List detected system fonts')
+  .action(async () => {
+    try {
+      const fonts = await listFonts();
+      fonts.forEach(f => console.log(`${f.name} (${f.style}) - ${f.path}`));
+    } catch (err) {
+      console.error('Error listing fonts:', err);
       process.exitCode = 1;
     }
   });
