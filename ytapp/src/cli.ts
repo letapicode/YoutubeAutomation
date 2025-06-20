@@ -11,7 +11,7 @@ import { translateSrt } from './utils/translate';
 import { parseCsv, CsvRow } from './utils/csv';
 import { watchDirectory } from './features/watch';
 import { generateBatchWithProgress } from './features/batch';
-import { addJob, listJobs, runQueue, clearQueue, clearCompleted, removeJob, pauseQueue, resumeQueue } from './features/queue';
+import { addJob, listJobs, runQueue, clearQueue, clearCompleted, removeJob, moveJob, pauseQueue, resumeQueue } from './features/queue';
 import { listProfiles, getProfile, saveProfile, deleteProfile } from './features/profiles';
 import { listFonts } from './features/fonts';
 import { fetchPlaylists } from './features/youtube';
@@ -999,6 +999,20 @@ program
       await removeJob(parseInt(index, 10));
     } catch (err) {
       console.error('Error removing job:', err);
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command('queue-move')
+  .description('Move a job to a new position')
+  .argument('<from>', 'current index')
+  .argument('<to>', 'destination index')
+  .action(async (from: string, to: string) => {
+    try {
+      await moveJob(parseInt(from, 10), parseInt(to, 10));
+    } catch (err) {
+      console.error('Error moving job:', err);
       process.exitCode = 1;
     }
   });

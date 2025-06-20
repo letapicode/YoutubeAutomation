@@ -416,6 +416,10 @@ Remove a job by its index:
 ```bash
 npx ts-node src/cli.ts queue-remove 0
 ```
+Move a job within the queue:
+```bash
+npx ts-node src/cli.ts queue-move 2 0
+```
 Each job now tracks a `status` and `retries` count in `queue.json`.
 Failed jobs remain in the queue until they succeed or exceed the retry limit.
 
