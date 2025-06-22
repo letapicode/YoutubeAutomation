@@ -434,7 +434,7 @@ Clear the queue:
 ```bash
 npx ts-node src/cli.ts queue-clear
 ```
-Remove only completed or failed jobs:
+Clear completed and failed jobs:
 ```bash
 npx ts-node src/cli.ts queue-clear-completed
 ```

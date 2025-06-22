@@ -55,7 +55,7 @@
   "delete_profile": "Delete Profile",
   "load": "Load",
   "edit": "Edit",
-  "clear_completed": "Clear Completed",
+  "clear_completed": "Clear completed and failed jobs.",
   "update_available": "Update Available",
   "update_prompt": "A new version is ready to install.",
   "update_now": "Update Now",
