@@ -202,6 +202,13 @@ async function signOut(): Promise<void> {
   await invoke('youtube_sign_out');
 }
 
+/**
+ * Check whether a valid YouTube session exists.
+ */
+async function isSignedIn(): Promise<boolean> {
+  return await invoke('youtube_is_signed_in');
+}
+
 program
   .name('ytcli')
   .description('CLI for generating and uploading videos. Press Ctrl+C to cancel operations.')
@@ -863,6 +870,19 @@ program
       console.log('Signed out');
     } catch (err) {
       console.error('Error during sign-out:', err);
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command('is-signed-in')
+  .description('Check whether YouTube credentials are present')
+  .action(async () => {
+    try {
+      const ok = await isSignedIn();
+      console.log(ok ? 'Signed in' : 'Not signed in');
+    } catch (err) {
+      console.error('Error checking sign-in:', err);
       process.exitCode = 1;
     }
   });

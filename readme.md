@@ -346,6 +346,12 @@ Sign out again:
 npx ts-node src/cli.ts sign-out
 ```
 
+Check if you are signed in:
+
+```bash
+npx ts-node src/cli.ts is-signed-in
+```
+
 List available fonts:
 
 ```bash
