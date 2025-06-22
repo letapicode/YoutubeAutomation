@@ -30,3 +30,16 @@ const events = require('@tauri-apps/api/event');
   assert.ok(called);
   console.log('watch directory tests passed');
 })();
+
+(async () => {
+  let args: any;
+  core.invoke = async (cmd: string, a: any) => {
+    if (cmd === 'watch_directory') args = a;
+  };
+  events.listen = async () => () => {};
+  process.argv = ['node', 'cli.ts', 'watch-stop'];
+  await import('../src/cli');
+  assert.strictEqual(args.dir, '');
+  assert.strictEqual(args.options.autoUpload, false);
+  console.log('cli watch-stop test passed');
+})();

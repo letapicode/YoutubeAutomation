@@ -998,6 +998,18 @@ program
   });
 
 program
+  .command('watch-stop')
+  .description('Stop watching for new audio files')
+  .action(async () => {
+    try {
+      await watchDirectory('', { autoUpload: false } as any);
+    } catch (err) {
+      console.error('Error stopping watch:', err);
+      process.exitCode = 1;
+    }
+  });
+
+program
   .command('queue-list')
   .description('List pending queue jobs')
   .action(async () => {
