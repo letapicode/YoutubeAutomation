@@ -11,7 +11,7 @@ import { translateSrt } from './utils/translate';
 import { parseCsv, CsvRow } from './utils/csv';
 import { watchDirectory } from './features/watch';
 import { generateBatchWithProgress } from './features/batch';
-import { addJob, listJobs, runQueue, clearQueue, clearCompleted, removeJob, moveJob, pauseQueue, resumeQueue } from './features/queue';
+import { addJob, listJobs, runQueue, clearQueue, clearCompleted, clearFailed, removeJob, moveJob, pauseQueue, resumeQueue } from './features/queue';
 import { listProfiles, getProfile, saveProfile, deleteProfile } from './features/profiles';
 import { listFonts } from './features/fonts';
 import { fetchPlaylists } from './features/youtube';
@@ -1045,6 +1045,18 @@ program
       await clearQueue();
     } catch (err) {
       console.error('Error clearing queue:', err);
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command('queue-clear-failed')
+  .description('Remove failed jobs from the queue')
+  .action(async () => {
+    try {
+      await clearFailed();
+    } catch (err) {
+      console.error('Error clearing failed jobs:', err);
       process.exitCode = 1;
     }
   });
