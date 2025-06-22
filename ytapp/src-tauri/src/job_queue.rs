@@ -10,7 +10,7 @@ use tauri::Manager;
 use crate::schema::GenerateParams;
 use crate::logger;
 
-#[derive(Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub enum JobStatus {
     Pending,
     Running,
@@ -195,6 +195,15 @@ pub fn clear_completed(app: &tauri::AppHandle) -> Result<(), String> {
     Ok(())
 }
 
+/// Remove only failed jobs from the queue.
+pub fn clear_failed(app: &tauri::AppHandle) -> Result<(), String> {
+    let mut q = QUEUE.lock().unwrap();
+    q.retain(|item| item.status != JobStatus::Failed);
+    save_queue(app)?;
+    emit_changed(app);
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -205,7 +214,7 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         std::env::set_var("YTAPP_TEST_DIR", dir.path());
         let app = mock_app();
-        let params = GenerateParams { file: "a.mp3".into(), output: None, captions: None, caption_options: None, background: None, intro: None, outro: None, watermark: None, watermark_position: None, width: None, height: None, title: None, description: None, tags: None, publish_at: None, thumbnail: None };
+        let params = GenerateParams { file: "a.mp3".into(), output: None, captions: None, caption_options: None, background: None, intro: None, outro: None, watermark: None, watermark_position: None, watermark_opacity: None, watermark_scale: None, width: None, height: None, title: None, description: None, tags: None, publish_at: None, thumbnail: None, privacy: None, playlist_id: None };
         enqueue(&app.handle(), Job::Generate { params: params.clone(), dest: "a.mp4".into() }).unwrap();
         load_queue(&app.handle()).unwrap();
         assert_eq!(peek_all().len(), 1);
@@ -214,5 +223,23 @@ mod tests {
         let item = peek_all()[0].clone();
         assert_eq!(item.retries, 1);
         assert_eq!(item.status, JobStatus::Failed);
+    }
+
+    #[test]
+    fn clear_failed_only_removes_failed_jobs() {
+        let dir = tempfile::tempdir().unwrap();
+        std::env::set_var("YTAPP_TEST_DIR", dir.path());
+        let app = mock_app();
+        let params = GenerateParams { file: "a.mp3".into(), output: None, captions: None, caption_options: None, background: None, intro: None, outro: None, watermark: None, watermark_position: None, watermark_opacity: None, watermark_scale: None, width: None, height: None, title: None, description: None, tags: None, publish_at: None, thumbnail: None, privacy: None, playlist_id: None };
+        enqueue(&app.handle(), Job::Generate { params: params.clone(), dest: "a.mp4".into() }).unwrap();
+        enqueue(&app.handle(), Job::Generate { params: params.clone(), dest: "b.mp4".into() }).unwrap();
+        mark_failed(&app.handle(), 0, "err".into()).unwrap();
+        clear_failed(&app.handle()).unwrap();
+        let q = peek_all();
+        assert_eq!(q.len(), 1);
+        match &q[0].job {
+            Job::Generate { dest, .. } => assert_eq!(dest, "b.mp4"),
+            _ => panic!("unexpected job type"),
+        }
     }
 }

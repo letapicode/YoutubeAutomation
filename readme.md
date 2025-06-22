@@ -432,6 +432,10 @@ Remove only completed or failed jobs:
 ```bash
 npx ts-node src/cli.ts queue-clear-completed
 ```
+Remove only failed jobs:
+```bash
+npx ts-node src/cli.ts queue-clear-failed
+```
 
 Process all queued jobs (retry failed jobs with `--retry-failed`):
 

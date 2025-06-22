@@ -41,6 +41,11 @@ export async function clearCompleted(): Promise<void> {
   await invoke('queue_clear_completed');
 }
 
+/** Remove failed jobs from the queue. */
+export async function clearFailed(): Promise<void> {
+  await invoke('queue_clear_failed');
+}
+
 export async function runQueue(retryFailed = false): Promise<void> {
   await invoke('queue_process', { retryFailed });
 }
