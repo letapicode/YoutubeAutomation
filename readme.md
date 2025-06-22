@@ -284,6 +284,7 @@ the GTK/WebKit packages and create `.env.tauri`. Then **source `.env.tauri`**
 To automatically process files placed in a folder set the **Watch Directory**
 and enable **Auto Upload** in the settings page or use the CLI `watch` command.
 When the app starts it will immediately begin watching the configured folder using your saved settings.
+Run `npx ts-node src/cli.ts watch-stop` to disable watching again.
 
 ### Contribution
 
@@ -399,6 +400,11 @@ Watch a directory and automatically process new audio files:
 
 ```bash
 npx ts-node src/cli.ts watch ./incoming --auto-upload
+```
+Stop watching:
+
+```bash
+npx ts-node src/cli.ts watch-stop
 ```
 
 Queue up a file for later processing:
