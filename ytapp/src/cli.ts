@@ -1031,12 +1031,12 @@ program
 
 program
   .command('queue-clear-completed')
-  .description('Remove completed jobs from the queue')
+  .description('Remove completed and failed jobs from the queue')
   .action(async () => {
     try {
       await clearCompleted();
     } catch (err) {
-      console.error('Error clearing completed jobs:', err);
+      console.error('Error clearing completed and failed jobs:', err);
       process.exitCode = 1;
     }
   });
