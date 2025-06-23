@@ -1129,11 +1129,16 @@ program
   .argument('[maxLines]', 'number of lines to show')
   .option('--level <level>', 'filter by level')
   .option('--search <text>', 'filter by text')
-  .action(async (maxLines: string | undefined, opts: { level?: string; search?: string }) => {
+  .option('-o, --output <file>', 'write logs to file')
+  .action(async (maxLines: string | undefined, opts: { level?: string; search?: string; output?: string }) => {
     try {
       const n = parseInt(maxLines || '', 10);
       const text = await getLogs(isNaN(n) ? 100 : n, opts.level, opts.search);
-      console.log(text);
+      if (opts.output) {
+        await fs.writeFile(opts.output, text);
+      } else {
+        console.log(text);
+      }
     } catch (err) {
       console.error('Error reading logs:', err);
       process.exitCode = 1;

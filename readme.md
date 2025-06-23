@@ -463,9 +463,10 @@ npx ts-node src/cli.ts queue-resume
 View recent logs:
 
 Use `--level` to filter by log level and `--search` to match text within log messages.
+Use `--output <file>` to save the logs instead of printing them.
 
 ```bash
-npx ts-node src/cli.ts logs 200 --level error --search failed
+npx ts-node src/cli.ts logs 200 --level error --search failed --output logs.txt
 ```
 Clear the log file:
 
