@@ -1127,10 +1127,12 @@ program
   .command('logs')
   .description('Print recent log entries')
   .argument('[maxLines]', 'number of lines to show')
-  .action(async (maxLines: string | undefined) => {
+  .option('--level <level>', 'filter by level')
+  .option('--search <text>', 'filter by text')
+  .action(async (maxLines: string | undefined, opts: { level?: string; search?: string }) => {
     try {
       const n = parseInt(maxLines || '', 10);
-      const text = await getLogs(isNaN(n) ? 100 : n);
+      const text = await getLogs(isNaN(n) ? 100 : n, opts.level, opts.search);
       console.log(text);
     } catch (err) {
       console.error('Error reading logs:', err);
