@@ -86,6 +86,7 @@
   "logs": "Logs",
   "refresh": "Refresh",
   "save_logs": "Save Logs",
+  "clear_logs": "Clear Logs",
   "help": "Help",
   "pause": "Pause",
   "resume": "Resume",

@@ -1,4 +1,4 @@
-use std::fs::{OpenOptions, create_dir_all};
+use std::fs::{OpenOptions, create_dir_all, File};
 use std::io::Write;
 use std::path::PathBuf;
 use tauri::api::path::app_config_dir;
@@ -43,4 +43,9 @@ pub fn read_logs(app: &tauri::AppHandle, max_lines: usize) -> Result<String, Str
     let lines: Vec<&str> = data.lines().collect();
     let start = lines.len().saturating_sub(max_lines);
     Ok(lines[start..].join("\n"))
+}
+
+pub fn clear_logs(app: &tauri::AppHandle) -> Result<(), String> {
+    let path = log_path(app)?;
+    File::create(path).map(|_| ()).map_err(|e| e.to_string())
 }
