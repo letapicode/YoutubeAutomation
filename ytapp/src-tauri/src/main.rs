@@ -1344,8 +1344,13 @@ fn install_tauri_deps() -> Result<(), String> {
 }
 
 #[command]
-fn get_logs(app: tauri::AppHandle, max_lines: Option<usize>) -> Result<String, String> {
-    read_logs(&app, max_lines.unwrap_or(200))
+fn get_logs(
+    app: tauri::AppHandle,
+    max_lines: Option<usize>,
+    level: Option<String>,
+    search: Option<String>,
+) -> Result<String, String> {
+    read_logs(&app, max_lines.unwrap_or(200), level, search)
 }
 
 #[command]

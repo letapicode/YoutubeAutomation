@@ -2,8 +2,12 @@
 import { invoke } from '@tauri-apps/api/core';
 
 /** Retrieve recent log lines from the backend. */
-export async function getLogs(maxLines = 200): Promise<string> {
-  return await invoke('get_logs', { maxLines });
+export async function getLogs(
+  maxLines = 200,
+  level?: string,
+  search?: string,
+): Promise<string> {
+  return await invoke('get_logs', { maxLines, level, search });
 }
 
 /** Delete the current log file. */
