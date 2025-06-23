@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getLogs } from '../features/logs';
+import { getLogs, clearLogs } from '../features/logs';
 import { save } from '@tauri-apps/plugin-dialog';
 import { writeTextFile } from '@tauri-apps/plugin-fs';
 
@@ -20,6 +20,11 @@ const LogsPage: React.FC = () => {
         }
     };
 
+    const doClear = async () => {
+        await clearLogs();
+        setText('');
+    };
+
     useEffect(() => {
         refresh();
     }, []);
@@ -28,6 +33,7 @@ const LogsPage: React.FC = () => {
         <div>
             <button onClick={refresh}>{t('refresh')}</button>
             <button onClick={saveLogs}>{t('save_logs')}</button>
+            <button onClick={doClear}>{t('clear_logs')}</button>
             <pre style={{ whiteSpace: 'pre-wrap', maxHeight: '70vh', overflow: 'auto' }}>{text}</pre>
         </div>
     );

@@ -17,7 +17,7 @@ import { listFonts } from './features/fonts';
 import { fetchPlaylists } from './features/youtube';
 import type { Profile } from './schema';
 import { verifyDependencies } from './features/dependencies';
-import { getLogs } from './features/logs';
+import { getLogs, clearLogs } from './features/logs';
 
 async function callWithProgress<T>(
   fn: () => Promise<T>,
@@ -1134,6 +1134,18 @@ program
       console.log(text);
     } catch (err) {
       console.error('Error reading logs:', err);
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command('logs-clear')
+  .description('Delete the log file')
+  .action(async () => {
+    try {
+      await clearLogs();
+    } catch (err) {
+      console.error('Error clearing logs:', err);
       process.exitCode = 1;
     }
   });
