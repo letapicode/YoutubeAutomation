@@ -5,7 +5,7 @@ import {
   runQueue,
   pauseQueue,
   resumeQueue,
-  clearCompleted,
+  clearFinished,
   clearQueue,
   listenQueue,
   removeJob,
@@ -59,7 +59,7 @@ const QueuePage: React.FC = () => {
       <button onClick={() => resumeQueue().then(refresh)} aria-label={t('resume')}>
         {t('resume')}
       </button>
-      <button onClick={() => clearCompleted().then(refresh)}>{t('clear_completed')}</button>
+      <button onClick={() => clearFinished().then(refresh)}>{t('clear_completed')}</button>
       <button onClick={() => clearQueue().then(refresh)}>{t('clear_all')}</button>
       {jobs.map((j, i) => (
         <div
