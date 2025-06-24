@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { loadSettings } from '../features/settings';
 import { watchDirectory } from '../features/watch';
-import { listJobs, runQueue, clearCompleted } from '../features/queue';
+import { listJobs, runQueue, clearFinished } from '../features/queue';
 
 const WatchStatus: React.FC = () => {
     const { t } = useTranslation();
@@ -48,7 +48,7 @@ const WatchStatus: React.FC = () => {
             {!auto && (
                 <>
                     <button onClick={process}>{t('process_queue')}</button>
-                    <button onClick={() => clearCompleted()}>{t('clear_completed')}</button>
+                    <button onClick={() => clearFinished()}>{t('clear_completed')}</button>
                 </>
             )}
         </div>
