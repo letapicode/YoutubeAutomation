@@ -106,6 +106,7 @@ const App: React.FC = () => {
                 document.body.style.fontFamily = s.uiFont;
             }
             if (s.accentColor) setAccentColor(s.accentColor);
+            if (s.theme) setTheme(s.theme as any);
             if (s.watermark) setWatermark(s.watermark);
             if (s.watermarkPosition) setWatermarkPos(s.watermarkPosition as any);
             if (s.output) setOutput(s.output);
@@ -141,16 +142,23 @@ const App: React.FC = () => {
         document.documentElement.dir = lang && lang.rtl ? 'rtl' : 'ltr';
     }, [i18n.language]);
 
-    const toggleTheme = () =>
-        setTheme(
+    const toggleTheme = async () => {
+        const next =
             theme === 'light'
                 ? 'dark'
                 : theme === 'dark'
                 ? 'high'
                 : theme === 'high'
                 ? 'solarized'
-                : 'light'
-        );
+                : 'light';
+        setTheme(next);
+        try {
+            const current = await loadSettings();
+            await saveSettings({ ...current, theme: next });
+        } catch {
+            // ignore persistence errors
+        }
+    };
 
 
     const handleTranscriptionComplete = (srts: string[]) => {

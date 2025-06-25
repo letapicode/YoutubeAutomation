@@ -20,6 +20,7 @@ const SettingsPage: React.FC = () => {
     const [captionBg, setCaptionBg] = useState('#000000');
     const [uiFont, setUiFont] = useState('');
     const [accentColor, setAccentColor] = useState('#ff9500');
+    const [theme, setTheme] = useState<'light' | 'dark' | 'high' | 'solarized'>('light');
     const [watermark, setWatermark] = useState('');
     const [watermarkPos, setWatermarkPos] = useState<'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'>('top-right');
     const [guide, setGuide] = useState(true);
@@ -42,6 +43,7 @@ const SettingsPage: React.FC = () => {
             if (s.captionBg) setCaptionBg(s.captionBg);
             if (s.uiFont) setUiFont(s.uiFont);
             if (s.accentColor) setAccentColor(s.accentColor);
+            if (s.theme) setTheme(s.theme as any);
             if (s.watermark) setWatermark(s.watermark);
             if (s.watermarkPosition) setWatermarkPos(s.watermarkPosition as any);
             setGuide(s.showGuide !== false);
@@ -74,6 +76,7 @@ const SettingsPage: React.FC = () => {
             modelSize,
             maxRetries,
             accentColor,
+            theme,
         });
         document.body.style.fontFamily = uiFont || '';
     };
@@ -173,6 +176,13 @@ const SettingsPage: React.FC = () => {
                 <input type="color" value={captionBg} onChange={e => setCaptionBg(e.target.value)} />
                 <label>Accent</label>
                 <input type="color" value={accentColor} onChange={e => setAccentColor(e.target.value)} />
+                <label>{t('theme')}</label>
+                <select value={theme} onChange={e => setTheme(e.target.value as any)}>
+                    <option value="light">light</option>
+                    <option value="dark">dark</option>
+                    <option value="high">high</option>
+                    <option value="solarized">solarized</option>
+                </select>
             </div>
             <CaptionPreview
                 font={font}
