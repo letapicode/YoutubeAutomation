@@ -13,7 +13,11 @@ const extras = {
   update_prompt: 'A new version is ready to install.',
   update_now: 'Update Now',
   later: 'Later',
-  font_search: 'Search fonts...'
+  font_search: 'Search fonts...',
+  watermark: 'Watermark',
+  watermark_position: 'Watermark Position',
+  watermark_opacity: 'Watermark Opacity',
+  watermark_scale: 'Watermark Scale'
 };
 const keys = { ...onboarding, ...extras };
 for (const locale of fs.readdirSync(localeDir)) {

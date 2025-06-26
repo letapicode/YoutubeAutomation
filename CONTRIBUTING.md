@@ -9,7 +9,8 @@ Thank you for helping improve this project!
    ```
 2. Add a directory `ytapp/public/locales/<code>` containing `translation.json`.
    Start with `{ "title": "Youtube Automation" }` if you don't have full translations.
-3. Run `make verify` or the individual commands in `AGENTS.md` before committing.
+3. Run `node scripts/update_locales.js` to populate any new keys in every locale file.
+4. Run `make verify` or the individual commands in `AGENTS.md` before committing.
    If `cargo check` fails, run `scripts/install_tauri_deps.sh`.
 
 ## Development
