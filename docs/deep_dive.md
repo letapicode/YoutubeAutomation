@@ -51,7 +51,7 @@ The `ytapp` directory hosts both the frontend code (React/TypeScript) and the Ru
 - **components/** – Reusable React components.
   - `FilePicker.tsx` and `DropZone.tsx` handle file selection and drag‑and‑drop.
   - `BatchProcessor.tsx`, `BatchUploader.tsx` and `BatchOptionsForm.tsx` implement batch generation and upload UIs.
-  - `SettingsPage.tsx` persists default options via the settings API.
+  - `SettingsPage.tsx` persists default options (including the preferred resolution) via the settings API.
   - `ProfilesPage.tsx` manages saved profiles.
   - `QueuePage.tsx` shows queued jobs and allows reordering.
   - `LogsPage.tsx` displays application logs.

@@ -31,6 +31,8 @@ const SettingsPage: React.FC = () => {
     const [modelSize, setModelSize] = useState('base');
     const [output, setOutput] = useState('');
     const [maxRetries, setMaxRetries] = useState(3);
+    const [width, setWidth] = useState(1280);
+    const [height, setHeight] = useState(720);
 
     useEffect(() => {
         loadSettings().then(s => {
@@ -56,6 +58,8 @@ const SettingsPage: React.FC = () => {
             setOutput(s.output || '');
             if (s.modelSize) setModelSize(s.modelSize);
             if (typeof s.maxRetries === 'number') setMaxRetries(s.maxRetries);
+            if (typeof s.defaultWidth === 'number') setWidth(s.defaultWidth);
+            if (typeof s.defaultHeight === 'number') setHeight(s.defaultHeight);
         });
     }, []);
 
@@ -81,6 +85,8 @@ const SettingsPage: React.FC = () => {
             output: output || undefined,
             modelSize,
             maxRetries,
+            defaultWidth: width,
+            defaultHeight: height,
             accentColor,
             theme,
         });
@@ -194,6 +200,23 @@ const SettingsPage: React.FC = () => {
                     <option value="dark">dark</option>
                     <option value="high">high</option>
                     <option value="solarized">solarized</option>
+                </select>
+            </div>
+            <div>
+                <label>{t('resolution')}</label>
+                <select
+                    value={`${width}x${height}`}
+                    onChange={e => {
+                        const [w, h] = e.target.value.split('x').map(v => parseInt(v, 10));
+                        setWidth(w);
+                        setHeight(h);
+                    }}
+                >
+                    <option value="640x360">640x360</option>
+                    <option value="1280x720">1280x720</option>
+                    <option value="1920x1080">1920x1080</option>
+                    <option value="720x1280">720x1280</option>
+                    <option value="1080x1920">1080x1920</option>
                 </select>
             </div>
             <CaptionPreview
