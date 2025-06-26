@@ -107,6 +107,7 @@ const App: React.FC = () => {
             }
             if (s.accentColor) setAccentColor(s.accentColor);
             if (s.theme) setTheme(s.theme as any);
+            if (s.language) i18n.changeLanguage(s.language);
             if (s.watermark) setWatermark(s.watermark);
             if (s.watermarkPosition) setWatermarkPos(s.watermarkPosition as any);
             if (s.output) setOutput(s.output);
@@ -450,7 +451,18 @@ const App: React.FC = () => {
         <div className="app">
             <h1>{t('title')}</h1>
             <div className="row">
-                <LanguageSelector value={i18n.language as Language} onChange={l => i18n.changeLanguage(l)} />
+                <LanguageSelector
+                    value={i18n.language as Language}
+                    onChange={async l => {
+                        i18n.changeLanguage(l);
+                        try {
+                            const current = await loadSettings();
+                            await saveSettings({ ...current, language: l });
+                        } catch {
+                            // ignore persistence errors
+                        }
+                    }}
+                />
                 <button onClick={toggleTheme}>{t('toggle_theme')}</button>
                 <button onClick={() => { setHelpPage('main'); setShowHelp(true); }} aria-label={t('help')}>
                     <HelpIcon />
