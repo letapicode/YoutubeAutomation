@@ -178,7 +178,7 @@ If `cargo check` fails on Linux, run `scripts/install_tauri_deps.sh`.
   * Font selector
   * Size slider
   * Position (top / center / bottom)
-  * Watermark opacity and scale controls
+  * Watermark opacity and scale controls (persisted in settings)
   * Custom accent color setting
 * YouTube sign-in/sign-out buttons
 * Generate video button

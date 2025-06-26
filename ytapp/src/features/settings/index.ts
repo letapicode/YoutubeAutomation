@@ -15,6 +15,8 @@ export interface Settings {
     accentColor?: string;
     watermark?: string;
     watermarkPosition?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+    watermarkOpacity?: number;
+    watermarkScale?: number;
     showGuide?: boolean;
     watchDir?: string;
     autoUpload?: boolean;

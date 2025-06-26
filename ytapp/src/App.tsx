@@ -110,6 +110,8 @@ const App: React.FC = () => {
             if (s.language) i18n.changeLanguage(s.language);
             if (s.watermark) setWatermark(s.watermark);
             if (s.watermarkPosition) setWatermarkPos(s.watermarkPosition as any);
+            if (typeof s.watermarkOpacity === 'number') setWatermarkOpacity(s.watermarkOpacity);
+            if (typeof s.watermarkScale === 'number') setWatermarkScale(s.watermarkScale);
             if (s.output) setOutput(s.output);
             if (s.showGuide !== false) setShowGuide(true);
             if (s.watchDir) {
@@ -294,6 +296,8 @@ const App: React.FC = () => {
             captionBg: captionBg,
             watermark: watermark || undefined,
             watermarkPosition: watermarkPos,
+            watermarkOpacity,
+            watermarkScale,
             output: output || undefined,
             showGuide: false,
         });
