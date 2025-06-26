@@ -117,6 +117,8 @@ const App: React.FC = () => {
             if (s.watchDir) {
                 watchDirectory(s.watchDir, { autoUpload: s.autoUpload });
             }
+            if (s.defaultPrivacy) setPrivacy(s.defaultPrivacy);
+            if (s.defaultPlaylistId) setPlaylistId(s.defaultPlaylistId);
         });
         check().then(res => {
             if (res) setShowUpdate(true);

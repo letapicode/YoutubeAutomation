@@ -3,7 +3,7 @@ const core = require('@tauri-apps/api/core');
 
 (async () => {
   core.invoke = async (cmd: string, args: any) => {
-    if (cmd === 'load_settings') return { output: '/tmp/out.mp4', uiFont: 'Arial', theme: 'dark', language: 'fr', watermarkOpacity: 0.8, watermarkScale: 0.3 };
+    if (cmd === 'load_settings') return { output: '/tmp/out.mp4', uiFont: 'Arial', theme: 'dark', language: 'fr', watermarkOpacity: 0.8, watermarkScale: 0.3, defaultPrivacy: 'unlisted', defaultPlaylistId: 'PL123' };
     if (cmd === 'save_settings') {
       assert.strictEqual(args.settings.output, '/tmp/out.mp4');
       assert.strictEqual(args.settings.uiFont, 'Arial');
@@ -11,6 +11,8 @@ const core = require('@tauri-apps/api/core');
       assert.strictEqual(args.settings.language, 'fr');
       assert.strictEqual(args.settings.watermarkOpacity, 0.8);
       assert.strictEqual(args.settings.watermarkScale, 0.3);
+      assert.strictEqual(args.settings.defaultPrivacy, 'unlisted');
+      assert.strictEqual(args.settings.defaultPlaylistId, 'PL123');
       return;
     }
   };
@@ -22,6 +24,8 @@ const core = require('@tauri-apps/api/core');
   assert.strictEqual(s.language, 'fr');
   assert.strictEqual(s.watermarkOpacity, 0.8);
   assert.strictEqual(s.watermarkScale, 0.3);
-  await saveSettings({ output: '/tmp/out.mp4', uiFont: 'Arial', theme: 'dark', language: 'fr', watermarkOpacity: 0.8, watermarkScale: 0.3 });
+  assert.strictEqual(s.defaultPrivacy, 'unlisted');
+  assert.strictEqual(s.defaultPlaylistId, 'PL123');
+  await saveSettings({ output: '/tmp/out.mp4', uiFont: 'Arial', theme: 'dark', language: 'fr', watermarkOpacity: 0.8, watermarkScale: 0.3, defaultPrivacy: 'unlisted', defaultPlaylistId: 'PL123' });
   console.log('settings feature tests passed');
 })();

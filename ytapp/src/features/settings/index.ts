@@ -25,6 +25,8 @@ export interface Settings {
     maxRetries?: number;
     theme?: string;
     language?: string;
+    defaultPrivacy?: string;
+    defaultPlaylistId?: string;
 }
 
 export async function loadSettings(): Promise<Settings> {

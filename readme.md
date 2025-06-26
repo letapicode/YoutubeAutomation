@@ -193,6 +193,7 @@ If `cargo check` fails on Linux, run `scripts/install_tauri_deps.sh`.
 * Thumbnail selector in the GUI
 * Output path picker for generated videos
 * Settings page with persistent defaults
+* Default privacy and playlist settings for uploads
 * Profiles page to save and load sets of options
  * Interface translations are handled via i18n files in `public/locales`.
    Over 60 languages are supported and fall back to English when a
@@ -287,6 +288,10 @@ To automatically process files placed in a folder set the **Watch Directory**
 and enable **Auto Upload** in the settings page or use the CLI `watch` command.
 When the app starts it will immediately begin watching the configured folder using your saved settings.
 Run `npx ts-node src/cli.ts watch-stop` to disable watching again.
+
+Default upload options such as privacy level and playlist ID can also be
+configured in the Settings page. They are stored in `settings.json` under
+`default_privacy` and `default_playlist_id`.
 
 ### Contribution
 
