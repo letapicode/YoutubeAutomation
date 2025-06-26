@@ -49,7 +49,7 @@ If `cargo check` fails on Linux, run `scripts/install_tauri_deps.sh`.
     * Burn captions into video via FFmpeg
   * Optional Outro (user-provided video or image)
   * Output: Final video (H.264 MP4)
-  * Configurable resolution via `--width`/`--height`, UI dropdown and default settings
+  * Configurable resolution via `--width`/`--height` or UI dropdown, with a default set in Settings
   * Supports vertical short-form formats (720x1280 and 1080x1920)
 
 ---
@@ -192,7 +192,7 @@ If `cargo check` fails on Linux, run `scripts/install_tauri_deps.sh`.
 * Improved focus outlines and ARIA labels on modal and file picker buttons
 * Thumbnail selector in the GUI
 * Output path picker for generated videos
-* Settings page with persistent defaults
+* Settings page with persistent defaults (resolution, privacy and playlist)
 * Profiles page to save and load sets of options
  * Interface translations are handled via i18n files in `public/locales`.
    Over 60 languages are supported and fall back to English when a

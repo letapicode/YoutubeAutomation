@@ -56,8 +56,8 @@ const App: React.FC = () => {
     const [size, setSize] = useState(24);
     const [position, setPosition] = useState('bottom');
     const [language, setLanguage] = useState<Language>('auto');
-    const [width, setWidth] = useState(1280);
-    const [height, setHeight] = useState(720);
+    const [width, setWidth] = useState(1920);
+    const [height, setHeight] = useState(1080);
     const [theme, setTheme] = useState<'light' | 'dark' | 'high' | 'solarized'>(() => {
         const stored = localStorage.getItem('theme');
         if (stored === 'dark' || stored === 'high' || stored === 'light' || stored === 'solarized') {
@@ -115,6 +115,8 @@ const App: React.FC = () => {
             if (s.output) setOutput(s.output);
             if (typeof s.defaultWidth === 'number') setWidth(s.defaultWidth);
             if (typeof s.defaultHeight === 'number') setHeight(s.defaultHeight);
+            if (s.defaultPrivacy) setPrivacy(s.defaultPrivacy);
+            if (s.defaultPlaylistId) setPlaylistId(s.defaultPlaylistId);
             if (s.showGuide !== false) setShowGuide(true);
             if (s.watchDir) {
                 watchDirectory(s.watchDir, { autoUpload: s.autoUpload });

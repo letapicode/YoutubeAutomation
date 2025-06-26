@@ -102,7 +102,7 @@ const BatchOptionsForm: React.FC<BatchOptionsFormProps> = ({ value, onChange }) 
             <div className="row">
                 <label>{t('resolution')}</label>
                 <select
-                    value={`${value.width || 1280}x${value.height || 720}`}
+                    value={`${value.width || 1920}x${value.height || 1080}`}
                     onChange={e => {
                         const [w, h] = e.target.value.split('x').map(v => parseInt(v, 10));
                         update({ width: w, height: h });
