@@ -22,6 +22,7 @@ export interface Settings {
     modelSize?: string;
     maxRetries?: number;
     theme?: string;
+    language?: string;
 }
 
 export async function loadSettings(): Promise<Settings> {

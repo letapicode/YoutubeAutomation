@@ -3,11 +3,12 @@ const core = require('@tauri-apps/api/core');
 
 (async () => {
   core.invoke = async (cmd: string, args: any) => {
-    if (cmd === 'load_settings') return { output: '/tmp/out.mp4', uiFont: 'Arial', theme: 'dark' };
+    if (cmd === 'load_settings') return { output: '/tmp/out.mp4', uiFont: 'Arial', theme: 'dark', language: 'fr' };
     if (cmd === 'save_settings') {
       assert.strictEqual(args.settings.output, '/tmp/out.mp4');
       assert.strictEqual(args.settings.uiFont, 'Arial');
       assert.strictEqual(args.settings.theme, 'dark');
+      assert.strictEqual(args.settings.language, 'fr');
       return;
     }
   };
@@ -16,6 +17,7 @@ const core = require('@tauri-apps/api/core');
   assert.strictEqual(s.output, '/tmp/out.mp4');
   assert.strictEqual(s.uiFont, 'Arial');
   assert.strictEqual(s.theme, 'dark');
-  await saveSettings({ output: '/tmp/out.mp4', uiFont: 'Arial', theme: 'dark' });
+  assert.strictEqual(s.language, 'fr');
+  await saveSettings({ output: '/tmp/out.mp4', uiFont: 'Arial', theme: 'dark', language: 'fr' });
   console.log('settings feature tests passed');
 })();

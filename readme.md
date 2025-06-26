@@ -197,8 +197,9 @@ If `cargo check` fails on Linux, run `scripts/install_tauri_deps.sh`.
  * Interface translations are handled via i18n files in `public/locales`.
    Over 60 languages are supported and fall back to English when a
    translation is missing. The app selects your system language on first
-   launch when a matching translation exists. Contributions to improve
-   translations are welcome.
+   launch when a matching translation exists. The chosen language is
+   stored in the application settings so the interface stays consistent
+   across restarts. Contributions to improve translations are welcome.
 * Video preview modal after generation
 * Logs page to view and clear application logs
 
