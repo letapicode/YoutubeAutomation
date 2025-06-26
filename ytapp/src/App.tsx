@@ -113,6 +113,8 @@ const App: React.FC = () => {
             if (typeof s.watermarkOpacity === 'number') setWatermarkOpacity(s.watermarkOpacity);
             if (typeof s.watermarkScale === 'number') setWatermarkScale(s.watermarkScale);
             if (s.output) setOutput(s.output);
+            if (typeof s.defaultWidth === 'number') setWidth(s.defaultWidth);
+            if (typeof s.defaultHeight === 'number') setHeight(s.defaultHeight);
             if (s.showGuide !== false) setShowGuide(true);
             if (s.watchDir) {
                 watchDirectory(s.watchDir, { autoUpload: s.autoUpload });
