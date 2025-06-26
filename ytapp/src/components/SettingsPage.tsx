@@ -6,6 +6,7 @@ import FontSelector from './FontSelector';
 import SizeSlider from './SizeSlider';
 import CaptionPreview from './CaptionPreview';
 import { loadSettings, saveSettings } from '../features/settings';
+import PlaylistSelector from './PlaylistSelector';
 
 const SettingsPage: React.FC = () => {
     const { t } = useTranslation();
@@ -31,6 +32,8 @@ const SettingsPage: React.FC = () => {
     const [modelSize, setModelSize] = useState('base');
     const [output, setOutput] = useState('');
     const [maxRetries, setMaxRetries] = useState(3);
+    const [defaultPrivacy, setDefaultPrivacy] = useState<'public' | 'unlisted' | 'private'>('public');
+    const [defaultPlaylistId, setDefaultPlaylistId] = useState('');
 
     useEffect(() => {
         loadSettings().then(s => {
@@ -56,6 +59,8 @@ const SettingsPage: React.FC = () => {
             setOutput(s.output || '');
             if (s.modelSize) setModelSize(s.modelSize);
             if (typeof s.maxRetries === 'number') setMaxRetries(s.maxRetries);
+            if (s.defaultPrivacy) setDefaultPrivacy(s.defaultPrivacy as any);
+            if (s.defaultPlaylistId) setDefaultPlaylistId(s.defaultPlaylistId);
         });
     }, []);
 
@@ -83,6 +88,8 @@ const SettingsPage: React.FC = () => {
             maxRetries,
             accentColor,
             theme,
+            defaultPrivacy,
+            defaultPlaylistId,
         });
         document.body.style.fontFamily = uiFont || '';
     };
@@ -222,6 +229,16 @@ const SettingsPage: React.FC = () => {
             <div>
                 <label>{t('max_retries')}</label>
                 <input type="number" min="1" value={maxRetries} onChange={e => setMaxRetries(parseInt(e.target.value, 10) || 1)} />
+            </div>
+            <div>
+                <label>{t('privacy')}</label>
+                <select value={defaultPrivacy} onChange={e => setDefaultPrivacy(e.target.value as any)}>
+                    <option value="public">public</option>
+                    <option value="unlisted">unlisted</option>
+                    <option value="private">private</option>
+                </select>
+                <label>{t('playlist')}</label>
+                <PlaylistSelector value={defaultPlaylistId} onChange={setDefaultPlaylistId} />
             </div>
             <button onClick={handleSave}>{t('save')}</button>
         </div>

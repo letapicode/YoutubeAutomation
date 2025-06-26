@@ -476,6 +476,7 @@ Clear the log file:
 npx ts-node src/cli.ts logs-clear
 ```
 The maximum retry count is configurable in the Settings page or by `max_retries` in `settings.json` (default `3`).
+Default privacy and playlist can also be saved in the Settings page or via `default_privacy` and `default_playlist_id` in `settings.json`.
 
 Profiles can store commonly used generation options in `settings.json`.
 Save a profile from a JSON file:

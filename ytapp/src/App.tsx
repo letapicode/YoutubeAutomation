@@ -113,6 +113,8 @@ const App: React.FC = () => {
             if (typeof s.watermarkOpacity === 'number') setWatermarkOpacity(s.watermarkOpacity);
             if (typeof s.watermarkScale === 'number') setWatermarkScale(s.watermarkScale);
             if (s.output) setOutput(s.output);
+            if (s.defaultPrivacy) setPrivacy(s.defaultPrivacy);
+            if (s.defaultPlaylistId) setPlaylistId(s.defaultPlaylistId);
             if (s.showGuide !== false) setShowGuide(true);
             if (s.watchDir) {
                 watchDirectory(s.watchDir, { autoUpload: s.autoUpload });
