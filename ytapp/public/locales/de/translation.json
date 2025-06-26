@@ -57,5 +57,9 @@
   "update_now": "Update Now",
   "later": "Later",
   "playlist": "Playlist",
-  "font_search": "Search fonts..."
+  "font_search": "Search fonts...",
+  "watermark": "Watermark",
+  "watermark_position": "Watermark Position",
+  "watermark_opacity": "Watermark Opacity",
+  "watermark_scale": "Watermark Scale"
 }

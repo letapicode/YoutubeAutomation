@@ -11,6 +11,8 @@ Thank you for helping improve this project!
    Start with `{ "title": "Youtube Automation" }` if you don't have full translations.
 3. Run `make verify` or the individual commands in `AGENTS.md` before committing.
    If `cargo check` fails, run `scripts/install_tauri_deps.sh`.
+4. When new translation keys are introduced, run `node scripts/update_locales.js`
+   to populate them across all locale files.
 
 ## Development
 Please read `AGENTS.md` for coding standards and required commands.

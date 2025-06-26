@@ -15,7 +15,15 @@ const extras = {
   later: 'Later',
   font_search: 'Search fonts...'
 };
-const keys = { ...onboarding, ...extras };
+
+const watermark = {
+  watermark: 'Watermark',
+  watermark_position: 'Watermark Position',
+  watermark_opacity: 'Watermark Opacity',
+  watermark_scale: 'Watermark Scale'
+};
+
+const keys = { ...onboarding, ...extras, ...watermark };
 for (const locale of fs.readdirSync(localeDir)) {
   const file = path.join(localeDir, locale, 'translation.json');
   const data = JSON.parse(fs.readFileSync(file, 'utf8'));
