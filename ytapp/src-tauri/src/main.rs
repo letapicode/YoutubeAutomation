@@ -107,6 +107,8 @@ struct AppSettings {
     max_retries: Option<u32>,
     default_width: Option<u32>,
     default_height: Option<u32>,
+    default_privacy: Option<String>,
+    default_playlist_id: Option<String>,
     profiles: HashMap<String, Profile>,
 }
 
@@ -136,8 +138,10 @@ impl Default for AppSettings {
             output: None,
             model_size: Some("base".into()),
             max_retries: Some(3),
-            default_width: Some(1280),
-            default_height: Some(720),
+            default_width: Some(1920),
+            default_height: Some(1080),
+            default_privacy: Some("public".into()),
+            default_playlist_id: None,
             profiles: HashMap::new(),
         }
     }
@@ -946,10 +950,16 @@ fn load_settings(app: tauri::AppHandle) -> Result<AppSettings, String> {
         settings.max_retries = Some(3);
     }
     if settings.default_width.is_none() {
-        settings.default_width = Some(1280);
+        settings.default_width = Some(1920);
     }
     if settings.default_height.is_none() {
-        settings.default_height = Some(720);
+        settings.default_height = Some(1080);
+    }
+    if settings.default_privacy.is_none() {
+        settings.default_privacy = Some("public".into());
+    }
+    if settings.default_playlist_id.is_none() {
+        settings.default_playlist_id = None;
     }
     if settings.watermark_opacity.is_none() {
         settings.watermark_opacity = Some(1.0);
