@@ -23,6 +23,8 @@ export interface Settings {
     output?: string;
     modelSize?: string;
     maxRetries?: number;
+    defaultWidth?: number;
+    defaultHeight?: number;
     theme?: string;
     language?: string;
 }

@@ -49,7 +49,7 @@ If `cargo check` fails on Linux, run `scripts/install_tauri_deps.sh`.
     * Burn captions into video via FFmpeg
   * Optional Outro (user-provided video or image)
   * Output: Final video (H.264 MP4)
-  * Configurable resolution via `--width`/`--height` or UI dropdown
+  * Configurable resolution via `--width`/`--height`, UI dropdown and default settings
   * Supports vertical short-form formats (720x1280 and 1080x1920)
 
 ---

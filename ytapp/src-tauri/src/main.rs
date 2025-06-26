@@ -105,6 +105,8 @@ struct AppSettings {
     output: Option<String>,
     model_size: Option<String>,
     max_retries: Option<u32>,
+    default_width: Option<u32>,
+    default_height: Option<u32>,
     profiles: HashMap<String, Profile>,
 }
 
@@ -134,6 +136,8 @@ impl Default for AppSettings {
             output: None,
             model_size: Some("base".into()),
             max_retries: Some(3),
+            default_width: Some(1280),
+            default_height: Some(720),
             profiles: HashMap::new(),
         }
     }
@@ -940,6 +944,12 @@ fn load_settings(app: tauri::AppHandle) -> Result<AppSettings, String> {
     }
     if settings.max_retries.is_none() {
         settings.max_retries = Some(3);
+    }
+    if settings.default_width.is_none() {
+        settings.default_width = Some(1280);
+    }
+    if settings.default_height.is_none() {
+        settings.default_height = Some(720);
     }
     if settings.watermark_opacity.is_none() {
         settings.watermark_opacity = Some(1.0);
