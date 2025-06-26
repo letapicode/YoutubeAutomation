@@ -97,6 +97,8 @@ struct AppSettings {
     language: Option<String>,
     watermark: Option<String>,
     watermark_position: Option<String>,
+    watermark_opacity: Option<f32>,
+    watermark_scale: Option<f32>,
     show_guide: Option<bool>,
     watch_dir: Option<String>,
     auto_upload: Option<bool>,
@@ -124,6 +126,8 @@ impl Default for AppSettings {
             language: None,
             watermark: None,
             watermark_position: None,
+            watermark_opacity: Some(1.0),
+            watermark_scale: Some(0.2),
             show_guide: Some(true),
             watch_dir: None,
             auto_upload: Some(false),
@@ -936,6 +940,12 @@ fn load_settings(app: tauri::AppHandle) -> Result<AppSettings, String> {
     }
     if settings.max_retries.is_none() {
         settings.max_retries = Some(3);
+    }
+    if settings.watermark_opacity.is_none() {
+        settings.watermark_opacity = Some(1.0);
+    }
+    if settings.watermark_scale.is_none() {
+        settings.watermark_scale = Some(0.2);
     }
     if settings.theme.is_none() {
         settings.theme = Some("light".into());

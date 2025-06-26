@@ -23,6 +23,8 @@ const SettingsPage: React.FC = () => {
     const [theme, setTheme] = useState<'light' | 'dark' | 'high' | 'solarized'>('light');
     const [watermark, setWatermark] = useState('');
     const [watermarkPos, setWatermarkPos] = useState<'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'>('top-right');
+    const [watermarkOpacity, setWatermarkOpacity] = useState(1);
+    const [watermarkScale, setWatermarkScale] = useState(0.2);
     const [guide, setGuide] = useState(true);
     const [watchDir, setWatchDir] = useState('');
     const [autoUpload, setAutoUpload] = useState(false);
@@ -46,6 +48,8 @@ const SettingsPage: React.FC = () => {
             if (s.theme) setTheme(s.theme as any);
             if (s.watermark) setWatermark(s.watermark);
             if (s.watermarkPosition) setWatermarkPos(s.watermarkPosition as any);
+            if (typeof s.watermarkOpacity === 'number') setWatermarkOpacity(s.watermarkOpacity);
+            if (typeof s.watermarkScale === 'number') setWatermarkScale(s.watermarkScale);
             setGuide(s.showGuide !== false);
             setWatchDir(s.watchDir || '');
             setAutoUpload(!!s.autoUpload);
@@ -69,6 +73,8 @@ const SettingsPage: React.FC = () => {
             uiFont: uiFont || undefined,
             watermark: watermark || undefined,
             watermarkPosition: watermarkPos,
+            watermarkOpacity,
+            watermarkScale,
             showGuide: guide,
             watchDir: watchDir || undefined,
             autoUpload,
@@ -147,6 +153,12 @@ const SettingsPage: React.FC = () => {
                     <option value="bottom-left">{t('bottom_left')}</option>
                     <option value="bottom-right">{t('bottom_right')}</option>
                 </select>
+            </div>
+            <div>
+                <label>{t('watermark_opacity')}</label>
+                <input type="number" min="0" max="1" step="0.05" value={watermarkOpacity} onChange={e => setWatermarkOpacity(parseFloat(e.target.value))} />
+                <label>{t('watermark_scale')}</label>
+                <input type="number" min="0" max="1" step="0.05" value={watermarkScale} onChange={e => setWatermarkScale(parseFloat(e.target.value))} />
             </div>
             <div>
                 <FontSelector
