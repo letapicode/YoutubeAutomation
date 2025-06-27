@@ -27,6 +27,7 @@ make dev                 # launches the Tauri app
 
 Before every commit run `make verify` (or the commands in `AGENTS.md`).
 If `cargo check` fails on Linux, run `scripts/install_tauri_deps.sh`.
+Run `make test` (or `npm test` inside `ytapp`) to run the automated tests.
 
 ---
 
