@@ -16,8 +16,8 @@ This document provides an overview of every major file and module in the reposit
 
 ### Top Level Files
 
-- **AGENTS.md** – Defines the required verification commands and overall guidelines. It instructs developers to run `npm install`, `cargo check`, and `ts-node src/cli.ts --help` before committing. It also explains the devcontainer setup.
-- **Makefile** – Implements the `verify`, `dev`, `test`, and `package` targets. `make verify` runs linting, TypeScript compilation, `cargo check`, and a CLI help check.
+- **AGENTS.md** – Defines the required verification commands and overall guidelines. It instructs developers to run `scripts/generate-schema.ts`, `npm install`, `cargo check`, and `ts-node src/cli.ts --help` before committing. It also explains the devcontainer setup.
+- **Makefile** – Implements the `verify`, `dev`, `test`, and `package` targets. `make verify` generates the shared schema then runs linting, TypeScript compilation, `cargo check`, and a CLI help check.
 - **readme.md** – Extensive implementation plan covering every feature: audio processing, transcription, YouTube integration, batch tools, UI design, packaging, setup and CLI usage.
 - **scripts/** – Contains bash and Node scripts used for setup, packaging and translation updates.
   - `setup.sh` installs toolchains and dependencies.
@@ -103,7 +103,7 @@ The Rust side exposes commands to the frontend via Tauri. Major files include:
 ## Next Steps for Contributors
 
 1. **Set up the environment** using `scripts/setup_codex.sh` or the devcontainer image. Source `.env.tauri` before running Rust commands.
-2. **Run `make verify`** (or the individual commands in `AGENTS.md`) to ensure TypeScript, Rust and CLI checks pass.
+2. **Run `make verify`** (or the individual commands in `AGENTS.md`) to generate the shared schema and ensure TypeScript, Rust and CLI checks pass.
 3. **Frontend changes** should go in `ytapp/src` – React components or feature modules. Keep indentation consistent (2 spaces for `.ts`, 4 for `.tsx`).
 4. **Backend changes** belong under `ytapp/src-tauri/src`. Add new Tauri commands here and expose them through small wrappers under `src/features`.
 5. **Add documentation** in `docs/` when introducing significant features.
