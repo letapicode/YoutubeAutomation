@@ -1364,17 +1364,37 @@ fn verify_dependencies(app: tauri::AppHandle) -> Result<(), String> {
     Ok(())
 }
 
+fn tauri_deps_script_path() -> Result<PathBuf, String> {
+    let name = if cfg!(target_os = "linux") {
+        "install_tauri_deps.sh"
+    } else if cfg!(target_os = "macos") {
+        "install_tauri_deps_macos.sh"
+    } else if cfg!(target_os = "windows") {
+        "install_tauri_deps_windows.ps1"
+    } else {
+        return Err("unsupported platform".into());
+    };
+    Ok(Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../scripts")
+        .join(name))
+}
+
 #[command]
 fn install_tauri_deps() -> Result<(), String> {
-    let script = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../scripts/install_tauri_deps.sh");
+    let script = tauri_deps_script_path()?;
     if !script.exists() {
         return Err("install script not found".into());
     }
-    let status = Command::new("bash")
-        .arg(script)
-        .status()
-        .map_err(|e| e.to_string())?;
+    let mut cmd = if cfg!(target_os = "windows") {
+        let mut c = Command::new("powershell");
+        c.arg("-File").arg(&script);
+        c
+    } else {
+        let mut c = Command::new("bash");
+        c.arg(&script);
+        c
+    };
+    let status = cmd.status().map_err(|e| e.to_string())?;
     if status.success() {
         Ok(())
     } else {
@@ -1466,5 +1486,26 @@ mod tests {
         std::env::set_var("HOME", dir.path());
         let fonts = list_fonts().unwrap();
         assert!(fonts.iter().any(|f| f.path == font.to_string_lossy()));
+    }
+
+    #[test]
+    #[cfg(target_os = "linux")]
+    fn deps_script_linux() {
+        let path = tauri_deps_script_path().unwrap();
+        assert!(path.ends_with("scripts/install_tauri_deps.sh"));
+    }
+
+    #[test]
+    #[cfg(target_os = "macos")]
+    fn deps_script_macos() {
+        let path = tauri_deps_script_path().unwrap();
+        assert!(path.ends_with("scripts/install_tauri_deps_macos.sh"));
+    }
+
+    #[test]
+    #[cfg(target_os = "windows")]
+    fn deps_script_windows() {
+        let path = tauri_deps_script_path().unwrap();
+        assert!(path.ends_with("scripts/install_tauri_deps_windows.ps1"));
     }
 }
