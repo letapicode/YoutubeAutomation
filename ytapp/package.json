@@ -7,7 +7,8 @@
     "build": "vite build",
     "cli": "ts-node src/cli.ts",
     "lint": "tsc --noEmit",
-    "a11y-test": "node scripts/a11y-test.js"
+    "a11y-test": "node scripts/a11y-test.js",
+    "test": "cd .. && ts-node scripts/generate-schema.ts && ts-node ytapp/tests/run-all.ts"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.5.0",
