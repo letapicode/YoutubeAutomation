@@ -23,7 +23,7 @@ its variables are available before running any checks.
 Run the following commands before committing changes:
 
 ```bash
-npx ts-node scripts/generate-schema.ts
+npx ts-node --project ytapp/tsconfig.json scripts/generate-schema.ts
 cd ytapp && npm install
 cd src-tauri && cargo check
 cd .. && npx ts-node src/cli.ts --help

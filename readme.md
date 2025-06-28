@@ -26,7 +26,7 @@ make dev                 # launches the Tauri app
 ```
 
 Before every commit run `make verify` (or the commands in `AGENTS.md`).
-This command first runs `scripts/generate-schema.ts` to keep TypeScript and Rust
+This command first runs `npx ts-node --project ytapp/tsconfig.json scripts/generate-schema.ts` to keep TypeScript and Rust
 schemas in sync before linting and compilation.
 If `cargo check` fails on Linux, run `scripts/install_tauri_deps.sh`.
 Run `make test` (or `npm test` inside `ytapp`) to run the automated tests.
@@ -267,7 +267,7 @@ The same setup steps are mirrored in `.codex/Dockerfile` which Codex uses as a
 bootstrap container.
 
 Before committing run `make verify` or the steps in `AGENTS.md`.
-`make verify` runs `scripts/generate-schema.ts` first, then lints and compiles:
+`make verify` runs `npx ts-node --project ytapp/tsconfig.json scripts/generate-schema.ts` first, then lints and compiles:
 ```bash
 make verify
 ```
