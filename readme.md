@@ -442,6 +442,11 @@ Show queued jobs:
 ```bash
 npx ts-node src/cli.ts queue-list
 ```
+Show a summary of queue statuses:
+
+```bash
+npx ts-node src/cli.ts queue-status
+```
 Remove a job by its index:
 ```bash
 npx ts-node src/cli.ts queue-remove 0
