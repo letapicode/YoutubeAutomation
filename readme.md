@@ -425,6 +425,12 @@ Queue up a file for later processing:
 npx ts-node src/cli.ts queue-add input.wav --title "My Queued Video"
 ```
 
+Add multiple jobs at once from a CSV file or list of audio files:
+
+```bash
+npx ts-node src/cli.ts queue-add-batch a.wav b.wav --csv metadata.csv -d output
+```
+
 Show queued jobs:
 
 ```bash
