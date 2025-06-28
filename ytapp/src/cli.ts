@@ -1158,6 +1158,22 @@ program
   });
 
 program
+  .command('shift-srt')
+  .description('Shift SRT timestamps by the given offset in seconds')
+  .argument('<file>', 'subtitle file')
+  .argument('<offset>', 'offset in seconds')
+  .option('-o, --output <file>', 'write to different file')
+  .action(async (file: string, offset: string, opts: { output?: string }) => {
+    try {
+      const { shiftSrt } = await import('./utils/srt');
+      await shiftSrt(file, parseFloat(offset), opts.output);
+    } catch (err) {
+      console.error('Error shifting srt:', err);
+      process.exitCode = 1;
+    }
+  });
+
+program
   .command('edit-srt')
   .description('Edit an SRT file using $EDITOR')
   .argument('<file>', 'subtitle file')
