@@ -236,11 +236,14 @@ Clone the repository and run the setup script after entering the project
 directory. Use `./scripts/setup_codex.sh` locally or `.codex/bootstrap.sh`
 when starting the devcontainer. This script installs toolchains, downloads
 the Whisper model and calls `scripts/install_tauri_deps.sh` to install the
-required GTK/WebKit packages. It also writes `.env.tauri` which defines
+GTK/WebKit development headers. It also writes `.env.tauri` which defines
 `PKG_CONFIG_PATH` for Cargo.
 
-After the script finishes **source `.env.tauri` or restart your shell** so
-the variables are available before running any Cargo commands.
+After the script finishes **source `.env.tauri`** (or restart your shell)
+before running `cargo check` or `make verify`.
+
+Run `npm install` inside `ytapp` (or `npm install -g ts-node`) before using
+any `ts-node` or CLI commands to avoid the "Need to install ts-node" prompt.
 
 The application automatically verifies that FFmpeg and Whisper are installed at
 startup. To run this check manually use:
@@ -278,7 +281,7 @@ The CI pipeline runs the same command using the devcontainer image.
 
 `.codex/config.yaml` lists the verification steps Codex runs and references `.codex/bootstrap.sh` for initialization. The development container is built from `.codex/Dockerfile` and published as `ghcr.io/<OWNER>/ytapp-dev:latest`. Starting from this prebuilt image allows Codex to skip dependency installation; the bootstrap script runs `scripts/setup.sh` and sources `.env.tauri` so the environment is ready immediately. See [docs/SELF_REFLECTION.md](docs/SELF_REFLECTION.md) for more details on Codex operations.
 
-### Troubleshooting `cargo check`
+### Troubleshooting
 
 Errors about `glib-2.0`, `gdk-3.0`, `glib-sys`, `gdk-sys` or `gobject-sys`
 usually mean `PKG_CONFIG_PATH` is not set or the GTK/WebKit development
@@ -291,6 +294,8 @@ To automatically process files placed in a folder set the **Watch Directory**
 and enable **Auto Upload** in the settings page or use the CLI `watch` command.
 When the app starts it will immediately begin watching the configured folder using your saved settings.
 Run `npx ts-node src/cli.ts watch-stop` to disable watching again. Use `--recursive` with the `watch` command to include subdirectories.
+
+If CLI commands fail with "Need to install ts-node" run `npm install` in `ytapp` or install it globally with `npm install -g ts-node`.
 
 ### Contribution
 
