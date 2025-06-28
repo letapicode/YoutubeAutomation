@@ -805,6 +805,7 @@ struct WatchDirectoryParams {
     dir: String,
     options: Option<WatchOptions>,
     auto_upload: bool,
+    recursive: Option<bool>,
 }
 
 #[command]
@@ -920,7 +921,12 @@ fn watch_directory(window: Window, params: WatchDirectoryParams) -> Result<(), S
         },
         Config::default(),
     ).map_err(|e| e.to_string())?;
-    watcher.watch(Path::new(&dir), RecursiveMode::NonRecursive).map_err(|e| e.to_string())?;
+    let mode = if params.recursive.unwrap_or(false) {
+        RecursiveMode::Recursive
+    } else {
+        RecursiveMode::NonRecursive
+    };
+    watcher.watch(Path::new(&dir), mode).map_err(|e| e.to_string())?;
     *guard = Some(watcher);
     Ok(())
 }

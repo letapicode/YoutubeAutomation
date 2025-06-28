@@ -43,3 +43,16 @@ const events = require('@tauri-apps/api/event');
   assert.strictEqual(args.options.autoUpload, false);
   console.log('cli watch-stop test passed');
 })();
+
+(async () => {
+  let args: any;
+  core.invoke = async (cmd: string, a: any) => {
+    if (cmd === 'watch_directory') args = a;
+  };
+  events.listen = async () => () => {};
+  process.argv = ['node', 'cli.ts', 'watch', '/tmp/in', '--recursive'];
+  await import('../src/cli');
+  assert.strictEqual(args.dir, '/tmp/in');
+  assert.strictEqual(args.recursive, true);
+  console.log('cli watch recursive flag passed');
+})();

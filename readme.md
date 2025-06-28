@@ -290,7 +290,7 @@ dependencies and create `.env.tauri`. Then **source `.env.tauri`** (as noted in
 To automatically process files placed in a folder set the **Watch Directory**
 and enable **Auto Upload** in the settings page or use the CLI `watch` command.
 When the app starts it will immediately begin watching the configured folder using your saved settings.
-Run `npx ts-node src/cli.ts watch-stop` to disable watching again.
+Run `npx ts-node src/cli.ts watch-stop` to disable watching again. Use `--recursive` with the `watch` command to include subdirectories.
 
 ### Contribution
 
@@ -411,8 +411,9 @@ columns, where `tags` is a comma-separated list.
 Watch a directory and automatically process new audio files:
 
 ```bash
-npx ts-node src/cli.ts watch ./incoming --auto-upload
+npx ts-node src/cli.ts watch ./incoming --auto-upload --recursive
 ```
+Pass `--recursive` to process files in subdirectories as well.
 Stop watching:
 
 ```bash
