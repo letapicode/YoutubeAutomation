@@ -16,7 +16,7 @@ This document provides an overview of every major file and module in the reposit
 
 ### Top Level Files
 
-- **AGENTS.md** – Defines the required verification commands and overall guidelines. It instructs developers to run `scripts/generate-schema.ts`, `npm install`, `cargo check`, and `ts-node src/cli.ts --help` before committing. It also explains the devcontainer setup.
+- **AGENTS.md** – Defines the required verification commands and overall guidelines. It instructs developers to run `npx ts-node --project ytapp/tsconfig.json scripts/generate-schema.ts`, `npm install`, `cargo check`, and `ts-node src/cli.ts --help` before committing. It also explains the devcontainer setup.
 - **Makefile** – Implements the `verify`, `dev`, `test`, and `package` targets. `make verify` generates the shared schema then runs linting, TypeScript compilation, `cargo check`, and a CLI help check. The `test` target runs each TypeScript test sequentially; you can alternatively run `npm test` inside `ytapp`.
 - **readme.md** – Extensive implementation plan covering every feature: audio processing, transcription, YouTube integration, batch tools, UI design, packaging, setup and CLI usage.
 - **scripts/** – Contains bash and Node scripts used for setup, packaging and translation updates.
