@@ -2,7 +2,7 @@ import { readdirSync } from 'fs';
 import path from 'path';
 
 (async () => {
-  const files = readdirSync(__dirname)
+  const files = [...new Set([...readdirSync(__dirname), 'notify.test.ts'])]
     .filter(f => f.endsWith('.test.ts'))
     .sort();
   for (const f of files) {
