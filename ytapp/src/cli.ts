@@ -11,7 +11,7 @@ import { translateSrt } from './utils/translate';
 import { parseCsv, CsvRow } from './utils/csv';
 import { watchDirectory } from './features/watch';
 import { generateBatchWithProgress } from './features/batch';
-import { addJob, listJobs, runQueue, clearQueue, clearFailed, clearFinished, removeJob, moveJob, pauseQueue, resumeQueue } from './features/queue';
+import { addJob, listJobs, runQueue, clearQueue, clearFailed, clearFinished, removeJob, moveJob, pauseQueue, resumeQueue, exportQueue, importQueue } from './features/queue';
 import { listProfiles, getProfile, saveProfile, deleteProfile } from './features/profiles';
 import { listFonts } from './features/fonts';
 import { fetchPlaylists } from './features/youtube';
@@ -1045,6 +1045,33 @@ program
       await moveJob(parseInt(from, 10), parseInt(to, 10));
     } catch (err) {
       console.error('Error moving job:', err);
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command('queue-export')
+  .description('Export queue to a JSON file')
+  .argument('<file>', 'output file')
+  .action(async (file: string) => {
+    try {
+      await exportQueue(file);
+    } catch (err) {
+      console.error('Error exporting queue:', err);
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command('queue-import')
+  .description('Import queue from a JSON file')
+  .argument('<file>', 'input file')
+  .option('--append', 'append to existing queue')
+  .action(async (file: string, opts: { append?: boolean }) => {
+    try {
+      await importQueue(file, !!opts.append);
+    } catch (err) {
+      console.error('Error importing queue:', err);
       process.exitCode = 1;
     }
   });

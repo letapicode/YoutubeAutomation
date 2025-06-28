@@ -68,6 +68,16 @@ export async function moveJob(from: number, to: number): Promise<void> {
   await invoke('queue_move', { from, to });
 }
 
+/** Export the current queue to a JSON file. */
+export async function exportQueue(path: string): Promise<void> {
+  await invoke('queue_export', { path });
+}
+
+/** Import queue items from a JSON file. */
+export async function importQueue(path: string, append = false): Promise<void> {
+  await invoke('queue_import', { path, append });
+}
+
 export async function listenProgress(onProgress: (p: QueueProgress) => void): Promise<() => void> {
   const unlisten = await listen<QueueProgress>('queue_progress', e => {
     if (e.payload) onProgress(e.payload as QueueProgress);

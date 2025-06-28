@@ -204,6 +204,34 @@ pub fn clear_failed(app: &tauri::AppHandle) -> Result<(), String> {
     Ok(())
 }
 
+/// Write the current queue state to the provided path.
+pub fn export_queue(app: &tauri::AppHandle, dest: &str) -> Result<(), String> {
+    let src = queue_path(app)?;
+    fs::copy(src, dest).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+/// Replace or append to the queue with jobs from the given file.
+pub fn import_queue(app: &tauri::AppHandle, path: &str, append: bool) -> Result<(), String> {
+    let data = fs::read_to_string(path).map_err(|e| e.to_string())?;
+    let mut items: Vec<QueueItem> = match serde_json::from_str(&data) {
+        Ok(v) => v,
+        Err(_) => {
+            let legacy: Vec<Job> = serde_json::from_str(&data).map_err(|e| e.to_string())?;
+            legacy.into_iter().map(|job| QueueItem { job, status: JobStatus::Pending, retries: 0, error: None }).collect()
+        }
+    };
+    let mut q = QUEUE.lock().unwrap();
+    if append {
+        q.append(&mut items);
+    } else {
+        *q = items;
+    }
+    save_queue(app)?;
+    emit_changed(app);
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -239,6 +267,25 @@ mod tests {
         assert_eq!(q.len(), 1);
         match &q[0].job {
             Job::Generate { dest, .. } => assert_eq!(dest, "b.mp4"),
+            _ => panic!("unexpected job type"),
+        }
+    }
+
+    #[test]
+    fn export_and_import() {
+        let dir = tempfile::tempdir().unwrap();
+        std::env::set_var("YTAPP_TEST_DIR", dir.path());
+        let app = mock_app();
+        let params = GenerateParams { file: "a.mp3".into(), output: None, captions: None, caption_options: None, background: None, intro: None, outro: None, watermark: None, watermark_position: None, watermark_opacity: None, watermark_scale: None, width: None, height: None, title: None, description: None, tags: None, publish_at: None, thumbnail: None, privacy: None, playlist_id: None };
+        enqueue(&app.handle(), Job::Generate { params: params.clone(), dest: "a.mp4".into() }).unwrap();
+        let export_path = dir.path().join("q.json");
+        export_queue(&app.handle(), export_path.to_str().unwrap()).unwrap();
+        clear_queue(&app.handle()).unwrap();
+        import_queue(&app.handle(), export_path.to_str().unwrap(), false).unwrap();
+        let q = peek_all();
+        assert_eq!(q.len(), 1);
+        match &q[0].job {
+            Job::Generate { dest, .. } => assert_eq!(dest, "a.mp4"),
             _ => panic!("unexpected job type"),
         }
     }
