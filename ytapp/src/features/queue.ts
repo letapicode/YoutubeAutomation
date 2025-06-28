@@ -107,3 +107,22 @@ export async function listenNotify(onNotify: (n: QueueNotify) => void): Promise<
     unlisten();
   };
 }
+
+export interface QueueSummary {
+  pending: number;
+  running: number;
+  failed: number;
+  completed: number;
+}
+
+/**
+ * Return a summary of queue jobs by status.
+ */
+export async function getQueueSummary(): Promise<QueueSummary> {
+  const jobs = await listJobs();
+  const summary: QueueSummary = { pending: 0, running: 0, failed: 0, completed: 0 };
+  for (const job of jobs) {
+    summary[job.status]++;
+  }
+  return summary;
+}

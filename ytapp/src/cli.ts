@@ -11,7 +11,7 @@ import { translateSrt } from './utils/translate';
 import { parseCsv, CsvRow } from './utils/csv';
 import { watchDirectory } from './features/watch';
 import { generateBatchWithProgress } from './features/batch';
-import { addJob, listJobs, runQueue, clearQueue, clearFailed, clearFinished, removeJob, moveJob, pauseQueue, resumeQueue, exportQueue, importQueue } from './features/queue';
+import { addJob, listJobs, runQueue, clearQueue, clearFailed, clearFinished, removeJob, moveJob, pauseQueue, resumeQueue, exportQueue, importQueue, getQueueSummary } from './features/queue';
 import { listProfiles, getProfile, saveProfile, deleteProfile } from './features/profiles';
 import { listFonts } from './features/fonts';
 import { fetchPlaylists } from './features/youtube';
@@ -1119,6 +1119,19 @@ program
       console.log(JSON.stringify(jobs, null, 2));
     } catch (err) {
       console.error('Error listing queue:', err);
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command('queue-status')
+  .description('Show summary of queue jobs by status')
+  .action(async () => {
+    try {
+      const summary = await getQueueSummary();
+      console.log(JSON.stringify(summary, null, 2));
+    } catch (err) {
+      console.error('Error getting queue summary:', err);
       process.exitCode = 1;
     }
   });
