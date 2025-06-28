@@ -207,12 +207,15 @@ fn temp_file(name: &str) -> PathBuf {
     std::env::temp_dir().join(format!("{}_{}.mp4", name, ts))
 }
 
-/// Escape a path for use in ffmpeg filter arguments
+/// Escape a path for use in ffmpeg filter arguments.
+/// This handles cross-platform quoting so Windows paths work on Unix shells.
 fn escape_filter_path(path: &str) -> String {
-    // REASON: ffmpeg filters treat unescaped single quotes and spaces as
-    // separators, so we wrap the path in single quotes and escape any
-    // existing quotes to avoid injection or parsing errors.
-    let escaped = path.replace('\'', "\\'");
+    // REASON: ffmpeg filters treat unescaped single quotes, spaces and
+    // backslashes as separators, so we escape backslashes and quotes before
+    // wrapping the path in single quotes to avoid injection or parsing errors.
+    let escaped = path
+        .replace('\\', "\\\\")
+        .replace('\'', "\\'");
     format!("'{}'", escaped)
 }
 
@@ -1489,6 +1492,13 @@ mod tests {
         save_srt(file.to_string_lossy().to_string(), "hello".into()).unwrap();
         let data = load_srt(file.to_string_lossy().to_string()).unwrap();
         assert_eq!(data, "hello");
+    }
+
+    #[test]
+    fn escape_filter_path_windows() {
+        let path = "C:\\Videos\\clip's.png";
+        let escaped = escape_filter_path(path);
+        assert_eq!(escaped, "'C:\\Videos\\clip\\'s.png'");
     }
 
     #[test]
