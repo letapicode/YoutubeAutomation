@@ -16,3 +16,7 @@ export async function watchDirectory(dir: string, options: WatchParams): Promise
     recursive: options.recursive,
   });
 }
+
+export async function stopWatching(): Promise<void> {
+  await invoke('watch_stop');
+}

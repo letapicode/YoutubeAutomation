@@ -1102,7 +1102,8 @@ program
   .description('Stop watching for new audio files')
   .action(async () => {
     try {
-      await watchDirectory('', { autoUpload: false } as any);
+      const { stopWatching } = await import('./features/watch');
+      await stopWatching();
     } catch (err) {
       console.error('Error stopping watch:', err);
       process.exitCode = 1;

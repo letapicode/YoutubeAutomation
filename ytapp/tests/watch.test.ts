@@ -32,15 +32,14 @@ const events = require('@tauri-apps/api/event');
 })();
 
 (async () => {
-  let args: any;
-  core.invoke = async (cmd: string, a: any) => {
-    if (cmd === 'watch_directory') args = a;
+  let called: string | undefined;
+  core.invoke = async (cmd: string) => {
+    called = cmd;
   };
   events.listen = async () => () => {};
   process.argv = ['node', 'cli.ts', 'watch-stop'];
   await import('../src/cli');
-  assert.strictEqual(args.dir, '');
-  assert.strictEqual(args.options.autoUpload, false);
+  assert.strictEqual(called, 'watch_stop');
   console.log('cli watch-stop test passed');
 })();
 
@@ -55,4 +54,27 @@ const events = require('@tauri-apps/api/event');
   assert.strictEqual(args.dir, '/tmp/in');
   assert.strictEqual(args.recursive, true);
   console.log('cli watch recursive flag passed');
+})();
+
+(async () => {
+  const dir = await fs.mkdtemp('/tmp/watch-');
+  let closed = false;
+  let watcher: any;
+  core.invoke = async (cmd: string) => {
+    if (cmd === 'watch_directory') {
+      watcher = fsSync.watch(dir, () => {});
+      return;
+    }
+    if (cmd === 'watch_stop') {
+      watcher.close();
+      closed = true;
+      return;
+    }
+  };
+  events.listen = async () => () => {};
+  const mod = await import('../src/features/watch');
+  await mod.watchDirectory(dir, {} as any);
+  await mod.stopWatching();
+  assert.ok(closed);
+  console.log('watch-stop removes watcher passed');
 })();

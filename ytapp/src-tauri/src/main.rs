@@ -933,6 +933,15 @@ fn watch_directory(window: Window, params: WatchDirectoryParams) -> Result<(), S
 }
 
 #[command]
+fn watch_stop(_window: Window) -> Result<(), String> {
+    let mut guard = WATCHER.lock().unwrap();
+    if let Some(w) = guard.take() {
+        drop(w);
+    }
+    Ok(())
+}
+
+#[command]
 fn load_settings(app: tauri::AppHandle) -> Result<AppSettings, String> {
     let path = settings_path(&app)?;
     let data = match fs::read_to_string(&path) {
@@ -1473,7 +1482,7 @@ fn main() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, watch_directory, youtube_sign_in, youtube_sign_out, youtube_is_signed_in, list_playlists, load_settings, save_settings, load_srt, save_srt, cancel_generate, cancel_upload, cancel_transcription, queue_add, queue_list, queue_remove, queue_move, queue_clear, queue_clear_completed, queue_clear_failed, queue_export, queue_import, queue_pause, queue_resume, queue_process, profile_list, profile_get, profile_save, profile_delete, verify_dependencies, install_tauri_deps, list_fonts, get_logs, clear_logs_cmd])
+        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, watch_directory, watch_stop, youtube_sign_in, youtube_sign_out, youtube_is_signed_in, list_playlists, load_settings, save_settings, load_srt, save_srt, cancel_generate, cancel_upload, cancel_transcription, queue_add, queue_list, queue_remove, queue_move, queue_clear, queue_clear_completed, queue_clear_failed, queue_export, queue_import, queue_pause, queue_resume, queue_process, profile_list, profile_get, profile_save, profile_delete, verify_dependencies, install_tauri_deps, list_fonts, get_logs, clear_logs_cmd])
         .run(context)
         .expect("error while running tauri application");
 }
