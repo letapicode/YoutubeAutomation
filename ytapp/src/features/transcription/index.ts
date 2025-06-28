@@ -48,3 +48,8 @@ export async function loadSrt(path: string): Promise<string> {
 export async function saveSrt(path: string, data: string): Promise<void> {
     await invoke('save_srt', { path, data });
 }
+
+/** Cancel the currently running transcription if any. */
+export async function cancelTranscription(): Promise<void> {
+    await invoke('cancel_transcription');
+}

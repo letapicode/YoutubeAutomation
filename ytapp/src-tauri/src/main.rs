@@ -63,6 +63,7 @@ struct QueueNotify {
 static WATCHER: Lazy<Mutex<Option<RecommendedWatcher>>> = Lazy::new(|| Mutex::new(None));
 static ACTIVE_FFMPEG: Lazy<Mutex<Option<Arc<Mutex<Child>>>>> = Lazy::new(|| Mutex::new(None));
 static ACTIVE_UPLOAD: Lazy<Mutex<Option<AbortHandle>>> = Lazy::new(|| Mutex::new(None));
+static ACTIVE_TRANSCRIBE: Lazy<Mutex<Option<AbortHandle>>> = Lazy::new(|| Mutex::new(None));
 static WORKER_STARTED: Lazy<AtomicBool> = Lazy::new(|| AtomicBool::new(false));
 
 
@@ -1012,6 +1013,15 @@ fn cancel_upload(window: Window) -> Result<(), String> {
 }
 
 #[command]
+fn cancel_transcription(window: Window) -> Result<(), String> {
+    if let Some(handle) = ACTIVE_TRANSCRIBE.lock().unwrap().take() {
+        handle.abort();
+        let _ = window.emit("transcribe_canceled", ());
+    }
+    Ok(())
+}
+
+#[command]
 fn queue_add(app: tauri::AppHandle, job: Job) -> Result<(), String> {
     load_queue(&app).ok();
     log(&app, "info", "queue_add");
@@ -1207,12 +1217,17 @@ struct TranscribeParams {
 }
 
 #[command]
-fn transcribe_audio(params: TranscribeParams) -> Result<String, String> {
+async fn transcribe_audio(window: Window, params: TranscribeParams) -> Result<String, String> {
     let audio_path = PathBuf::from(&params.file);
     let srt_path = audio_path.with_extension("srt");
 
-    // run asynchronous whisper in tauri runtime
-    tauri::async_runtime::block_on(async {
+    let (handle, reg) = AbortHandle::new_pair();
+    {
+        let mut active = ACTIVE_TRANSCRIBE.lock().unwrap();
+        *active = Some(handle);
+    }
+
+    let fut = async {
         let lang = language::parse_language(params.language);
         let size = match params.size.as_deref() {
             Some("tiny") => Size::Tiny,
@@ -1226,10 +1241,23 @@ fn transcribe_audio(params: TranscribeParams) -> Result<String, String> {
             .transcribe(&audio_path, false, false)
             .map_err(|e| e.to_string())?;
         std::fs::write(&srt_path, transcript.as_srt()).map_err(|e| e.to_string())?;
-        Ok::<_, String>(())
-    })?;
+        Ok::<_, String>(srt_path.to_string_lossy().to_string())
+    };
 
-    Ok(srt_path.to_string_lossy().to_string())
+    let result = Abortable::new(fut, reg).await;
+    {
+        let mut active = ACTIVE_TRANSCRIBE.lock().unwrap();
+        *active = None;
+    }
+
+    match result {
+        Ok(Ok(p)) => Ok(p),
+        Ok(Err(e)) => Err(e),
+        Err(_) => {
+            let _ = window.emit("transcribe_canceled", ());
+            Err("transcription canceled".into())
+        }
+    }
 }
 
 /// Scan common font directories and return available fonts.
@@ -1439,7 +1467,7 @@ fn main() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, watch_directory, youtube_sign_in, youtube_sign_out, youtube_is_signed_in, list_playlists, load_settings, save_settings, load_srt, save_srt, cancel_generate, cancel_upload, queue_add, queue_list, queue_remove, queue_move, queue_clear, queue_clear_completed, queue_clear_failed, queue_export, queue_import, queue_pause, queue_resume, queue_process, profile_list, profile_get, profile_save, profile_delete, verify_dependencies, install_tauri_deps, list_fonts, get_logs, clear_logs_cmd])
+        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, watch_directory, youtube_sign_in, youtube_sign_out, youtube_is_signed_in, list_playlists, load_settings, save_settings, load_srt, save_srt, cancel_generate, cancel_upload, cancel_transcription, queue_add, queue_list, queue_remove, queue_move, queue_clear, queue_clear_completed, queue_clear_failed, queue_export, queue_import, queue_pause, queue_resume, queue_process, profile_list, profile_get, profile_save, profile_delete, verify_dependencies, install_tauri_deps, list_fonts, get_logs, clear_logs_cmd])
         .run(context)
         .expect("error while running tauri application");
 }
