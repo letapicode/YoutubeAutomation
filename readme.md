@@ -479,6 +479,11 @@ Clear the log file:
 ```bash
 npx ts-node src/cli.ts logs-clear
 ```
+Shift all timestamps in an SRT file forward by 1.5 seconds:
+
+```bash
+npx ts-node src/cli.ts shift-srt captions.srt 1.5 --output adjusted.srt
+```
 The maximum retry count is configurable in the Settings page or by `max_retries` in `settings.json` (default `3`).
 
 Profiles can store commonly used generation options in `settings.json`.
