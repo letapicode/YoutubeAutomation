@@ -1024,6 +1024,18 @@ program
   });
 
 program
+  .command('transcribe-cancel')
+  .description('Cancel running transcription')
+  .action(async () => {
+    try {
+      await invoke('cancel_transcription');
+    } catch (err) {
+      console.error('Error canceling transcription:', err);
+      process.exitCode = 1;
+    }
+  });
+
+program
   .command('watch')
   .description('Watch directory for new audio files')
   .argument('<dir>', 'directory path')

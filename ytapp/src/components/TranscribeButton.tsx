@@ -1,7 +1,7 @@
 // Button that transcribes audio to SRT and optionally translates it.
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { transcribeAudio } from '../features/transcription';
+import { transcribeAudio, cancelTranscription } from '../features/transcription';
 import { Language } from '../features/language';
 import { loadSettings } from '../features/settings';
 
@@ -40,11 +40,18 @@ const TranscribeButton: React.FC<TranscribeButtonProps> = ({ file, language, tar
         setRunning(false);
     };
 
+    const handleCancel = async () => {
+        await cancelTranscription();
+    };
+
     return (
         <div className="row">
             <button onClick={handleClick} disabled={running || !file}>
                 {running ? t('transcribing') : t('transcribe')}
             </button>
+            {running && (
+                <button onClick={handleCancel}>{t('cancel')}</button>
+            )}
             {error && <span>{error}</span>}
         </div>
     );
