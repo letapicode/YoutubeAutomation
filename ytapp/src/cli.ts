@@ -1062,6 +1062,7 @@ program
   .option('--description <desc>', 'video description')
   .option('--tags <tags>', 'comma separated tags')
   .option('--publish-at <date>', 'schedule publish date (ISO)')
+  .option('--recursive', 'watch subdirectories')
   .option('--auto-upload', 'upload after generating')
   .action(async (dir: string, options: any) => {
     if (options.color && !options.captionColor) options.captionColor = options.color;
@@ -1091,6 +1092,7 @@ program
       description: options.description,
       tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
       publishAt: options.publishAt,
+      recursive: options.recursive,
       autoUpload: options.autoUpload,
     } as any);
   });
