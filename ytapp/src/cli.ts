@@ -6,7 +6,7 @@ import path from 'path';
 import { spawn } from 'child_process';
 import fs from 'fs/promises';
 import os from 'os';
-import { CaptionOptions, GenerateParams } from './schema';
+import type { CaptionOptions, GenerateParams } from './schema';
 import { translateSrt } from './utils/translate';
 import { parseCsv, CsvRow } from './utils/csv';
 import { watchDirectory } from './features/watch';
