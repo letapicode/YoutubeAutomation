@@ -438,6 +438,14 @@ Move a job within the queue:
 ```bash
 npx ts-node src/cli.ts queue-move 2 0
 ```
+Export the queue to a file:
+```bash
+npx ts-node src/cli.ts queue-export queue.json
+```
+Import a queue from a file, appending to existing jobs:
+```bash
+npx ts-node src/cli.ts queue-import queue.json --append
+```
 Each job now tracks a `status` and `retries` count in `queue.json`.
 Failed jobs remain in the queue until they succeed or exceed the retry limit.
 

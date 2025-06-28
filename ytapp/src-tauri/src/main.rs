@@ -1060,6 +1060,18 @@ fn queue_clear_failed(app: tauri::AppHandle) -> Result<(), String> {
 }
 
 #[command]
+fn queue_export(app: tauri::AppHandle, path: String) -> Result<(), String> {
+    load_queue(&app).ok();
+    job_queue::export_queue(&app, &path)
+}
+
+#[command]
+fn queue_import(app: tauri::AppHandle, path: String, append: Option<bool>) -> Result<(), String> {
+    load_queue(&app).ok();
+    job_queue::import_queue(&app, &path, append.unwrap_or(false))
+}
+
+#[command]
 fn queue_pause(_app: tauri::AppHandle) {
     job_queue::set_paused(true);
     job_queue::notifier().notify_one();
@@ -1427,7 +1439,7 @@ fn main() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, watch_directory, youtube_sign_in, youtube_sign_out, youtube_is_signed_in, list_playlists, load_settings, save_settings, load_srt, save_srt, cancel_generate, cancel_upload, queue_add, queue_list, queue_remove, queue_move, queue_clear, queue_clear_completed, queue_clear_failed, queue_pause, queue_resume, queue_process, profile_list, profile_get, profile_save, profile_delete, verify_dependencies, install_tauri_deps, list_fonts, get_logs, clear_logs_cmd])
+        .invoke_handler(tauri::generate_handler![generate_video, upload_video, upload_videos, transcribe_audio, generate_upload, generate_batch_upload, watch_directory, youtube_sign_in, youtube_sign_out, youtube_is_signed_in, list_playlists, load_settings, save_settings, load_srt, save_srt, cancel_generate, cancel_upload, queue_add, queue_list, queue_remove, queue_move, queue_clear, queue_clear_completed, queue_clear_failed, queue_export, queue_import, queue_pause, queue_resume, queue_process, profile_list, profile_get, profile_save, profile_delete, verify_dependencies, install_tauri_deps, list_fonts, get_logs, clear_logs_cmd])
         .run(context)
         .expect("error while running tauri application");
 }
