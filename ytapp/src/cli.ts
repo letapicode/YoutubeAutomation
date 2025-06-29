@@ -1036,6 +1036,30 @@ program
   });
 
 program
+  .command('generate-cancel')
+  .description('Cancel running video generation')
+  .action(async () => {
+    try {
+      await invoke('cancel_generate');
+    } catch (err) {
+      console.error('Error canceling generation:', err);
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command('upload-cancel')
+  .description('Cancel running upload')
+  .action(async () => {
+    try {
+      await invoke('cancel_upload');
+    } catch (err) {
+      console.error('Error canceling upload:', err);
+      process.exitCode = 1;
+    }
+  });
+
+program
   .command('watch')
   .description('Watch directory for new audio files')
   .argument('<dir>', 'directory path')
