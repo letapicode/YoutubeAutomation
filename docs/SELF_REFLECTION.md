@@ -33,6 +33,16 @@ This document summarizes how the Codex agent operates and how it should be guide
 
 Codex tasks should start from the prebuilt image `ghcr.io/<OWNER>/ytapp-dev:latest`, which is built from `.codex/Dockerfile`. This container already includes all dependencies and runs `.codex/bootstrap.sh` on launch, ensuring `scripts/setup.sh` and `.env.tauri` are applied automatically. Using this image removes most initialization overhead.
 
+## Launching the Devcontainer
+
+Start the containerized environment with **Reopen in Container** from the VS Code command palette or run:
+
+```bash
+devcontainer open
+```
+
+The prebuilt image automatically executes `scripts/setup_codex.sh` so all dependencies are installed before you begin.
+
 ## 🛠️ The Codex Journey: What Really Happens Behind the Scenes
 
 The following walkthrough illustrates how Codex sets up its environment and why
