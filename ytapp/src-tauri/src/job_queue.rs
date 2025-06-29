@@ -235,13 +235,16 @@ pub fn import_queue(app: &tauri::AppHandle, path: &str, append: bool) -> Result<
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tauri::test::mock_app;
+    use tauri::test::{mock_context, noop_assets};
+    use tauri::Builder;
 
     #[test]
     fn persist_and_retry() {
         let dir = tempfile::tempdir().unwrap();
         std::env::set_var("YTAPP_TEST_DIR", dir.path());
-        let app = mock_app();
+        let app = Builder::default()
+            .build(mock_context(noop_assets()))
+            .unwrap();
         let params = GenerateParams { file: "a.mp3".into(), output: None, captions: None, caption_options: None, background: None, intro: None, outro: None, watermark: None, watermark_position: None, watermark_opacity: None, watermark_scale: None, width: None, height: None, title: None, description: None, tags: None, publish_at: None, thumbnail: None, privacy: None, playlist_id: None };
         enqueue(&app.handle(), Job::Generate { params: params.clone(), dest: "a.mp4".into() }).unwrap();
         load_queue(&app.handle()).unwrap();
@@ -257,7 +260,9 @@ mod tests {
     fn clear_failed_only_removes_failed_jobs() {
         let dir = tempfile::tempdir().unwrap();
         std::env::set_var("YTAPP_TEST_DIR", dir.path());
-        let app = mock_app();
+        let app = Builder::default()
+            .build(mock_context(noop_assets()))
+            .unwrap();
         let params = GenerateParams { file: "a.mp3".into(), output: None, captions: None, caption_options: None, background: None, intro: None, outro: None, watermark: None, watermark_position: None, watermark_opacity: None, watermark_scale: None, width: None, height: None, title: None, description: None, tags: None, publish_at: None, thumbnail: None, privacy: None, playlist_id: None };
         enqueue(&app.handle(), Job::Generate { params: params.clone(), dest: "a.mp4".into() }).unwrap();
         enqueue(&app.handle(), Job::Generate { params: params.clone(), dest: "b.mp4".into() }).unwrap();
@@ -275,7 +280,9 @@ mod tests {
     fn export_and_import() {
         let dir = tempfile::tempdir().unwrap();
         std::env::set_var("YTAPP_TEST_DIR", dir.path());
-        let app = mock_app();
+        let app = Builder::default()
+            .build(mock_context(noop_assets()))
+            .unwrap();
         let params = GenerateParams { file: "a.mp3".into(), output: None, captions: None, caption_options: None, background: None, intro: None, outro: None, watermark: None, watermark_position: None, watermark_opacity: None, watermark_scale: None, width: None, height: None, title: None, description: None, tags: None, publish_at: None, thumbnail: None, privacy: None, playlist_id: None };
         enqueue(&app.handle(), Job::Generate { params: params.clone(), dest: "a.mp4".into() }).unwrap();
         let export_path = dir.path().join("q.json");
