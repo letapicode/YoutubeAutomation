@@ -3,7 +3,7 @@
 These guidelines apply to the entire repository.
 
 ## Devcontainer
-A pre-built development container image exists for this project: `ghcr.io/<OWNER>/ytapp-dev:latest`. Codex should
+A pre-built development container image exists for this project: `ghcr.io/letapicode/ytapp-dev:latest`. Codex should
 start from this image (or run `devcontainer open` if supported) before executing
 `make verify`. Environment initialization is handled by `scripts/setup_codex.sh`
 (invoked automatically via `.codex/bootstrap.sh`). This script installs Tauri
