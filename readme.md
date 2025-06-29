@@ -403,6 +403,13 @@ npx ts-node src/cli.ts generate-batch a.wav b.wav -d ./out --title "Batch Title"
 During uploads the CLI prints progress percentages similar to video generation.
 Press `Ctrl-C` at any time to cancel the current operation.
 
+Cancel generation or upload from another terminal:
+
+```bash
+npx ts-node src/cli.ts generate-cancel
+npx ts-node src/cli.ts upload-cancel
+```
+
 `--caption-color` and `--caption-bg` accept hex colors. You may also use the
 shorter `--color` and `--bg-color` aliases.
 `--watermark` adds an overlay image. Use `--watermark-position` to place it in
