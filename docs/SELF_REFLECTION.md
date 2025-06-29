@@ -31,7 +31,7 @@ This document summarizes how the Codex agent operates and how it should be guide
 - The agent runs in an isolated container without internet access unless explicitly enabled by the user.
 - If required dependencies are missing, commands or tests may fail. The agent should report such issues and may include a disclaimer about environment limitations in the PR.
 
-Codex tasks should start from the prebuilt image `ghcr.io/<OWNER>/ytapp-dev:latest`, which is built from `.codex/Dockerfile`. This container already includes all dependencies and runs `.codex/bootstrap.sh` on launch, ensuring `scripts/setup.sh` and `.env.tauri` are applied automatically. Using this image removes most initialization overhead.
+Codex tasks should start from the prebuilt image `ghcr.io/letapicode/ytapp-dev:latest`, which is built from `.codex/Dockerfile`. This container already includes all dependencies and runs `.codex/bootstrap.sh` on launch, ensuring `scripts/setup.sh` and `.env.tauri` are applied automatically. Using this image removes most initialization overhead.
 
 ## 🛠️ The Codex Journey: What Really Happens Behind the Scenes
 

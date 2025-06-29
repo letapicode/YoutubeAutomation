@@ -265,7 +265,7 @@ packages and writes `.env.tauri`:
 * Windows (PowerShell): `scripts/install_tauri_deps_windows.ps1`
 
 You may also use the provided devcontainer which automatically executes the setup script (`scripts/setup_codex.sh`) when first created.
-Codex and all contributors should open the repo using the prebuilt image `ghcr.io/<OWNER>/ytapp-dev:latest` for the fastest startup.
+Codex and all contributors should open the repo using the prebuilt image `ghcr.io/letapicode/ytapp-dev:latest` for the fastest startup.
 The same setup steps are mirrored in `.codex/Dockerfile` which Codex uses as a
 bootstrap container.
 
@@ -279,7 +279,7 @@ The CI pipeline runs the same command using the devcontainer image.
 
 ### Codex Container
 
-`.codex/config.yaml` lists the verification steps Codex runs and references `.codex/bootstrap.sh` for initialization. The development container is built from `.codex/Dockerfile` and published as `ghcr.io/<OWNER>/ytapp-dev:latest`. Starting from this prebuilt image allows Codex to skip dependency installation; the bootstrap script runs `scripts/setup.sh` and sources `.env.tauri` so the environment is ready immediately. See [docs/SELF_REFLECTION.md](docs/SELF_REFLECTION.md) for more details on Codex operations.
+`.codex/config.yaml` lists the verification steps Codex runs and references `.codex/bootstrap.sh` for initialization. The development container is built from `.codex/Dockerfile` and published as `ghcr.io/letapicode/ytapp-dev:latest`. Starting from this prebuilt image allows Codex to skip dependency installation; the bootstrap script runs `scripts/setup.sh` and sources `.env.tauri` so the environment is ready immediately. See [docs/SELF_REFLECTION.md](docs/SELF_REFLECTION.md) for more details on Codex operations.
 
 ### Troubleshooting
 
