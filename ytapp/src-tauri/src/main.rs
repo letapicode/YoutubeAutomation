@@ -1506,6 +1506,7 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use chrono::prelude::*;
 
     #[test]
     fn load_and_save_srt() {
@@ -1585,5 +1586,25 @@ mod tests {
     fn deps_script_windows() {
         let path = tauri_deps_script_path().unwrap();
         assert!(path.ends_with("scripts/install_tauri_deps_windows.ps1"));
+    }
+
+    #[test]
+    fn parse_publish_at_rfc3339() {
+        let dt = parse_publish_at("2023-05-15T10:00:00Z").unwrap();
+        let expected = Utc.with_ymd_and_hms(2023, 5, 15, 10, 0, 0).unwrap();
+        assert_eq!(dt, expected);
+    }
+
+    #[test]
+    fn parse_publish_at_local() {
+        std::env::set_var("TZ", "UTC");
+        let dt = parse_publish_at("2023-05-15T10:00").unwrap();
+        let expected = Utc.with_ymd_and_hms(2023, 5, 15, 10, 0, 0).unwrap();
+        assert_eq!(dt, expected);
+    }
+
+    #[test]
+    fn parse_publish_at_invalid() {
+        assert!(parse_publish_at("not a date").is_none());
     }
 }
