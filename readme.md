@@ -430,13 +430,20 @@ Batch commands (`generate-batch`, `generate-upload-batch` and `upload-batch`) ac
 to provide per-file metadata. The CSV must contain `file,title,description,tags,publish_at`
 columns, where `tags` is a comma-separated list.
 
-Watch a directory and automatically process new audio files:
+#### Directory Watching
+
+Use `watch <dir>` to monitor a folder for new audio files and generate videos
+with the same options available to `generate`. Common flags are:
+
+- `--auto-upload` – upload after generation completes
+- `--recursive` – include subdirectories
 
 ```bash
+# Watch "incoming" and upload videos automatically
 npx ts-node src/cli.ts watch ./incoming --auto-upload --recursive
 ```
-Pass `--recursive` to process files in subdirectories as well.
-Stop watching:
+
+Stop watching with:
 
 ```bash
 npx ts-node src/cli.ts watch-stop
