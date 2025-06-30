@@ -92,6 +92,12 @@ The Rust side exposes commands to the frontend via Tauri. Major files include:
 - **logger.rs** – Appends structured log entries to `ytapp.log` and exposes a command to read recent lines.
 - **build.rs** and **Cargo.toml** – Standard Tauri build script and dependencies (Tauri, Whisper, YouTube API, etc.).
 
+### `start_queue_worker`
+
+This background task begins during application setup and whenever directory watching is enabled. It continuously loads the persisted queue and calls `dequeue` for the next job. Failed items are retried up to the configured limit before being marked failed, then a `queue_notify` event reports the result.
+
+While a job runs, the generation and upload functions emit `queue_progress` events so the UI can update progress bars. When no work is available the worker waits for a notification, allowing new jobs or a resume command to wake it.
+
 ### Configuration
 
 `tauri.conf.json` defines the application identifier, icon and enables the updater plugin. `Cargo.toml` and `package.json` lock dependency versions.
