@@ -34,6 +34,7 @@ const SettingsPage: React.FC = () => {
     const [maxRetries, setMaxRetries] = useState(3);
     const [width, setWidth] = useState(1920);
     const [height, setHeight] = useState(1080);
+    const [fps, setFps] = useState(25);
     const [defaultPrivacy, setDefaultPrivacy] = useState<'public' | 'unlisted' | 'private'>('public');
     const [defaultPlaylistId, setDefaultPlaylistId] = useState('');
 
@@ -63,6 +64,7 @@ const SettingsPage: React.FC = () => {
             if (typeof s.maxRetries === 'number') setMaxRetries(s.maxRetries);
             if (typeof s.defaultWidth === 'number') setWidth(s.defaultWidth);
             if (typeof s.defaultHeight === 'number') setHeight(s.defaultHeight);
+            if (typeof s.defaultFps === 'number') setFps(s.defaultFps);
             if (s.defaultPrivacy) setDefaultPrivacy(s.defaultPrivacy as any);
             if (s.defaultPlaylistId) setDefaultPlaylistId(s.defaultPlaylistId);
         });
@@ -92,6 +94,7 @@ const SettingsPage: React.FC = () => {
             maxRetries,
             defaultWidth: width,
             defaultHeight: height,
+            defaultFps: fps,
             accentColor,
             theme,
             defaultPrivacy,
@@ -223,8 +226,12 @@ const SettingsPage: React.FC = () => {
                     <option value="1280x720">1280x720</option>
                     <option value="1920x1080">1920x1080</option>
                     <option value="720x1280">720x1280</option>
-                    <option value="1080x1920">1080x1920</option>
+                <option value="1080x1920">1080x1920</option>
                 </select>
+            </div>
+            <div>
+                <label>FPS</label>
+                <input type="number" min="1" value={fps} onChange={e => setFps(parseInt(e.target.value, 10) || 1)} />
             </div>
             <CaptionPreview
                 font={font}

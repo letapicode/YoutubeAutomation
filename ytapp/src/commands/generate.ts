@@ -33,6 +33,7 @@ export function registerGenerateCommands(program: Command): void {
     .option('--outro <file>', 'outro video or image')
     .option('--width <width>', 'output width', (v) => parseInt(v, 10))
     .option('--height <height>', 'output height', (v) => parseInt(v, 10))
+    .option('--fps <fps>', 'frames per second', (v) => parseInt(v, 10))
     .option('--title <title>', 'video title')
     .option('--description <desc>', 'video description')
     .option('--tags <tags>', 'comma separated tags')
@@ -64,6 +65,7 @@ export function registerGenerateCommands(program: Command): void {
           watermarkScale: options.watermarkScale,
           width: options.width,
           height: options.height,
+          fps: options.fps,
           title: options.title,
           description: options.description,
           tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
@@ -112,6 +114,7 @@ export function registerGenerateCommands(program: Command): void {
     .option('--outro <file>', 'outro video or image')
     .option('--width <width>', 'output width', (v) => parseInt(v, 10))
     .option('--height <height>', 'output height', (v) => parseInt(v, 10))
+    .option('--fps <fps>', 'frames per second', (v) => parseInt(v, 10))
     .option('--thumbnail <file>', 'thumbnail image')
     .option('-p, --profile <name>', 'load profile')
     .action(async (file: string, options: any) => {
@@ -139,6 +142,7 @@ export function registerGenerateCommands(program: Command): void {
           outro: options.outro,
           width: options.width,
           height: options.height,
+          fps: options.fps,
           thumbnail: options.thumbnail,
         });
         const params: GenerateParams = {
@@ -186,6 +190,7 @@ export function registerGenerateCommands(program: Command): void {
     .option('--outro <file>', 'outro video or image')
     .option('--width <width>', 'output width', (v) => parseInt(v, 10))
     .option('--height <height>', 'output height', (v) => parseInt(v, 10))
+    .option('--fps <fps>', 'frames per second', (v) => parseInt(v, 10))
     .option('--title <title>', 'video title')
     .option('--description <desc>', 'video description')
     .option('--tags <tags>', 'comma separated tags')
@@ -234,6 +239,7 @@ export function registerGenerateCommands(program: Command): void {
               outro: options.outro,
               width: options.width,
               height: options.height,
+              fps: options.fps,
               title: meta.title ?? options.title,
               description: meta.description ?? options.description,
               tags: meta.tags ?? (options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined),
@@ -271,6 +277,7 @@ export function registerGenerateCommands(program: Command): void {
                   outro: options.outro,
                   width: options.width,
                   height: options.height,
+                  fps: options.fps,
                   title: options.title,
                   description: options.description,
                   tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
@@ -315,6 +322,7 @@ export function registerGenerateCommands(program: Command): void {
     .option('--outro <file>', 'outro video or image')
     .option('--width <width>', 'output width', (v) => parseInt(v, 10))
     .option('--height <height>', 'output height', (v) => parseInt(v, 10))
+    .option('--fps <fps>', 'frames per second', (v) => parseInt(v, 10))
     .option('--title <title>', 'video title')
     .option('--description <desc>', 'video description')
     .option('--tags <tags>', 'comma separated tags')
@@ -485,6 +493,7 @@ export function registerGenerateCommands(program: Command): void {
     .option('--outro <file>', 'outro video or image')
     .option('--width <width>', 'output width', (v) => parseInt(v, 10))
     .option('--height <height>', 'output height', (v) => parseInt(v, 10))
+    .option('--fps <fps>', 'frames per second', (v) => parseInt(v, 10))
     .option('--title <title>', 'video title')
     .option('--description <desc>', 'video description')
     .option('--tags <tags>', 'comma separated tags')
@@ -515,6 +524,7 @@ export function registerGenerateCommands(program: Command): void {
         outro: options.outro,
         width: options.width,
         height: options.height,
+        fps: options.fps,
         title: options.title,
         description: options.description,
         tags: options.tags ? options.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,

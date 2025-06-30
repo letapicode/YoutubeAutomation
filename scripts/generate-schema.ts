@@ -34,6 +34,7 @@ const generateParams: Field[] = [
   { name: 'watermarkScale', type: 'f32', optional: true },
   { name: 'width', type: 'number', optional: true },
   { name: 'height', type: 'number', optional: true },
+  { name: 'fps', type: 'number', optional: true },
   { name: 'title', type: 'string', optional: true },
   { name: 'description', type: 'string', optional: true },
   { name: 'tags', type: 'string[]', optional: true },

@@ -25,6 +25,7 @@ export interface Settings {
     maxRetries?: number;
     defaultWidth?: number;
     defaultHeight?: number;
+    defaultFps?: number;
     defaultPrivacy?: string;
     defaultPlaylistId?: string;
     theme?: string;

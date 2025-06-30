@@ -58,6 +58,7 @@ const App: React.FC = () => {
     const [language, setLanguage] = useState<Language>('auto');
     const [width, setWidth] = useState(1920);
     const [height, setHeight] = useState(1080);
+    const [fps, setFps] = useState(25);
     const [theme, setTheme] = useState<'light' | 'dark' | 'high' | 'solarized'>(() => {
         const stored = localStorage.getItem('theme');
         if (stored === 'dark' || stored === 'high' || stored === 'light' || stored === 'solarized') {
@@ -115,6 +116,7 @@ const App: React.FC = () => {
             if (s.output) setOutput(s.output);
             if (typeof s.defaultWidth === 'number') setWidth(s.defaultWidth);
             if (typeof s.defaultHeight === 'number') setHeight(s.defaultHeight);
+            if (typeof s.defaultFps === 'number') setFps(s.defaultFps);
             if (s.defaultPrivacy) setPrivacy(s.defaultPrivacy);
             if (s.defaultPlaylistId) setPlaylistId(s.defaultPlaylistId);
             if (s.showGuide !== false) setShowGuide(true);
@@ -231,6 +233,7 @@ const App: React.FC = () => {
         outro: outro || undefined,
         width,
         height,
+        fps,
         title: title || undefined,
         description: description || undefined,
         tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : undefined,
@@ -263,6 +266,7 @@ const App: React.FC = () => {
             watermarkScale,
             width,
             height,
+            fps,
             title: title || undefined,
             description: description || undefined,
             tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : undefined,
@@ -327,6 +331,7 @@ const App: React.FC = () => {
         }
         if (p.width) setWidth(p.width);
         if (p.height) setHeight(p.height);
+        if (p.fps) setFps(p.fps);
         setTitle(p.title || '');
         setDescription(p.description || '');
         setTags(p.tags ? p.tags.join(', ') : '');
@@ -654,8 +659,12 @@ const App: React.FC = () => {
                     <option value="1280x720">1280x720</option>
                     <option value="1920x1080">1920x1080</option>
                     <option value="720x1280">720x1280</option>
-                    <option value="1080x1920">1080x1920</option>
+                <option value="1080x1920">1080x1920</option>
                 </select>
+            </div>
+            <div className="row">
+                <label>FPS</label>
+                <input type="number" min="1" value={fps} onChange={e => setFps(parseInt(e.target.value, 10) || 1)} />
             </div>
             </details>
             <div className="row">
