@@ -108,6 +108,7 @@ struct AppSettings {
     max_retries: Option<u32>,
     default_width: Option<u32>,
     default_height: Option<u32>,
+    default_fps: Option<u32>,
     default_privacy: Option<String>,
     default_playlist_id: Option<String>,
     profiles: HashMap<String, Profile>,
@@ -141,6 +142,7 @@ impl Default for AppSettings {
             max_retries: Some(3),
             default_width: Some(1920),
             default_height: Some(1080),
+            default_fps: Some(25),
             default_privacy: Some("public".into()),
             default_playlist_id: None,
             profiles: HashMap::new(),
@@ -318,7 +320,7 @@ fn parse_publish_at(s: &str) -> Option<DateTime<Utc>> {
     None
 }
 
-fn convert_media(path: &str, duration: Option<f64>, width: u32, height: u32) -> Result<PathBuf, String> {
+fn convert_media(path: &str, duration: Option<f64>, width: u32, height: u32, fps: Option<u32>) -> Result<PathBuf, String> {
     let out = temp_file("segment");
     let mut cmd = Command::new("ffmpeg");
     cmd.arg("-y");
@@ -327,6 +329,9 @@ fn convert_media(path: &str, duration: Option<f64>, width: u32, height: u32) -> 
         cmd.args(["-loop", "1", "-t", &dur.to_string(), "-i", path]);
     } else {
         cmd.args(["-i", path]);
+    }
+    if let Some(f) = fps {
+        cmd.args(["-r", &f.to_string()]);
     }
     cmd.args([
         "-vf",
@@ -343,7 +348,7 @@ fn convert_media(path: &str, duration: Option<f64>, width: u32, height: u32) -> 
     Ok(out)
 }
 
-fn build_main_section(window: Option<&Window>, params: &GenerateParams, duration: f64, width: u32, height: u32, index: Option<usize>) -> Result<PathBuf, String> {
+fn build_main_section(window: Option<&Window>, params: &GenerateParams, duration: f64, width: u32, height: u32, fps: Option<u32>, index: Option<usize>) -> Result<PathBuf, String> {
     let out = temp_file("main");
     let mut cmd = Command::new("ffmpeg");
     cmd.arg("-y");
@@ -369,6 +374,9 @@ fn build_main_section(window: Option<&Window>, params: &GenerateParams, duration
     }
 
     cmd.args(["-i", &params.file, "-shortest", "-pix_fmt", "yuv420p", "-c:v", "libx264", "-c:a", "aac"]);
+    if let Some(f) = fps {
+        cmd.args(["-r", &f.to_string()]);
+    }
     let mut filter_chain = format!("scale={}x{}", width, height);
 
     if let Some(ref caption_file) = params.captions {
@@ -469,15 +477,15 @@ fn generate_video(window: Window, params: GenerateParams, queue_index: Option<us
 
     let duration = audio_duration(&params.file)?;
     let _ = window.emit("generate_progress", 0f64);
-    let main = build_main_section(Some(&window), &params, duration, width, height, queue_index)?;
+    let main = build_main_section(Some(&window), &params, duration, width, height, params.fps, queue_index)?;
 
     let mut segments = Vec::new();
     if let Some(ref intro) = params.intro {
-        segments.push(convert_media(intro, Some(5.0), width, height)?);
+        segments.push(convert_media(intro, Some(5.0), width, height, params.fps)?);
     }
     segments.push(main);
     if let Some(ref outro) = params.outro {
-        segments.push(convert_media(outro, Some(5.0), width, height)?);
+        segments.push(convert_media(outro, Some(5.0), width, height, params.fps)?);
     }
 
     if segments.len() == 1 {
@@ -973,6 +981,9 @@ fn load_settings(app: tauri::AppHandle) -> Result<AppSettings, String> {
     }
     if settings.default_height.is_none() {
         settings.default_height = Some(1080);
+    }
+    if settings.default_fps.is_none() {
+        settings.default_fps = Some(25);
     }
     if settings.default_privacy.is_none() {
         settings.default_privacy = Some("public".into());

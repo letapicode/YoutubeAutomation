@@ -236,7 +236,7 @@ mod tests {
         let app = Builder::default()
             .build(mock_context(noop_assets()))
             .unwrap();
-        let params = GenerateParams { file: "a.mp3".into(), output: None, captions: None, caption_options: None, background: None, intro: None, outro: None, watermark: None, watermark_position: None, watermark_opacity: None, watermark_scale: None, width: None, height: None, title: None, description: None, tags: None, publish_at: None, thumbnail: None, privacy: None, playlist_id: None };
+        let params = GenerateParams { file: "a.mp3".into(), output: None, captions: None, caption_options: None, background: None, intro: None, outro: None, watermark: None, watermark_position: None, watermark_opacity: None, watermark_scale: None, width: None, height: None, fps: None, title: None, description: None, tags: None, publish_at: None, thumbnail: None, privacy: None, playlist_id: None };
         enqueue(&app.handle(), Job::Generate { params: params.clone(), dest: "a.mp4".into() }).unwrap();
         load_queue(&app.handle()).unwrap();
         assert_eq!(peek_all().len(), 1);
@@ -254,7 +254,7 @@ mod tests {
         let app = Builder::default()
             .build(mock_context(noop_assets()))
             .unwrap();
-        let params = GenerateParams { file: "a.mp3".into(), output: None, captions: None, caption_options: None, background: None, intro: None, outro: None, watermark: None, watermark_position: None, watermark_opacity: None, watermark_scale: None, width: None, height: None, title: None, description: None, tags: None, publish_at: None, thumbnail: None, privacy: None, playlist_id: None };
+        let params = GenerateParams { file: "a.mp3".into(), output: None, captions: None, caption_options: None, background: None, intro: None, outro: None, watermark: None, watermark_position: None, watermark_opacity: None, watermark_scale: None, width: None, height: None, fps: None, title: None, description: None, tags: None, publish_at: None, thumbnail: None, privacy: None, playlist_id: None };
         enqueue(&app.handle(), Job::Generate { params: params.clone(), dest: "a.mp4".into() }).unwrap();
         enqueue(&app.handle(), Job::Generate { params: params.clone(), dest: "b.mp4".into() }).unwrap();
         mark_failed(&app.handle(), 0, "err".into()).unwrap();
@@ -284,6 +284,31 @@ mod tests {
         assert_eq!(q.len(), 1);
         match &q[0].job {
             Job::Generate { dest, .. } => assert_eq!(dest, "a.mp4"),
+            _ => panic!("unexpected job type"),
+        }
+    }
+
+    #[test]
+    fn import_append_mode() {
+        let dir = tempfile::tempdir().unwrap();
+        std::env::set_var("YTAPP_TEST_DIR", dir.path());
+        let app = Builder::default()
+            .build(mock_context(noop_assets()))
+            .unwrap();
+        let params = GenerateParams { file: "a.mp3".into(), output: None, captions: None, caption_options: None, background: None, intro: None, outro: None, watermark: None, watermark_position: None, watermark_opacity: None, watermark_scale: None, width: None, height: None, fps: None, title: None, description: None, tags: None, publish_at: None, thumbnail: None, privacy: None, playlist_id: None };
+        enqueue(&app.handle(), Job::Generate { params: params.clone(), dest: "a.mp4".into() }).unwrap();
+        let append_job = QueueItem { job: Job::Generate { params: params.clone(), dest: "b.mp4".into() }, status: JobStatus::Pending, retries: 0, error: None };
+        let import_path = dir.path().join("append.json");
+        fs::write(&import_path, serde_json::to_string(&vec![append_job]).unwrap()).unwrap();
+        import_queue(&app.handle(), import_path.to_str().unwrap(), true).unwrap();
+        let q = peek_all();
+        assert_eq!(q.len(), 2);
+        match &q[0].job {
+            Job::Generate { dest, .. } => assert_eq!(dest, "a.mp4"),
+            _ => panic!("unexpected job type"),
+        }
+        match &q[1].job {
+            Job::Generate { dest, .. } => assert_eq!(dest, "b.mp4"),
             _ => panic!("unexpected job type"),
         }
     }
