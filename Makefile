@@ -31,8 +31,8 @@ dev:
 test:
 	$(TS_NODE) --project ytapp/tsconfig.json scripts/generate-schema.ts
 	cd ytapp && npx tsc --noEmit
-	for f in ytapp/tests/*.ts; do $(TS_NODE) "$f" || true; done
-	cd ytapp/src-tauri && cargo test --all-targets || true
+	fail=0; for f in ytapp/tests/*.ts; do $(TS_NODE) "$$f" || fail=1; done; [ $$fail -eq 0 ]
+	cd ytapp/src-tauri && cargo test --all-targets
 
 package:
 	./scripts/package.sh
