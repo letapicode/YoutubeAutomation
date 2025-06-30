@@ -576,5 +576,6 @@ Additional references live in the `docs` folder:
 - [Project Overview](context.md)
 - [Codex Self Reflection](SELF_REFLECTION.md)
 - [AI Model Training Policy](docs/AI_MODEL_TRAINING_POLICY.md)
+- [Future Features](docs/FUTURE_FEATURES.md)
 
 Licensed under the MIT License.
