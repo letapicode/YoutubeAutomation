@@ -22,7 +22,10 @@ This document provides an overview of every major file and module in the reposit
 - **scripts/** – Contains bash and Node scripts used for setup, packaging and translation updates.
   - `setup.sh` installs toolchains and dependencies.
   - `setup_codex.sh` runs `setup.sh` and installs system packages on Linux.
-  - `install_tauri_deps.sh` installs GTK/WebKit headers and writes `.env.tauri` with `PKG_CONFIG_PATH`.
+  - `install_tauri_deps.sh` installs GTK/WebKit headers such as `libgtk-3-dev`,
+    `libglib2.0-dev`, `libsoup2.4-dev`, `libwebkit2gtk-4.1-dev` and
+    `libjavascriptcoregtk-4.1-dev` then writes `.env.tauri` with
+    `PKG_CONFIG_PATH`.
   - `generate-schema.ts` generates TypeScript and Rust schema files from a common definition.
 
 ## Documentation (`docs/`)
@@ -108,7 +111,7 @@ While a job runs, the generation and upload functions emit `queue_progress` even
 
 ## Next Steps for Contributors
 
-1. **Set up the environment** using `scripts/setup_codex.sh` or the devcontainer image. Source `.env.tauri` before running Rust commands.
+1. **Set up the environment** using `scripts/setup_codex.sh` or the devcontainer image. Source `.env.tauri` before running Rust commands. If `cargo check` complains about a missing `glib-2.0.pc`, run `scripts/install_tauri_deps.sh` (or install `libgtk-3-dev libglib2.0-dev libsoup2.4-dev libwebkit2gtk-4.1-dev libjavascriptcoregtk-4.1-dev`) and retry.
 2. **Run `make verify`** (or the individual commands in `AGENTS.md`) to generate the shared schema and ensure TypeScript, Rust and CLI checks pass.
 3. **Frontend changes** should go in `ytapp/src` – React components or feature modules. Keep indentation consistent (2 spaces for `.ts`, 4 for `.tsx`).
 4. **Backend changes** belong under `ytapp/src-tauri/src`. Add new Tauri commands here and expose them through small wrappers under `src/features`.

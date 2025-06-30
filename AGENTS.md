@@ -32,8 +32,13 @@ cd .. && npx ts-node src/cli.ts --help
 Install `ts-node` globally with `npm install -g ts-node` or ensure `npx` can
 download it to run the CLI checks and examples.
 
-`cargo check` may require system packages. Run the appropriate install script
-for your OS (`./scripts/install_tauri_deps.sh`, `./scripts/install_tauri_deps_macos.sh` or `./scripts/install_tauri_deps_windows.ps1`) if needed.
+`cargo check` may require GTK/WebKit development packages like `glib-2.0`. Run
+the appropriate install script for your OS
+(`./scripts/install_tauri_deps.sh`, `./scripts/install_tauri_deps_macos.sh` or
+`./scripts/install_tauri_deps_windows.ps1`) or manually install packages such
+as `libgtk-3-dev`, `libglib2.0-dev`, `libsoup2.4-dev`,
+`libwebkit2gtk-4.1-dev` and `libjavascriptcoregtk-4.1-dev` if you encounter a
+`glib-2.0.pc` not found error.
 Be sure `.env.tauri` from `scripts/setup_codex.sh` is sourced (or export the
 `PKG_CONFIG_PATH` it contains) before running cargo.
 
