@@ -274,7 +274,7 @@ mod tests {
         let app = Builder::default()
             .build(mock_context(noop_assets()))
             .unwrap();
-        let params = GenerateParams { file: "a.mp3".into(), output: None, captions: None, caption_options: None, background: None, intro: None, outro: None, watermark: None, watermark_position: None, watermark_opacity: None, watermark_scale: None, width: None, height: None, title: None, description: None, tags: None, publish_at: None, thumbnail: None, privacy: None, playlist_id: None };
+        let params = GenerateParams { file: "a.mp3".into(), output: None, captions: None, caption_options: None, background: None, intro: None, outro: None, watermark: None, watermark_position: None, watermark_opacity: None, watermark_scale: None, width: None, height: None, fps: None, title: None, description: None, tags: None, publish_at: None, thumbnail: None, privacy: None, playlist_id: None };
         enqueue(&app.handle(), Job::Generate { params: params.clone(), dest: "a.mp4".into() }).unwrap();
         let export_path = dir.path().join("q.json");
         export_queue(&app.handle(), export_path.to_str().unwrap()).unwrap();
