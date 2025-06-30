@@ -1470,7 +1470,7 @@ fn get_logs(
     read_logs(&app, max_lines.unwrap_or(200), level, search)
 }
 
-#[command]
+#[command(rename = "clear_logs")]
 fn clear_logs_cmd(app: tauri::AppHandle) -> Result<(), String> {
     clear_logs(&app)
 }
