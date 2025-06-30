@@ -294,10 +294,11 @@ The CI pipeline runs the same command using the devcontainer image.
 
 Errors about `glib-2.0`, `gdk-3.0`, `glib-sys`, `gdk-sys` or `gobject-sys`
 usually mean `PKG_CONFIG_PATH` is not set or the GTK/WebKit development
-packages are missing. Run `./scripts/setup_codex.sh` (or the OS-specific
-install script such as `scripts/install_tauri_deps.sh`) to install the
-dependencies and create `.env.tauri`. Then **source `.env.tauri`** (as noted in
-`AGENTS.md`) before re-running `cargo check`.
+packages are missing. When this occurs run `./scripts/setup_codex.sh`
+(or the OS-specific install script such as `scripts/install_tauri_deps.sh`)
+to install the dependencies and generate `.env.tauri`. **Source `.env.tauri`**
+(which sets `PKG_CONFIG_PATH`) before running any Cargo command, then re-run
+`cargo check`.
 
 To automatically process files placed in a folder set the **Watch Directory**
 and enable **Auto Upload** in the settings page or use the CLI `watch` command.
