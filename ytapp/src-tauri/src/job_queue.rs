@@ -74,7 +74,6 @@ pub fn enqueue(app: &tauri::AppHandle, job: Job) -> Result<(), String> {
     q.push(QueueItem { job, status: JobStatus::Pending, retries: 0, error: None });
     NOTIFY.notify_one();
     save_queue(app)?;
-    emit_changed(app);
     Ok(())
 }
 
@@ -100,7 +99,6 @@ pub fn mark_complete(app: &tauri::AppHandle, index: usize) -> Result<(), String>
         q.remove(index);
     }
     save_queue(app)?;
-    emit_changed(app);
     Ok(())
 }
 
@@ -112,7 +110,6 @@ pub fn mark_failed(app: &tauri::AppHandle, index: usize, error: String) -> Resul
         item.error = Some(error);
     }
     save_queue(app)?;
-    emit_changed(app);
     Ok(())
 }
 
@@ -123,7 +120,6 @@ pub fn remove_job(app: &tauri::AppHandle, index: usize) -> Result<(), String> {
         q.remove(index);
     }
     save_queue(app)?;
-    emit_changed(app);
     Ok(())
 }
 
@@ -135,7 +131,6 @@ pub fn move_job(app: &tauri::AppHandle, from: usize, to: usize) -> Result<(), St
         let item = q.remove(from);
         q.insert(to, item);
         save_queue(app)?;
-        emit_changed(app);
     }
     Ok(())
 }
@@ -182,7 +177,6 @@ pub fn clear_queue(app: &tauri::AppHandle) -> Result<(), String> {
     let mut q = QUEUE.lock().unwrap();
     q.clear();
     save_queue(app)?;
-    emit_changed(app);
     Ok(())
 }
 
@@ -191,7 +185,6 @@ pub fn clear_completed(app: &tauri::AppHandle) -> Result<(), String> {
     let mut q = QUEUE.lock().unwrap();
     q.retain(|item| item.status == JobStatus::Pending || item.status == JobStatus::Running);
     save_queue(app)?;
-    emit_changed(app);
     Ok(())
 }
 
@@ -200,7 +193,6 @@ pub fn clear_failed(app: &tauri::AppHandle) -> Result<(), String> {
     let mut q = QUEUE.lock().unwrap();
     q.retain(|item| item.status != JobStatus::Failed);
     save_queue(app)?;
-    emit_changed(app);
     Ok(())
 }
 
@@ -228,7 +220,6 @@ pub fn import_queue(app: &tauri::AppHandle, path: &str, append: bool) -> Result<
         *q = items;
     }
     save_queue(app)?;
-    emit_changed(app);
     Ok(())
 }
 
