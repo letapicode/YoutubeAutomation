@@ -4,14 +4,12 @@ const events = require('@tauri-apps/api/event');
 
 (async () => {
   let cancelCalled = false;
-  let rejectGen: (() => void) | null = null;
   core.invoke = async (cmd: string) => {
     if (cmd === 'generate_video') {
-      return new Promise((_r, rej) => { rejectGen = () => rej(new Error('canceled')); });
+      return new Promise(() => {});
     }
     if (cmd === 'cancel_generate') {
       cancelCalled = true;
-      if (rejectGen) rejectGen();
     }
   };
   let handler: any;
