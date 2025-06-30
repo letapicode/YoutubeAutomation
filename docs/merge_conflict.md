@@ -60,7 +60,7 @@ locally, run `git merge-base` or `git status` to detect conflicts.
 
 The repository occasionally receives a giant PR that contains all tasks at once, along with individual PRs for each task. The giant PR usually merges first because it covers everything at once. However, the smaller PRs are still useful to check for missed functionality.
 
-### `pullrequest_merge_conflict.md`
+### `merge_conflict.md`
 
 #### \ud83d\udccc Purpose
 

@@ -11,6 +11,6 @@ This folder summarizes the key documents found in the repository.
 - **[SELF_REFLECTION.md](../SELF_REFLECTION.md)** – Notes on how the Codex agent operates within this repository.
 - **[prompt.md](../prompt.md)** – Original prompt that sparked development of the application.
 - **[prompttracking.md](../prompttracking.md)** – History of major prompt updates.
-- **[pullrequest_merge_conflict.md](../pullrequest_merge_conflict.md)** – Guide for resolving PR merge conflicts.
+- **[merge_conflict.md](../docs/merge_conflict.md)** – Guide for resolving PR merge conflicts.
 - **[design/wireframes/README.md](../design/wireframes/README.md)** – Basic ASCII diagrams of the current UI flow.
 
