@@ -2,3 +2,6 @@
 
 .env
 dist/
+node_modules/
+ytapp/src-tauri/target/
+ytapp/dist/
