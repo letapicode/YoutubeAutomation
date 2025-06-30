@@ -148,7 +148,11 @@ Run `make test` (or `npm test` inside `ytapp`) to run the automated tests.
 * Upload video via YouTube Data API v3
   * Implemented in Rust backend using google-youtube3 crate
   * Requires `client_secret.json` path via `YOUTUBE_CLIENT_SECRET` env variable
-  * Tokens stored in `youtube_tokens.json`
+    (defaults to `client_secret.json` in the project root if unset)
+  * Tokens stored in the file from `YOUTUBE_TOKEN_FILE` (defaults to
+    `youtube_tokens.enc`)
+  * Encryption key provided via `YOUTUBE_TOKEN_KEY` which must be **32 bytes**.
+    Generate with `openssl rand -hex 16` and export it before running the app
 * Publish dates entered in the UI use your local time zone and are converted to UTC on upload
 * Batch upload support
 
