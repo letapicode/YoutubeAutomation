@@ -249,6 +249,11 @@ The application automatically verifies that FFmpeg and Whisper are installed at
 startup. To run this check manually use:
 `npx ts-node src/cli.ts check-deps`
 
+For subtitle translation **Argos Translate** must also be available in your
+`PATH`. Verify installation with:
+`argos-translate --version`
+See <https://www.argosopentech.com/> for download instructions.
+
 ```bash
 git clone https://github.com/letapicode/YoutubeAutomation.git
 cd YoutubeAutomation
