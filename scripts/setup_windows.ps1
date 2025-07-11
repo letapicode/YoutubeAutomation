@@ -324,7 +324,7 @@ function Build-Project {
         }
 
         Write-Info "Running build..."
-        npm run tauri build
+        npx tauri build
 
         $buildSuccess = $LASTEXITCODE -eq 0
 
@@ -525,7 +525,7 @@ if ($allToolsInstalled) {
         Write-Host "`nDependencies were installed, but the project build failed." -ForegroundColor Yellow
         Write-Host "You can try building manually with:" -ForegroundColor Yellow
         Write-Host "  cd ytapp" -ForegroundColor Yellow
-        Write-Host "  npm run tauri build" -ForegroundColor Yellow
+        Write-Host "  npx tauri build" -ForegroundColor Yellow
         exit 1
     }
 } else {
