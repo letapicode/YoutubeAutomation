@@ -273,6 +273,8 @@ packages and writes `.env.tauri`:
   - Requires `clang` and `libclang-dev` on Linux; the script installs them automatically.
 * macOS: `scripts/install_tauri_deps_macos.sh`
 * Windows (PowerShell): `scripts/install_tauri_deps_windows.ps1`
+* Windows full setup and build: `scripts/setup_windows.ps1`
+  - Installs all dependencies, writes `.env.tauri`, and compiles the Tauri app into a Windows executable.
 
 You may also use the provided devcontainer which automatically executes the setup script (`scripts/setup_codex.sh`) when first created.
 Codex and all contributors should open the repo using the prebuilt image `ghcr.io/letapicode/ytapp-dev:latest` for the fastest startup.
