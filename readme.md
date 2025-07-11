@@ -578,4 +578,4 @@ Additional references live in the `docs` folder:
 - [AI Model Training Policy](docs/AI_MODEL_TRAINING_POLICY.md)
 - [Future Features](docs/FUTURE_FEATURES.md)
 
-Licensed under the MIT License.
+Licensed under the Apache-2.0 License.
