@@ -310,6 +310,14 @@ Run `npx ts-node src/cli.ts watch-stop` to disable watching again. Use `--recurs
 
 If CLI commands fail with "Need to install ts-node" run `npm install` in `ytapp` or install it globally with `npm install -g ts-node`.
 
+Capture build output to a file for easier troubleshooting:
+
+```powershell
+cargo build 2>&1 | Tee-Object -FilePath build.log
+```
+
+See [docs/troubleshooting.md](docs/troubleshooting.md) for resolving Windows linker warnings such as `.drectve` messages.
+
 ### Contribution
 
 To add a new language create a JSON file in
@@ -579,5 +587,6 @@ Additional references live in the `docs` folder:
 - [Codex Self Reflection](SELF_REFLECTION.md)
 - [AI Model Training Policy](docs/AI_MODEL_TRAINING_POLICY.md)
 - [Future Features](docs/FUTURE_FEATURES.md)
+- [Troubleshooting](docs/troubleshooting.md)
 
 Licensed under the Apache-2.0 License.
