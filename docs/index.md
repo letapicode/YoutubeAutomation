@@ -14,4 +14,5 @@ This folder summarizes the key documents found in the repository.
 - **[merge_conflict.md](../docs/merge_conflict.md)** – Guide for resolving PR merge conflicts.
 - **[design/wireframes/README.md](../design/wireframes/README.md)** – Basic ASCII diagrams of the current UI flow.
 - **[FUTURE_FEATURES.md](FUTURE_FEATURES.md)** – Notes on potential enhancements derived from earlier branches.
+- **[troubleshooting.md](troubleshooting.md)** – Tips for capturing build logs and solving Windows linker warnings.
 
