@@ -324,14 +324,19 @@ function Build-Project {
         }
 
         Write-Info "Running build..."
-        npx tauri build
+        tauri build
 
         $buildSuccess = $LASTEXITCODE -eq 0
 
         if ($buildSuccess) {
-            $releaseDir = "$PSScriptRoot\ytapp\src-tauri\target\release"
-            Write-Success "Build completed successfully!"
-            Write-Host "You can find the executable in: $releaseDir" -ForegroundColor Green
+            $releaseDir = Join-Path $projectPath "src-tauri\target\release"
+            if (Test-Path $releaseDir) {
+                $releaseDir = (Resolve-Path $releaseDir).Path
+                Write-Success "Build completed successfully!"
+                Write-Host "You can find the executable in: $releaseDir" -ForegroundColor Green
+            } else {
+                Write-WarningMsg "Build succeeded but release directory not found at $releaseDir"
+            }
             return $true
         } else {
             Write-Err "Build failed. Check the error messages above for details."
@@ -525,7 +530,7 @@ if ($allToolsInstalled) {
         Write-Host "`nDependencies were installed, but the project build failed." -ForegroundColor Yellow
         Write-Host "You can try building manually with:" -ForegroundColor Yellow
         Write-Host "  cd ytapp" -ForegroundColor Yellow
-        Write-Host "  npx tauri build" -ForegroundColor Yellow
+        Write-Host "  tauri build" -ForegroundColor Yellow
         exit 1
     }
 } else {
