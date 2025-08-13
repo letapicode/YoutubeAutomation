@@ -1,4 +1,4 @@
-import fs from 'fs/promises';
+import { readTextFile } from '@tauri-apps/plugin-fs';
 
 export interface CsvRow {
   file: string;
@@ -38,8 +38,8 @@ function parseLine(line: string): string[] {
  * Expected columns: file,title,description,tags,publish_at.
  */
 export async function parseCsv(path: string): Promise<CsvRow[]> {
-  const data = await fs.readFile(path, 'utf-8');
-  const lines = data.split(/\r?\n/).filter(l => l.trim().length);
+  const data = await readTextFile(path);
+  const lines = data.split(/\r?\n/).filter((l: string) => l.trim().length);
   if (!lines.length) return [];
   const header = parseLine(lines[0]).map(h => h.trim().toLowerCase());
   const idx = (name: string) => header.indexOf(name);

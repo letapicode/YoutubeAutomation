@@ -2,25 +2,33 @@
  * Translate an SRT subtitle file using Argos Translate.
  * The returned promise resolves with the path to the translated file.
  */
-import { spawn } from 'child_process';
+// Running external binaries from the Tauri WebView must go through the process plugin
+import { Command } from '@tauri-apps/api/shell';
 
-export function translateSrt(
+export async function translateSrt(
   input: string,
   target: string,
-  fromLang = 'en',
+  fromLang: string = 'en',
 ): Promise<string> {
   const output = input.replace(/\.srt$/, `.${target}.srt`);
-  return new Promise((resolve, reject) => {
-    const child = spawn('argos-translate', [
-      '--input-file', input,
-      '--output-file', output,
-      '--from-lang', fromLang,
-      '--to-lang', target,
-    ]);
-    child.on('error', (err) => reject(err));
-    child.on('exit', (code) => {
-      if (code === 0) resolve(output);
-      else reject(new Error('translation failed'));
-    });
-  });
+
+  // Spawn the external Argos Translate process
+  const command = new Command('argos-translate', [
+    '--input-file',
+    input,
+    '--output-file',
+    output,
+    '--from-lang',
+    fromLang,
+    '--to-lang',
+    target,
+  ]);
+
+  const result = await command.execute();
+
+  if (result.code === 0) {
+    return output;
+  } else {
+    throw new Error(`translation failed with code ${result.code}: ${result.stderr}`);
+  }
 }

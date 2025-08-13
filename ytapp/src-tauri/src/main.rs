@@ -5,6 +5,7 @@ use std::{
     process::Command,
 };
 use tauri::{command, Window, Manager};
+use tauri_plugin_process;
 use serde::{Deserialize, Serialize};
 use mime_guess;
 mod schema;
@@ -1494,6 +1495,7 @@ fn main() {
     let context = tauri::generate_context!();
     ensure_whisper_model(&context.config());
     tauri::Builder::default()
+        .plugin(tauri_plugin_process::init())
         .setup(|app| {
             if let Some(win) = app.get_window("main") {
                 start_queue_worker(win);
