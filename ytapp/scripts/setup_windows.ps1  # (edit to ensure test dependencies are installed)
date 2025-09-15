@@ -1,0 +1,4 @@
+Install-Package -Name "Mocha" -Source "nuget.org"
+Install-Package -Name "Chai" -Source "nuget.org"
+npm install --save-dev mocha chai
+npm install --save-dev @types/mocha @types/chai

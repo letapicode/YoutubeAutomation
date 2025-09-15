@@ -1,17 +1,31 @@
 {
-  "package": {
-    "productName": "ytapp",
-    "version": "0.1.0"
+  "$schema": "https://schema.tauri.app/config-2",
+  "identifier": "com.youtubeautomation.desktop",
+  "productName": "ytapp",
+  "version": "0.1.0",
+  "build": {
+    "beforeBuildCommand": "npm run build",
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "frontendDist": "../dist"
   },
-  "tauri": {
-    "bundle": {
-      "identifier": "com.example.ytapp",
-      "icon": ["icons/icon.png"]
+  "app": {
+    "security": {
+      "csp": null
     },
-    "updater": {
-      "active": true,
-      "endpoints": [],
-      "pubkey": ""
+    "windows": [
+      {
+        "fullscreen": false,
+        "height": 768,
+        "resizable": true,
+        "title": "YouTube Automation",
+        "width": 1024
+      }
+    ]
+  },
+  "plugins": {
+    "shell": {
+      "open": true
     }
   }
 }

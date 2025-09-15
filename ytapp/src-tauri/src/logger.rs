@@ -1,7 +1,7 @@
 use std::fs::{OpenOptions, create_dir_all, File};
 use std::io::Write;
 use std::path::PathBuf;
-use tauri::api::path::app_config_dir;
+use tauri::{AppHandle, Wry, Manager};
 use chrono::Utc;
 use serde::{Serialize, Deserialize};
 
@@ -12,20 +12,20 @@ struct LogEntry<'a> {
     timestamp: String,
 }
 
-fn log_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+fn log_path(app: &AppHandle<Wry>) -> Result<PathBuf, String> {
     if let Ok(p) = std::env::var("YTAPP_TEST_DIR") {
         let mut dir = PathBuf::from(p);
         create_dir_all(&dir).map_err(|e| e.to_string())?;
         dir.push("ytapp.log");
         return Ok(dir);
     }
-    let mut dir = app_config_dir(&app.config()).ok_or("config dir not found")?;
+    let mut dir = app.path().app_config_dir().map_err(|e| e.to_string())?;
     create_dir_all(&dir).map_err(|e| e.to_string())?;
     dir.push("ytapp.log");
     Ok(dir)
 }
 
-pub fn log(app: &tauri::AppHandle, level: &str, message: &str) {
+pub fn log(app: &AppHandle<Wry>, level: &str, message: &str) {
     if let Ok(path) = log_path(app) {
         if let Ok(mut file) = OpenOptions::new().create(true).append(true).open(&path) {
             let entry = LogEntry {
@@ -41,7 +41,7 @@ pub fn log(app: &tauri::AppHandle, level: &str, message: &str) {
 }
 
 pub fn read_logs(
-    app: &tauri::AppHandle,
+    app: &AppHandle<Wry>,
     max_lines: usize,
     level: Option<String>,
     search: Option<String>,
@@ -71,7 +71,7 @@ pub fn read_logs(
     Ok(lines[start..].join("\n"))
 }
 
-pub fn clear_logs(app: &tauri::AppHandle) -> Result<(), String> {
+pub fn clear_logs(app: &AppHandle<Wry>) -> Result<(), String> {
     let path = log_path(app)?;
     File::create(path).map(|_| ()).map_err(|e| e.to_string())
 }

@@ -1,0 +1,48 @@
+// Cross-platform Tauri runner that ensures the MSVC toolchain and a short,
+// per-user Cargo target directory are used for all dev/build runs.
+//
+// Usage:
+//   npm run tauri           -> cargo tauri
+//   npm run tauri:dev       -> cargo tauri dev
+//   npm run tauri:build     -> cargo tauri build
+//
+// Env vars:
+//   YTA_FORCE_CLEAN=1  -> run `cargo clean` in src-tauri before starting
+
+const { spawnSync } = require('child_process');
+const os = require('os');
+const path = require('path');
+const fs = require('fs');
+
+const TOOLCHAIN = '1.88.0-x86_64-pc-windows-msvc';
+const sub = process.argv[2] || '';
+
+// Always set a short, stable target dir to avoid path-length and mixing issues
+process.env.CARGO_TARGET_DIR = path.join(os.homedir(), '.ytarget');
+
+// Optionally clean to avoid cross-toolchain artifact mixing
+if (process.env.YTA_FORCE_CLEAN === '1') {
+  const tauriDir = path.resolve(__dirname, '..', 'src-tauri');
+  if (fs.existsSync(tauriDir)) {
+    console.log('[info] Cleaning Rust artifacts (YTA_FORCE_CLEAN=1)');
+    spawnSync('rustup', ['run', TOOLCHAIN, 'cargo', 'clean'], {
+      cwd: tauriDir,
+      stdio: 'inherit',
+      shell: true,
+    });
+  }
+}
+
+// Build argument list for the tauri subcommand
+const tauriArgs = ['run', TOOLCHAIN, 'cargo', 'tauri'];
+if (sub === 'dev' || sub === 'build') tauriArgs.push(sub);
+
+// Run rustup -> cargo tauri ...
+const result = spawnSync('rustup', tauriArgs, {
+  stdio: 'inherit',
+  shell: true,
+});
+
+process.exit(result.status ?? 1);
+
+

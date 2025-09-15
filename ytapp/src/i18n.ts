@@ -1,50 +1,49 @@
-// Minimal i18next setup loading translations from the locales directory.
+// i18next setup using HTTP backend to load JSON from /public/locales at runtime.
+// This removes fragile ESM imports from the public folder (which Vite forbids),
+// keeps the bundle lean, and makes it easy to add new languages without rebuilds.
 import i18n from 'i18next';
+import HttpBackend from 'i18next-http-backend';
 import { initReactI18next } from 'react-i18next';
 import { languages } from './features/languages';
 
-interface TranslationModule {
-  default: any;
+/**
+ * Resolve initial language from the browser (renderer) when available.
+ * Falls back to English if unsupported.
+ */
+function detectInitialLanguage(): string {
+  const supported = new Set(languages.map(l => l.value));
+  const lang = typeof navigator !== 'undefined' ? navigator.language.split('-')[0] : 'en';
+  return supported.has(lang) ? lang : 'en';
 }
 
-// Load all translation files under `public/locales`.
-const modules = import.meta.glob('../public/locales/*/translation.json', { eager: true }) as Record<string, TranslationModule>;
-const helpModules = import.meta.glob('../public/locales/*/help.json', { eager: true }) as Record<string, TranslationModule>;
-const translations: Record<string, any> = {};
-const helpTranslations: Record<string, any> = {};
-for (const [path, mod] of Object.entries(modules)) {
-  const parts = path.split('/');
-  const code = parts[parts.length - 2];
-  translations[code] = mod.default;
+/**
+ * Initialize i18next with:
+ * - HTTP backend for JSON files (served from /public/locales)
+ * - Two namespaces: 'translation' and 'help'
+ * - Supported languages from features/languages
+ */
+export function setupI18n() {
+  const initialLang = detectInitialLanguage();
+  i18n
+    .use(HttpBackend)
+    .use(initReactI18next)
+    .init({
+      // Load from /public/locales/{{lng}}/{{ns}}.json
+      backend: {
+        loadPath: '/locales/{{lng}}/{{ns}}.json',
+      },
+      lng: initialLang,
+      fallbackLng: 'en',
+      supportedLngs: languages.map(l => l.value),
+      ns: ['translation', 'help'],
+      defaultNS: 'translation',
+      interpolation: { escapeValue: false },
+      // Avoid preloading everything; fetch on demand when language/namespace is used
+      partialBundledLanguages: true,
+    });
+  return i18n;
 }
-for (const [path, mod] of Object.entries(helpModules)) {
-  const parts = path.split('/');
-  const code = parts[parts.length - 2];
-  helpTranslations[code] = mod.default;
-}
 
-const resources = languages.reduce<Record<string, { translation: any; help: any }>>((acc, l) => {
-  const t = translations[l.value];
-  const h = helpTranslations[l.value];
-  if (t) {
-    acc[l.value] = { translation: t, help: h || {} };
-  }
-  return acc;
-}, {});
-
-// Choose the initial language based on the browser locale when available.
-const browserLang = typeof navigator !== 'undefined'
-  ? navigator.language.split('-')[0]
-  : 'en';
-const initialLang = translations[browserLang] ? browserLang : 'en';
-
-i18n.use(initReactI18next).init({
-  resources,
-  lng: initialLang,
-  fallbackLng: 'en',
-  ns: ['translation', 'help'],
-  defaultNS: 'translation',
-  interpolation: { escapeValue: false },
-});
-
+// Initialize immediately for app startup; callers can import the configured instance.
+setupI18n();
 export default i18n;

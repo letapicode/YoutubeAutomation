@@ -17,13 +17,21 @@ export async function checkDependencies(): Promise<void> {
   try {
     await invoke('verify_dependencies');
   } catch {
-    if (window.confirm('Required components are missing. Install now?')) {
-      try {
-        await invoke('install_tauri_deps');
-        await invoke('verify_dependencies');
-      } catch {
-        window.alert('Failed to install dependencies. Please run scripts/install_tauri_deps.sh manually.');
-      }
+    // Auto-install silently without prompting the user. If installation
+    // subsequently fails, do not interrupt the user; log guidance instead.
+    try {
+      await invoke('install_tauri_deps');
+      await invoke('verify_dependencies').catch(() => {
+        console.warn('[deps] verification still failing; run platform installer manually:\n' +
+          ' - Windows: scripts/ install_tauri_deps_windows.ps1\n' +
+          ' - Linux:   scripts/ install_tauri_deps.sh\n' +
+          ' - macOS:   scripts/ install_tauri_deps_macos.sh');
+      });
+    } catch (e) {
+      console.warn('[deps] auto-install failed; run platform installer manually:\n' +
+        ' - Windows: scripts/ install_tauri_deps_windows.ps1\n' +
+        ' - Linux:   scripts/ install_tauri_deps.sh\n' +
+        ' - macOS:   scripts/ install_tauri_deps_macos.sh', e);
     }
   }
 }

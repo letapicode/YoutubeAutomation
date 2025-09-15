@@ -4,8 +4,7 @@ use std::sync::{Mutex, Arc};
 use std::sync::atomic::{AtomicBool, Ordering};
 use tokio::sync::Notify;
 use serde::{Serialize, Deserialize};
-use tauri::api::path::app_config_dir;
-use tauri::Manager;
+use tauri::{AppHandle, Wry, Manager, Emitter};
 
 use crate::schema::GenerateParams;
 use crate::logger;
@@ -51,25 +50,26 @@ pub fn is_paused() -> bool {
     PAUSED.load(Ordering::SeqCst)
 }
 
-fn emit_changed(app: &tauri::AppHandle) {
-    let _ = app.emit_all("queue_changed", ());
+fn emit_changed(app: &AppHandle<Wry>) {
+    // Tauri v2: emit to all windows via AppHandle::emit
+    let _ = app.emit("queue_changed", ());
     logger::log(app, "info", "queue_changed");
 }
 
-fn queue_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+fn queue_path(app: &AppHandle<Wry>) -> Result<PathBuf, String> {
     if let Ok(p) = std::env::var("YTAPP_TEST_DIR") {
         let mut dir = PathBuf::from(p);
         fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
         dir.push("queue.json");
         return Ok(dir);
     }
-    let mut dir = app_config_dir(&app.config()).ok_or("config dir not found")?;
+    let mut dir = app.path().app_config_dir().map_err(|e| e.to_string())?;
     fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
     dir.push("queue.json");
     Ok(dir)
 }
 
-pub fn enqueue(app: &tauri::AppHandle, job: Job) -> Result<(), String> {
+pub fn enqueue(app: &AppHandle<Wry>, job: Job) -> Result<(), String> {
     let mut q = QUEUE.lock().unwrap();
     q.push(QueueItem { job, status: JobStatus::Pending, retries: 0, error: None });
     NOTIFY.notify_one();
@@ -77,7 +77,7 @@ pub fn enqueue(app: &tauri::AppHandle, job: Job) -> Result<(), String> {
     Ok(())
 }
 
-pub fn dequeue(app: &tauri::AppHandle, retry_failed: bool, max_retries: u32) -> Result<Option<(usize, QueueItem)>, String> {
+pub fn dequeue(app: &AppHandle<Wry>, retry_failed: bool, max_retries: u32) -> Result<Option<(usize, QueueItem)>, String> {
     if is_paused() {
         return Ok(None);
     }
@@ -93,7 +93,7 @@ pub fn dequeue(app: &tauri::AppHandle, retry_failed: bool, max_retries: u32) -> 
     Ok(None)
 }
 
-pub fn mark_complete(app: &tauri::AppHandle, index: usize) -> Result<(), String> {
+pub fn mark_complete(app: &AppHandle<Wry>, index: usize) -> Result<(), String> {
     let mut q = QUEUE.lock().unwrap();
     if index < q.len() {
         q.remove(index);
@@ -102,7 +102,7 @@ pub fn mark_complete(app: &tauri::AppHandle, index: usize) -> Result<(), String>
     Ok(())
 }
 
-pub fn mark_failed(app: &tauri::AppHandle, index: usize, error: String) -> Result<(), String> {
+pub fn mark_failed(app: &AppHandle<Wry>, index: usize, error: String) -> Result<(), String> {
     let mut q = QUEUE.lock().unwrap();
     if let Some(item) = q.get_mut(index) {
         item.status = JobStatus::Failed;
@@ -114,7 +114,7 @@ pub fn mark_failed(app: &tauri::AppHandle, index: usize, error: String) -> Resul
 }
 
 /// Remove a job from the queue by index.
-pub fn remove_job(app: &tauri::AppHandle, index: usize) -> Result<(), String> {
+pub fn remove_job(app: &AppHandle<Wry>, index: usize) -> Result<(), String> {
     let mut q = QUEUE.lock().unwrap();
     if index < q.len() {
         q.remove(index);
@@ -124,7 +124,7 @@ pub fn remove_job(app: &tauri::AppHandle, index: usize) -> Result<(), String> {
 }
 
 /// Move a job from one position to another.
-pub fn move_job(app: &tauri::AppHandle, from: usize, to: usize) -> Result<(), String> {
+pub fn move_job(app: &AppHandle<Wry>, from: usize, to: usize) -> Result<(), String> {
     let mut q = QUEUE.lock().unwrap();
     let len = q.len();
     if from < len && to < len && from != to {
@@ -140,7 +140,7 @@ pub fn peek_all() -> Vec<QueueItem> {
     q.clone()
 }
 
-pub fn save_queue(app: &tauri::AppHandle) -> Result<(), String> {
+pub fn save_queue(app: &AppHandle<Wry>) -> Result<(), String> {
     let path = queue_path(app)?;
     let q = QUEUE.lock().unwrap();
     let data = serde_json::to_string(&*q).map_err(|e| e.to_string())?;
@@ -149,7 +149,7 @@ pub fn save_queue(app: &tauri::AppHandle) -> Result<(), String> {
     Ok(())
 }
 
-pub fn load_queue(app: &tauri::AppHandle) -> Result<(), String> {
+pub fn load_queue(app: &AppHandle<Wry>) -> Result<(), String> {
     let path = queue_path(app)?;
     let data = match fs::read_to_string(&path) {
         Ok(d) => d,
@@ -173,7 +173,7 @@ pub fn load_queue(app: &tauri::AppHandle) -> Result<(), String> {
 }
 
 /// Remove all queued jobs and persist the empty queue.
-pub fn clear_queue(app: &tauri::AppHandle) -> Result<(), String> {
+pub fn clear_queue(app: &AppHandle<Wry>) -> Result<(), String> {
     let mut q = QUEUE.lock().unwrap();
     q.clear();
     save_queue(app)?;
@@ -181,7 +181,7 @@ pub fn clear_queue(app: &tauri::AppHandle) -> Result<(), String> {
 }
 
 /// Remove finished jobs from the queue.
-pub fn clear_completed(app: &tauri::AppHandle) -> Result<(), String> {
+pub fn clear_completed(app: &AppHandle<Wry>) -> Result<(), String> {
     let mut q = QUEUE.lock().unwrap();
     q.retain(|item| item.status == JobStatus::Pending || item.status == JobStatus::Running);
     save_queue(app)?;
@@ -189,7 +189,7 @@ pub fn clear_completed(app: &tauri::AppHandle) -> Result<(), String> {
 }
 
 /// Remove only failed jobs from the queue.
-pub fn clear_failed(app: &tauri::AppHandle) -> Result<(), String> {
+pub fn clear_failed(app: &AppHandle<Wry>) -> Result<(), String> {
     let mut q = QUEUE.lock().unwrap();
     q.retain(|item| item.status != JobStatus::Failed);
     save_queue(app)?;
@@ -197,14 +197,14 @@ pub fn clear_failed(app: &tauri::AppHandle) -> Result<(), String> {
 }
 
 /// Write the current queue state to the provided path.
-pub fn export_queue(app: &tauri::AppHandle, dest: &str) -> Result<(), String> {
+pub fn export_queue(app: &AppHandle<Wry>, dest: &str) -> Result<(), String> {
     let src = queue_path(app)?;
     fs::copy(src, dest).map_err(|e| e.to_string())?;
     Ok(())
 }
 
 /// Replace or append to the queue with jobs from the given file.
-pub fn import_queue(app: &tauri::AppHandle, path: &str, append: bool) -> Result<(), String> {
+pub fn import_queue(app: &AppHandle<Wry>, path: &str, append: bool) -> Result<(), String> {
     let data = fs::read_to_string(path).map_err(|e| e.to_string())?;
     let mut items: Vec<QueueItem> = match serde_json::from_str(&data) {
         Ok(v) => v,
