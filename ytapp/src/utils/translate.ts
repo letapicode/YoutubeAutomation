@@ -3,7 +3,7 @@
  * The returned promise resolves with the path to the translated file.
  */
 // Running external binaries from the Tauri WebView must go through the process plugin
-import { Command } from '@tauri-apps/api/shell';
+import { Command } from '@tauri-apps/plugin-shell';
 
 export async function translateSrt(
   input: string,

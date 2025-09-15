@@ -1,0 +1,1 @@
+{"main-capabilities":{"identifier":"main-capabilities","description":"Capabilities for shell operations used by the app","local":true,"permissions":["shell:allow-execute","shell:allow-spawn","shell:allow-kill","shell:allow-stdin-write","shell:allow-open"]}}

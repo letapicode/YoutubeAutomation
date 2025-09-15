@@ -27,6 +27,7 @@ function Write-Warning { param($Message) Write-Host "[WARNING] $Message" -Foregr
 function Write-Err { param($Message) Write-Host "[ERROR] $Message" -ForegroundColor Red }
 
 # --- Dependency Installation ---
+if ($env:YTA_USE_LEGACY_BOOTSTRAP -eq '1') {
 
 # 1. Chocolatey
 Write-Info "Checking for Chocolatey..."
@@ -43,13 +44,12 @@ if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
 
 # 2. Core Dependencies via Chocolatey
 $chocoPackages = @(
-    "mingw",
     "nodejs-lts",
     "rust",
     "cmake",
     "llvm",
     "nasm",
-    "microsoft-edge-webview2-runtime",
+    "webview2-runtime",
     "gtk-runtime",
     "ffmpeg",
     "visualstudio2022-workload-vctools"
@@ -80,7 +80,8 @@ Write-Success "Rust components installed."
 
 # 4. Tauri CLI
 Write-Info "Checking for tauri-cli..."
-if (-not (Get-Command tauri -ErrorAction SilentlyContinue)) {
+# tauri-cli installs the binary as 'cargo-tauri.exe'. Prefer detecting that.
+if (-not (Get-Command cargo-tauri -ErrorAction SilentlyContinue)) {
     Write-Info "Installing tauri-cli..."
     cargo install tauri-cli
     Write-Success "tauri-cli installed."
@@ -117,7 +118,8 @@ Write-Host "`n`n=== YoutubeAutomation Setup Complete! ===" -ForegroundColor Gree
 Write-Host "The development environment is ready."
 Write-Host "To run the app in development mode:" -ForegroundColor Cyan
 Write-Host "  cd ytapp" -ForegroundColor Cyan
-Write-Host "  npm run tauri dev" -ForegroundColor Cyan
+Write-Host "  npm run tauri:dev" -ForegroundColor Cyan
+}
 
 # This script installs all required dependencies for the YouTube Automation project
 # Requires: PowerShell 5.1 or later, Administrator privileges
@@ -653,11 +655,27 @@ function Build-Project {
 
         Push-Location $projectPath
         try {
+            # Prepare logs directory for optional quiet mode output
+            $logsDir = Join-Path $projectPath ".logs"
+            if (-not (Test-Path $logsDir)) { New-Item -ItemType Directory -Path $logsDir -Force | Out-Null }
+            $viteLog = Join-Path $logsDir "vite-build.log"
+            $tauriLog = Join-Path $logsDir "tauri-build.log"
+
             Write-Info "Building frontend..."
-            & $npmCmd run build
-            if ($LASTEXITCODE -ne 0) {
-                Write-Err "Frontend build failed with exit code $LASTEXITCODE"
-                return $false
+            if ($env:YTA_QUIET -eq '1') {
+                Write-Info "Quiet mode on; logging Vite output to $viteLog"
+                $viteProc = Start-Process -FilePath $npmCmd -ArgumentList "run build" `
+                    -NoNewWindow -Wait -PassThru -RedirectStandardOutput $viteLog -RedirectStandardError $viteLog
+                if ($viteProc.ExitCode -ne 0) {
+                    Write-Err "Frontend build failed (see $viteLog)"
+                    return $false
+                }
+            } else {
+                & $npmCmd run build
+                if ($LASTEXITCODE -ne 0) {
+                    Write-Err "Frontend build failed with exit code $LASTEXITCODE"
+                    return $false
+                }
             }
 
             # Verify dist directory exists
@@ -667,23 +685,86 @@ function Build-Project {
                 return $false
             }
 
-            Write-Info "Running tauri build..."
-            $env:TAURI_PRIVATE_KEY = $null # Ensure we're not using any stale signing keys
-            tauri build
-
-            $buildSuccess = $LASTEXITCODE -eq 0
-
-            if ($buildSuccess) {
-                $releaseDir = Join-Path $projectPath "src-tauri\target\release"
-                if (Test-Path $releaseDir) {
-                    Write-Success "Build completed successfully!"
-                    Write-Success "You can find the executable in: $releaseDir"
+            # Clear problematic CMake generator overrides that cause MSVC build failures
+            $cmakeVars = @('CMAKE_GENERATOR','CMAKE_GENERATOR_TOOLSET','CMAKE_GENERATOR_PLATFORM','CMAKE_MAKE_PROGRAM')
+            foreach ($v in $cmakeVars) {
+                if (Test-Path "Env:\$v") {
+                    $varValue = Get-Item "Env:$v" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Value
+                    Write-Info "Unsetting $v (was '$varValue')"
+                    Remove-Item "Env:\$v" -ErrorAction SilentlyContinue
                 }
-                return $true
-            } else {
-                Write-Err "Build failed. Check the error messages above for details."
-                return $false
             }
+            # Also clear compiler overrides that force MinGW/gnu toolchains
+            $compilerVars = @('CC','CXX','AR','RANLIB')
+            foreach ($v in $compilerVars) {
+                if (Test-Path "Env:\$v") {
+                    $varValue = Get-Item "Env:$v" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Value
+                    Write-Info "Unsetting $v (was '$varValue')"
+                    Remove-Item "Env:\$v" -ErrorAction SilentlyContinue
+                }
+            }
+            # Prefer Visual Studio generator explicitly to avoid MinGW on systems with both installed
+            $env:CMAKE_GENERATOR = "Visual Studio 17 2022"
+
+            # Ensure aws-lc-sys uses C11 on MSVC (fixes C atomics error)
+            $env:AWS_LC_SYS_C_STD = "11"
+            # Import VS developer environment for MSVC toolchain & Windows SDK
+            Import-VsDevCmdEnv
+            # Ensure rustup cargo shim is first in PATH
+            Ensure-RustupCargoFirst
+            # Use a short Cargo target dir to avoid long path issues on Windows
+            Ensure-ShortTargetDir
+            # Final diagnostics before building
+            Diagnose-BuildEnv
+
+            # Clean Rust artifacts to avoid incompatible crate cache issues
+            Write-Info "Cleaning Rust build artifacts..."
+            Push-Location (Join-Path $projectPath "src-tauri")
+            try {
+                rustup run 1.88.0-x86_64-pc-windows-msvc cargo clean
+            } finally {
+                Pop-Location
+            }
+
+            # Ensure Windows icon exists to satisfy tauri-build on Windows
+            $srcTauriDir = Join-Path $projectPath "src-tauri"
+            $iconIco = Join-Path $srcTauriDir "icons\icon.ico"
+            $iconPng = Join-Path $srcTauriDir "icons\icon.png"
+            if (-not (Test-Path $iconIco)) {
+                if (Test-Path $iconPng) {
+                    Write-Info "Generating icon.ico from icon.png..."
+                    Push-Location $srcTauriDir
+                    try {
+                        rustup run 1.88.0-x86_64-pc-windows-msvc cargo tauri icon "icons\icon.png"
+                    } finally { Pop-Location }
+                } else {
+                    Write-WarningMsg "icons\\icon.png not found; skipping icon generation"
+                }
+            }
+
+            Write-Info "Running Tauri build..."
+            $env:TAURI_PRIVATE_KEY = $null # Ensure we're not using any stale signing keys
+            if ($env:YTA_QUIET -eq '1') {
+                Write-Info "Quiet mode on; logging Tauri build to $tauriLog"
+                $buildProc = Start-Process -FilePath "rustup" -ArgumentList "run 1.88.0-x86_64-pc-windows-msvc cargo tauri build" `
+                    -NoNewWindow -Wait -PassThru -RedirectStandardOutput $tauriLog -RedirectStandardError $tauriLog
+                $buildSuccess = ($buildProc.ExitCode -eq 0)
+            } else {
+                $buildProc = Start-Process -FilePath "rustup" -ArgumentList "run 1.88.0-x86_64-pc-windows-msvc cargo tauri build" -NoNewWindow -Wait -PassThru
+                $buildSuccess = ($buildProc.ExitCode -eq 0)
+            }
+
+        if ($buildSuccess) {
+            $releaseDir = Join-Path $projectPath "src-tauri\target\release"
+            if (Test-Path $releaseDir) {
+                Write-Success "Build completed successfully!"
+                Write-Success "You can find the executable in: $releaseDir"
+            }
+            return $true
+        } else {
+            Write-Err "Build failed. Check the error messages above for details."
+            return $false
+        }
         }
         finally {
             Pop-Location
@@ -952,8 +1033,7 @@ function Update-SessionEnvironment {
         "C:\Program Files\nodejs",
         "${env:ProgramFiles}\nodejs",
         "$env:ChocolateyInstall\bin",
-        "$env:USERPROFILE\.cargo\bin",
-        "C:\mingw64\bin"
+        "$env:USERPROFILE\.cargo\bin"
     )
 
     foreach ($path in $criticalPaths) {
@@ -965,6 +1045,202 @@ function Update-SessionEnvironment {
     }
 
     Write-Success "Environment variables refreshed"
+}
+
+# Ensure rustup shim cargo is first in PATH so downstream tools (like tauri)
+# pick it up when they spawn `cargo`.
+function Ensure-RustupCargoFirst {
+    try {
+        $shimDir = Join-Path $env:USERPROFILE ".cargo\bin"
+        if (-not (Test-Path $shimDir)) { return }
+
+        $rebuild = {
+            param($pathVal)
+            $parts = @()
+            if ($pathVal) { $parts = $pathVal -split ';' | Where-Object { $_ -and ($_ -ne $shimDir) } }
+            return "$shimDir;" + ($parts -join ';')
+        }
+
+        $userPath = [System.Environment]::GetEnvironmentVariable("Path", "User")
+        $machinePath = [System.Environment]::GetEnvironmentVariable("Path", "Machine")
+
+        [System.Environment]::SetEnvironmentVariable("Path", (& $rebuild $userPath), "User")
+        [System.Environment]::SetEnvironmentVariable("Path", (& $rebuild $machinePath), "Machine")
+
+        # Rebuild current session PATH explicitly
+        $env:Path = (& $rebuild $env:Path)
+
+        $cargoPath = (Get-Command cargo -ErrorAction SilentlyContinue).Source
+        if ($cargoPath -and ($cargoPath -like 'C:\\ProgramData\\chocolatey\\bin\\cargo.exe')) {
+            Write-WarningMsg "Chocolatey cargo shim detected; de-prioritizing for this session"
+            $env:Path = ($env:Path -split ';' | Where-Object { $_ -and ($_ -ne 'C:\\ProgramData\\chocolatey\\bin') }) -join ';'
+            $cargoPath = (Get-Command cargo -ErrorAction SilentlyContinue).Source
+        }
+        if ($cargoPath) {
+            Write-Info "Using cargo at: $cargoPath"
+        } else {
+            Write-WarningMsg "cargo not found in PATH after adjustment; ensure Rust is installed"
+        }
+    } catch {
+        Write-WarningMsg "Failed to prioritize rustup cargo shim: $_"
+    }
+}
+
+# Diagnostics for build prerequisites and environment
+function Diagnose-BuildEnv {
+    Write-Info "Diagnostics: verifying toolchain and build environment..."
+    try {
+        $cargoPath = (Get-Command cargo -ErrorAction SilentlyContinue).Source
+        if ($cargoPath) { Write-Info "cargo path: $cargoPath" } else { Write-WarningMsg "cargo not in PATH" }
+
+        $tool = (& rustup show active-toolchain 2>$null)
+        if ($LASTEXITCODE -eq 0 -and $tool) { Write-Info ("active toolchain: {0}" -f $tool.Trim()) } else { Write-WarningMsg "active toolchain not resolved" }
+
+        $sysroot = (& rustup run 1.88.0-x86_64-pc-windows-msvc rustc --print sysroot 2>$null)
+        if ($LASTEXITCODE -eq 0 -and $sysroot) {
+            Write-Info "sysroot: $sysroot"
+            $coreDir = Join-Path $sysroot "lib\rustlib\x86_64-pc-windows-msvc\lib"
+            $core = Get-ChildItem -Path $coreDir -Filter "core*.rlib" -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($core) {
+                Write-Success ("MSVC core stdlib found: {0}" -f $core.Name)
+            } else {
+                # Do not fail the setup if this probe is inconclusive; subsequent cargo build will verify.
+                Write-WarningMsg "MSVC core stdlib not detected under $coreDir; continuing since build will verify"
+            }
+        } else {
+            Write-WarningMsg "sysroot not resolved via rustup"
+        }
+
+        if ($env:VCINSTALLDIR) { Write-Success "VCINSTALLDIR set" } else { Write-WarningMsg "VCINSTALLDIR not set" }
+        if ($env:WindowsSdkDir) { Write-Success "WindowsSdkDir set" } else { Write-WarningMsg "WindowsSdkDir not set" }
+        if ($env:WindowsSDKVersion) { Write-Success "WindowsSDKVersion set" } else { Write-WarningMsg "WindowsSDKVersion not set" }
+
+        $msbuild = Get-Command msbuild.exe -ErrorAction SilentlyContinue
+        if ($msbuild) { Write-Info ("MSBuild: {0}" -f $msbuild.Source) } else { Write-WarningMsg "MSBuild not found in PATH" }
+        $cl = Get-Command cl.exe -ErrorAction SilentlyContinue
+        if ($cl) { Write-Info ("CL.exe: {0}" -f $cl.Source) } else { Write-WarningMsg "CL.exe not found in PATH" }
+    } catch { Write-WarningMsg "Diagnostics failed: $_" }
+}
+
+# Import Visual Studio Developer Command Prompt environment (vcvars) so
+# CMake/MSBuild picks up proper VC/SDK variables in this PowerShell session.
+function Import-VsDevCmdEnv {
+    try {
+        $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+        if (-not (Test-Path $vswhere)) { Write-WarningMsg "vswhere.exe not found; skipping VS env import"; return }
+        $vsPath = & $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+        if (-not $vsPath) { Write-WarningMsg "VS Build Tools not found by vswhere; skipping VS env import"; return }
+        $vsDevCmd = Join-Path $vsPath "Common7\Tools\VsDevCmd.bat"
+        if (-not (Test-Path $vsDevCmd)) { Write-WarningMsg "VsDevCmd.bat not found; skipping VS env import"; return }
+
+        Write-Info "Importing Visual Studio developer environment..."
+        $cmd = '"' + $vsDevCmd + '" -arch=x64 -host_arch=x64 >nul && set'
+        $vars = & cmd.exe /c $cmd
+        foreach ($line in $vars) {
+            if ($line -match '^(.*?)=(.*)$') {
+                $name = $matches[1]; $val = $matches[2]
+                try { [System.Environment]::SetEnvironmentVariable($name, $val, 'Process'); Set-Item -Path "Env:$name" -Value $val -ErrorAction SilentlyContinue } catch {}
+            }
+        }
+        Write-Success "VS developer environment imported"
+    } catch {
+        Write-WarningMsg "Failed to import VS dev environment: $_"
+    }
+}
+
+# Shorten Cargo target dir to avoid long Windows paths causing MSBuild/CMake issues
+function Ensure-ShortTargetDir {
+    try {
+        $shortDir = Join-Path $env:USERPROFILE ".ytarget"
+        if (-not (Test-Path $shortDir)) { New-Item -ItemType Directory -Path $shortDir -Force | Out-Null }
+        $env:CARGO_TARGET_DIR = $shortDir
+        Write-Info "CARGO_TARGET_DIR set to $shortDir"
+    } catch {
+        Write-WarningMsg "Failed to set CARGO_TARGET_DIR: $_"
+    }
+}
+
+# Ensure Rust uses the MSVC toolchain on Windows and the MSVC target is available
+function Ensure-MsvcToolchain {
+    Write-Info "Ensuring Rust MSVC toolchain is installed and active..."
+    try {
+        # Install and activate the MSVC toolchain explicitly (stable)
+        Invoke-Rust 'toolchain install stable-x86_64-pc-windows-msvc' | Out-Null
+        Invoke-Rust 'default stable-x86_64-pc-windows-msvc' | Out-Null
+        Invoke-Rust 'target add x86_64-pc-windows-msvc' | Out-Null
+
+        # Also install the project-pinned MSVC toolchain from rust-toolchain.toml
+        # so builds use a consistent host/target pair.
+        Invoke-Rust 'toolchain install 1.88.0-x86_64-pc-windows-msvc' | Out-Null
+        Invoke-Rust 'target add x86_64-pc-windows-msvc --toolchain 1.88.0-x86_64-pc-windows-msvc' | Out-Null
+        Write-Success "MSVC toolchain set as default (stable-x86_64-pc-windows-msvc)"
+        return $true
+    } catch {
+        Write-WarningMsg "Could not ensure MSVC toolchain: $_"
+        return $false
+    }
+}
+
+# Write a Cargo config to force MSVC builds for this workspace
+function Ensure-CargoMsvcConfig {
+    param([string]$srcTauriPath)
+    try {
+        $cargoDir = Join-Path $srcTauriPath ".cargo"
+        $cfgPath = Join-Path $cargoDir "config.toml"
+        if (-not (Test-Path $cargoDir)) {
+            New-Item -ItemType Directory -Path $cargoDir -Force | Out-Null
+        }
+        if (-not (Test-Path $cfgPath)) {
+            Write-Info "Writing Cargo MSVC config at $cfgPath"
+            @"
+[build]
+target = "x86_64-pc-windows-msvc"
+"@ | Set-Content -Path $cfgPath -Encoding UTF8
+        } else {
+            Write-Info "Cargo MSVC config already present at $cfgPath"
+        }
+    } catch {
+        Write-WarningMsg "Failed to write Cargo MSVC config: $_"
+    }
+}
+
+# Ensure the Tauri CLI is available
+function Ensure-TauriCli {
+    Write-Info "Checking for tauri-cli (cargo tauri)..."
+    try {
+        & cargo tauri --version | Out-Null
+        if ($LASTEXITCODE -eq 0) {
+            Write-Success "tauri-cli is available"
+            return $true
+        }
+    } catch {}
+    Write-Info "Installing tauri-cli..."
+    $proc = Start-Process rustup -ArgumentList "run 1.88.0-x86_64-pc-windows-msvc cargo install tauri-cli" -Wait -NoNewWindow -PassThru
+    if ($proc.ExitCode -eq 0) {
+        Write-Success "tauri-cli installed"
+        return $true
+    } else {
+        Write-Err "Failed to install tauri-cli (exit $($proc.ExitCode))"
+        return $false
+    }
+}
+
+# Generate Windows .ico from the provided PNG if missing
+function Ensure-TauriIcon {
+    param([string]$srcTauriPath)
+    $ico = Join-Path $srcTauriPath "icons\icon.ico"
+    $png = Join-Path $srcTauriPath "icons\icon.png"
+    if (-not (Test-Path $ico)) {
+        if (Test-Path $png) {
+            Write-Info "Generating Windows icon (icon.ico) from icon.png..."
+            Push-Location $srcTauriPath
+            try {
+                & cargo tauri icon "icons\icon.png"
+            } finally { Pop-Location }
+        } else {
+            Write-WarningMsg "icons\\icon.png not found; cannot generate icon.ico"
+        }
+    }
 }
 
 Write-Host "=== YoutubeAutomation Setup for Windows ===" -ForegroundColor Cyan
@@ -985,9 +1261,7 @@ if (-not (Install-Chocolatey)) {
     exit 1
 }
 
-if (-not (Install-MinGW)) {
-    Write-WarningMsg "MinGW installation failed. Some build tools might be missing."
-}
+Write-Info "Skipping MinGW installation to avoid MSVC/MinGW conflicts for Tauri builds."
 
 $packages = @(
     @{Name = "nodejs-lts"; DisplayName = "Node.js LTS"; NeedsReboot = $false; Args = '--ignore-checksums'},
@@ -995,7 +1269,7 @@ $packages = @(
     @{Name = "cmake"; DisplayName = "CMake"; NeedsReboot = $false; Args = '--ignore-checksums'},
     @{Name = "llvm"; DisplayName = "LLVM"; NeedsReboot = $false; Args = '--ignore-checksums'},
     @{Name = "nasm"; DisplayName = "NASM"; NeedsReboot = $false; Args = '--ignore-checksums'},
-    @{Name = "microsoft-edge-webview2-runtime"; DisplayName = "Microsoft Edge WebView2 Runtime"; NeedsReboot = $false; Args = '--ignore-checksums'},
+    @{Name = "webview2-runtime"; DisplayName = "Microsoft Edge WebView2 Runtime"; NeedsReboot = $false; Args = '--ignore-checksums'},
     @{Name = "gtk-runtime"; DisplayName = "GTK Runtime"; NeedsReboot = $false; Args = '--ignore-checksums'},
     @{Name = "ffmpeg"; DisplayName = "FFmpeg"; NeedsReboot = $false; Args = '--ignore-checksums'}
 )
@@ -1055,20 +1329,75 @@ if (-not (Install-VisualStudioBuildTools)) {
     exit 1
 }
 
-Write-Info "Installing Rust components..."
-if (-not (Install-RustComponents)) {
-    Write-Err "Failed to install Rust components"
+# Set the correct project path
+$projectRoot = Split-Path -Parent $PSScriptRoot
+$ytappPath = Join-Path $projectRoot "ytapp"
+
+if (-not (Test-Path $ytappPath)) {
+    Write-Err "Could not find ytapp directory at: $ytappPath"
     exit 1
 }
 
-Write-Info "Setting up Node.js dependencies..."
-if (-not (Install-NodeDependencies)) {
-    Write-Err "Failed to install Node.js dependencies"
+# Ensure Rust uses MSVC and cargo is configured for MSVC target in this repo
+Ensure-MsvcToolchain | Out-Null
+Ensure-CargoMsvcConfig -srcTauriPath (Join-Path $ytappPath 'src-tauri')
+Ensure-RustupCargoFirst
+
+# Ensure this repo directory uses the pinned MSVC toolchain override
+try {
+    Push-Location (Join-Path $ytappPath 'src-tauri')
+    & rustup override set 1.88.0-x86_64-pc-windows-msvc | Out-Null
+    Pop-Location
+    Write-Success "Pinned toolchain override set to 1.88.0-x86_64-pc-windows-msvc for src-tauri"
+} catch {
+    Write-WarningMsg "Failed to set rustup override: $_"
+}
+
+# Also set the override at the app root so cargo tauri invoked from ytapp uses the same toolchain
+try {
+    Push-Location $ytappPath
+    & rustup override set 1.88.0-x86_64-pc-windows-msvc | Out-Null
+    Pop-Location
+    Write-Success "Pinned toolchain override set to 1.88.0-x86_64-pc-windows-msvc for ytapp"
+} catch {
+    Write-WarningMsg "Failed to set rustup override at ytapp: $_"
+}
+
+# Change to the project directory
+Push-Location $ytappPath
+try {
+    # Clean previous node_modules if exists
+    if (Test-Path "node_modules") {
+        Remove-Item -Recurse -Force node_modules
+    }
+    
+    # Install dependencies
+    Write-Info "Installing npm dependencies in $ytappPath..."
+    npm install
+    
+    if ($LASTEXITCODE -ne 0) {
+        Write-Err "Failed to install Node.js dependencies"
+        exit 1
+    }
+    
+    Write-Success "Node.js dependencies installed successfully"
+}
+catch {
+    Write-Err "Error installing Node.js dependencies: $_"
     exit 1
+}
+finally {
+    Pop-Location
 }
 
 # Final guarantee that Node.js & npm are reachable for verification
 Ensure-NodePath | Out-Null
+
+# Ensure tauri-cli is available before verification and build
+if (-not (Ensure-TauriCli)) {
+    Write-Err "tauri-cli is required but could not be installed"
+    exit 1
+}
 
 Write-Info "Verifying installation..."
 $driveName = if ($PWD -and $PWD.Drive) { $PWD.Drive.Name } else { 'C' }
@@ -1091,7 +1420,7 @@ $tools = @(
     @{Name = "npm"; Command = "npm --version"; Required = $true},
     @{Name = "Rust"; Command = "rustc --version"; Required = $true},
     @{Name = "Cargo"; Command = "cargo --version"; Required = $true},
-    @{Name = "Tauri CLI"; Command = "tauri --version"; Required = $true},
+    @{Name = "Tauri CLI"; Command = "cargo tauri --version"; Required = $true},
     @{Name = "Python"; Command = "python --version"; Required = $false},
     @{Name = "Git"; Command = "git --version"; Required = $false}
 )
@@ -1131,21 +1460,45 @@ if ($allToolsInstalled) {
 
     # Build the project
     $projectPath = Join-Path $PSScriptRoot "..\ytapp"
+    if (-not (Test-Path $projectPath)) {
+        $projectPath = Join-Path $PSScriptRoot "..\..\ytapp"
+    }
     Write-Info "Building project at $projectPath"
     
-    if (Build-Project -projectPath $projectPath) {
-        Write-Host "`nProject built successfully!" -ForegroundColor Green
-        Write-Host "`n=== Next Steps ===" -ForegroundColor Cyan
-        Write-Host "1. Run the application in development mode:" -ForegroundColor Cyan
-        Write-Host "   cd ytapp" -ForegroundColor Cyan
-        Write-Host "   npm run tauri dev" -ForegroundColor Cyan
-        Write-Host "`n2. Or run the built executable from:" -ForegroundColor Cyan
-        Write-Host "   $projectPath\src-tauri\target\release" -ForegroundColor Cyan
-        Write-Host "`n3. If you encounter any issues, try restarting your terminal or computer" -ForegroundColor Yellow
-    } else {
+        if (Build-Project -projectPath $projectPath) {
+            Write-Host "`nProject built successfully!" -ForegroundColor Green
+            Write-Info "Launching the Tauri app UI (development mode)..."
+
+            Push-Location $projectPath
+            try {
+                # Clear any conflicting CMake generator overrides
+                $cmakeVars = @('CMAKE_GENERATOR','CMAKE_GENERATOR_TOOLSET','CMAKE_GENERATOR_PLATFORM','CMAKE_MAKE_PROGRAM')
+                foreach ($v in $cmakeVars) {
+                    if (Test-Path "Env:\$v") {
+                        $varValue = Get-Item "Env:$v" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Value
+                        Write-Info "Unsetting $v (was '$varValue')"
+                        Remove-Item "Env:\$v" -ErrorAction SilentlyContinue
+                    }
+                }
+
+                # Ensure aws-lc-sys uses C11 on MSVC (fixes C atomics error)
+                $env:AWS_LC_SYS_C_STD = "11"
+                # Also ensure VS env, rustup cargo shim, and short target dir for dev
+                Import-VsDevCmdEnv
+                Ensure-RustupCargoFirst
+                Ensure-ShortTargetDir
+
+                # Start the dev UI with the pinned MSVC toolchain (blocks until closed)
+                # Use rustup run to guarantee the correct cargo is used even if another cargo is first in PATH
+                & rustup run 1.88.0-x86_64-pc-windows-msvc cargo tauri dev
+            }
+            finally {
+                Pop-Location
+            }
+        } else {
         Write-Host "`nProject build failed. You can try building manually with:" -ForegroundColor Yellow
         Write-Host "  cd ytapp" -ForegroundColor Yellow
-        Write-Host "  npm run tauri dev" -ForegroundColor Yellow
+        Write-Host "  npm run tauri:dev" -ForegroundColor Yellow
     }
 } else {
     Write-Host "`nSome required tools are missing:" -ForegroundColor Red

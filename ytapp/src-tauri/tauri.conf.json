@@ -1,12 +1,12 @@
 {
-  "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/2.0.0-beta/tooling/cli/schema.json",
+  "$schema": "https://schema.tauri.app/config-2",
   "identifier": "com.youtubeautomation.desktop",
   "productName": "ytapp",
   "version": "0.1.0",
   "build": {
     "beforeBuildCommand": "npm run build",
     "beforeDevCommand": "npm run dev",
-    "devUrl": "http://localhost:3000",
+    "devUrl": "http://localhost:1420",
     "frontendDist": "../dist"
   },
   "app": {
@@ -25,9 +25,7 @@
   },
   "plugins": {
     "shell": {
-      "scope": {
-        "allow": ["**"]
-      }
+      "open": true
     }
   }
 }

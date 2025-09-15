@@ -4,14 +4,15 @@ use std::{
     path::{Path, PathBuf},
     process::Command,
 };
-use tauri::{command, Window, Manager};
+use tauri::{command, Manager, WebviewWindow, AppHandle, Wry, Emitter};
 use tauri_plugin_process;
+use tauri_plugin_shell;
 use serde::{Deserialize, Serialize};
 use mime_guess;
 mod schema;
 use schema::{CaptionOptions, GenerateParams, Profile};
 use std::collections::HashMap;
-use tauri::api::path::app_config_dir;
+// path resolution via AppHandle.path() in Tauri v2
 use whisper_cli::{Model, Size, Whisper};
 mod model_check;
 use model_check::ensure_whisper_model;
@@ -32,7 +33,7 @@ mod job_queue;
 use job_queue::{Job, QueueItem, enqueue, dequeue, peek_all, load_queue, clear_queue as clear_in_memory, notifier, mark_complete, mark_failed};
 mod logger;
 use logger::{log, read_logs, clear_logs};
-use tauri::api::dialog::{blocking::MessageDialogBuilder, MessageDialogKind};
+// Dialogs previously used tauri::api; in Tauri v2 prefer plugin APIs or log
 use notify::{RecommendedWatcher, RecursiveMode, Watcher, Config, EventKind, Event, Error as NotifyError};
 use once_cell::sync::Lazy;
 use std::sync::{Mutex, Arc};
@@ -151,8 +152,9 @@ impl Default for AppSettings {
     }
 }
 
-fn settings_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
-    let mut dir = app_config_dir(&app.config()).ok_or("config dir not found")?;
+fn settings_path(app: &AppHandle<Wry>) -> Result<PathBuf, String> {
+    // Resolve app config directory via Tauri v2 path API
+    let mut dir = app.path().app_config_dir().map_err(|e| e.to_string())?;
     fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
     dir.push("settings.json");
     Ok(dir)
@@ -237,7 +239,7 @@ fn run_ffmpeg(mut cmd: Command) -> Result<(), String> {
     if status.success() { Ok(()) } else { Err("ffmpeg failed".into()) }
 }
 
-fn run_with_progress(mut cmd: Command, duration: f64, window: &Window, index: Option<usize>) -> Result<(), String> {
+fn run_with_progress(mut cmd: Command, duration: f64, window: &WebviewWindow<Wry>, index: Option<usize>) -> Result<(), String> {
     use std::io::{BufRead, BufReader};
     cmd.args(["-progress", "pipe:1", "-nostats"]);
     cmd.stdout(std::process::Stdio::piped());
@@ -273,7 +275,7 @@ fn run_with_progress(mut cmd: Command, duration: f64, window: &Window, index: Op
 
 struct ProgressReader<R: Read + Seek> {
     inner: R,
-    window: Window,
+    window: WebviewWindow<Wry>,
     index: Option<usize>,
     total: u64,
     sent: u64,
@@ -281,7 +283,7 @@ struct ProgressReader<R: Read + Seek> {
 }
 
 impl<R: Read + Seek> ProgressReader<R> {
-    fn new(inner: R, window: Window, total: u64, index: Option<usize>) -> Self {
+    fn new(inner: R, window: WebviewWindow<Wry>, total: u64, index: Option<usize>) -> Self {
         Self { inner, window, index, total, sent: 0, last: 0 }
     }
 }
@@ -349,7 +351,7 @@ fn convert_media(path: &str, duration: Option<f64>, width: u32, height: u32, fps
     Ok(out)
 }
 
-fn build_main_section(window: Option<&Window>, params: &GenerateParams, duration: f64, width: u32, height: u32, fps: Option<u32>, index: Option<usize>) -> Result<PathBuf, String> {
+fn build_main_section(window: Option<&WebviewWindow<Wry>>, params: &GenerateParams, duration: f64, width: u32, height: u32, fps: Option<u32>, index: Option<usize>) -> Result<PathBuf, String> {
     let out = temp_file("main");
     let mut cmd = Command::new("ffmpeg");
     cmd.arg("-y");
@@ -460,7 +462,7 @@ fn build_main_section(window: Option<&Window>, params: &GenerateParams, duration
 }
 
 #[command]
-fn generate_video(window: Window, params: GenerateParams, queue_index: Option<usize>) -> Result<String, String> {
+fn generate_video(window: WebviewWindow<Wry>, params: GenerateParams, queue_index: Option<usize>) -> Result<String, String> {
     log(&window.app_handle(), "info", "generate_video start");
     let output_path = params
         .output
@@ -523,7 +525,7 @@ fn generate_video(window: Window, params: GenerateParams, queue_index: Option<us
     Ok(output_path)
 }
 
-async fn upload_video_impl(window: Window, file: String, opts: UploadOptions, index: Option<usize>) -> Result<String, String> {
+async fn upload_video_impl(window: WebviewWindow<Wry>, file: String, opts: UploadOptions, index: Option<usize>) -> Result<String, String> {
     log(&window.app_handle(), "info", &format!("upload_video start: {}", file));
     let auth = build_authenticator().await?;
 
@@ -668,7 +670,7 @@ async fn build_authenticator() -> Result<Authenticator<HttpsConnector<HttpConnec
 }
 
 #[command]
-async fn upload_video(window: Window, file: String, opts: Option<UploadOptions>) -> Result<String, String> {
+async fn upload_video(window: WebviewWindow<Wry>, file: String, opts: Option<UploadOptions>) -> Result<String, String> {
     upload_video_impl(window, file, opts.unwrap_or_default(), None).await
 }
 
@@ -739,7 +741,7 @@ async fn list_playlists() -> Result<Vec<PlaylistInfo>, String> {
 }
 
 #[command]
-async fn generate_upload(window: Window, params: GenerateParams, queue_index: Option<usize>) -> Result<String, String> {
+async fn generate_upload(window: WebviewWindow<Wry>, params: GenerateParams, queue_index: Option<usize>) -> Result<String, String> {
     let output = generate_video(window.clone(), params.clone(), queue_index)?;
     let result = upload_video_impl(window.clone(), output.clone(), UploadOptions {
         title: params.title,
@@ -756,7 +758,7 @@ async fn generate_upload(window: Window, params: GenerateParams, queue_index: Op
 }
 
 #[command]
-async fn upload_videos(window: Window, files: Vec<String>, opts: Option<UploadOptions>) -> Result<Vec<String>, String> {
+async fn upload_videos(window: WebviewWindow<Wry>, files: Vec<String>, opts: Option<UploadOptions>) -> Result<Vec<String>, String> {
     let mut results = Vec::new();
     let o = opts.unwrap_or_default();
     for file in files {
@@ -824,7 +826,7 @@ struct WatchDirectoryParams {
 }
 
 #[command]
-async fn generate_batch_upload(window: Window, params: BatchGenerateParams) -> Result<Vec<String>, String> {
+async fn generate_batch_upload(window: WebviewWindow<Wry>, params: BatchGenerateParams) -> Result<Vec<String>, String> {
     let mut results = Vec::new();
     for file in &params.files {
         let out = if let Some(ref dir) = params.output_dir {
@@ -876,7 +878,7 @@ async fn generate_batch_upload(window: Window, params: BatchGenerateParams) -> R
 }
 
 #[command]
-fn watch_directory(window: Window, params: WatchDirectoryParams) -> Result<(), String> {
+fn watch_directory(window: WebviewWindow<Wry>, params: WatchDirectoryParams) -> Result<(), String> {
     let mut guard = WATCHER.lock().unwrap();
     if let Some(mut w) = guard.take() {
         let _ = w.unwatch(Path::new(&params.dir));
@@ -889,7 +891,8 @@ fn watch_directory(window: Window, params: WatchDirectoryParams) -> Result<(), S
     let auto = params.auto_upload;
     let win = window.clone();
     start_queue_worker(win.clone());
-    let app_handle = window.app_handle();
+    // Obtain an owned AppHandle to use inside the watcher callback without borrowing `window`
+    let app_handle = window.app_handle().clone();
     let mut watcher = RecommendedWatcher::new(
         move |res: Result<Event, NotifyError>| {
             if let Ok(event) = res {
@@ -949,7 +952,7 @@ fn watch_directory(window: Window, params: WatchDirectoryParams) -> Result<(), S
 }
 
 #[command]
-fn watch_stop(_window: Window) -> Result<(), String> {
+fn watch_stop(_window: WebviewWindow<Wry>) -> Result<(), String> {
     let mut guard = WATCHER.lock().unwrap();
     if let Some(w) = guard.take() {
         drop(w);
@@ -958,7 +961,7 @@ fn watch_stop(_window: Window) -> Result<(), String> {
 }
 
 #[command]
-fn load_settings(app: tauri::AppHandle) -> Result<AppSettings, String> {
+fn load_settings(app: AppHandle<Wry>) -> Result<AppSettings, String> {
     let path = settings_path(&app)?;
     let data = match fs::read_to_string(&path) {
         Ok(d) => d,
@@ -1012,7 +1015,7 @@ fn load_settings(app: tauri::AppHandle) -> Result<AppSettings, String> {
 }
 
 #[command]
-fn save_settings(app: tauri::AppHandle, settings: AppSettings) -> Result<(), String> {
+fn save_settings(app: AppHandle<Wry>, settings: AppSettings) -> Result<(), String> {
     let path = settings_path(&app)?;
     let data = serde_json::to_string(&settings).map_err(|e| e.to_string())?;
     fs::write(path, data).map_err(|e| e.to_string())
@@ -1029,7 +1032,7 @@ fn save_srt(path: String, data: String) -> Result<(), String> {
 }
 
 #[command]
-fn cancel_generate(window: Window) -> Result<(), String> {
+fn cancel_generate(window: WebviewWindow<Wry>) -> Result<(), String> {
     if let Some(child) = ACTIVE_FFMPEG.lock().unwrap().take() {
         let _ = child.lock().unwrap().kill();
         let _ = window.emit("generate_canceled", ());
@@ -1038,7 +1041,7 @@ fn cancel_generate(window: Window) -> Result<(), String> {
 }
 
 #[command]
-fn cancel_upload(window: Window) -> Result<(), String> {
+fn cancel_upload(window: WebviewWindow<Wry>) -> Result<(), String> {
     if let Some(handle) = ACTIVE_UPLOAD.lock().unwrap().take() {
         handle.abort();
         let _ = window.emit("upload_canceled", ());
@@ -1047,7 +1050,7 @@ fn cancel_upload(window: Window) -> Result<(), String> {
 }
 
 #[command]
-fn cancel_transcription(window: Window) -> Result<(), String> {
+fn cancel_transcription(window: WebviewWindow<Wry>) -> Result<(), String> {
     if let Some(handle) = ACTIVE_TRANSCRIBE.lock().unwrap().take() {
         handle.abort();
         let _ = window.emit("transcribe_canceled", ());
@@ -1056,79 +1059,79 @@ fn cancel_transcription(window: Window) -> Result<(), String> {
 }
 
 #[command]
-fn queue_add(app: tauri::AppHandle, job: Job) -> Result<(), String> {
+fn queue_add(app: AppHandle<Wry>, job: Job) -> Result<(), String> {
     load_queue(&app).ok();
     log(&app, "info", "queue_add");
     enqueue(&app, job)
 }
 
 #[command]
-fn queue_list(app: tauri::AppHandle) -> Result<Vec<QueueItem>, String> {
+fn queue_list(app: AppHandle<Wry>) -> Result<Vec<QueueItem>, String> {
     load_queue(&app).ok();
     Ok(peek_all())
 }
 
 #[command]
-fn queue_clear(app: tauri::AppHandle) -> Result<(), String> {
+fn queue_clear(app: AppHandle<Wry>) -> Result<(), String> {
     load_queue(&app).ok();
     log(&app, "info", "queue_clear");
     clear_in_memory(&app)
 }
 
 #[command]
-fn queue_remove(app: tauri::AppHandle, index: usize) -> Result<(), String> {
+fn queue_remove(app: AppHandle<Wry>, index: usize) -> Result<(), String> {
     load_queue(&app).ok();
     log(&app, "info", "queue_remove");
     job_queue::remove_job(&app, index)
 }
 
 #[command]
-fn queue_move(app: tauri::AppHandle, from: usize, to: usize) -> Result<(), String> {
+fn queue_move(app: AppHandle<Wry>, from: usize, to: usize) -> Result<(), String> {
     load_queue(&app).ok();
     log(&app, "info", "queue_move");
     job_queue::move_job(&app, from, to)
 }
 
 #[command]
-fn queue_clear_completed(app: tauri::AppHandle) -> Result<(), String> {
+fn queue_clear_completed(app: AppHandle<Wry>) -> Result<(), String> {
     load_queue(&app).ok();
     log(&app, "info", "queue_clear_completed");
     job_queue::clear_completed(&app)
 }
 
 #[command]
-fn queue_clear_failed(app: tauri::AppHandle) -> Result<(), String> {
+fn queue_clear_failed(app: AppHandle<Wry>) -> Result<(), String> {
     load_queue(&app).ok();
     log(&app, "info", "queue_clear_failed");
     job_queue::clear_failed(&app)
 }
 
 #[command]
-fn queue_export(app: tauri::AppHandle, path: String) -> Result<(), String> {
+fn queue_export(app: AppHandle<Wry>, path: String) -> Result<(), String> {
     load_queue(&app).ok();
     job_queue::export_queue(&app, &path)
 }
 
 #[command]
-fn queue_import(app: tauri::AppHandle, path: String, append: Option<bool>) -> Result<(), String> {
+fn queue_import(app: AppHandle<Wry>, path: String, append: Option<bool>) -> Result<(), String> {
     load_queue(&app).ok();
     job_queue::import_queue(&app, &path, append.unwrap_or(false))
 }
 
 #[command]
-fn queue_pause(_app: tauri::AppHandle) {
+fn queue_pause(_app: AppHandle<Wry>) {
     job_queue::set_paused(true);
     job_queue::notifier().notify_one();
 }
 
 #[command]
-fn queue_resume(_app: tauri::AppHandle) {
+fn queue_resume(_app: AppHandle<Wry>) {
     job_queue::set_paused(false);
     job_queue::notifier().notify_one();
 }
 
 #[command]
-async fn queue_process(window: Window, retry_failed: Option<bool>) -> Result<(), String> {
+async fn queue_process(window: WebviewWindow<Wry>, retry_failed: Option<bool>) -> Result<(), String> {
     let app = window.app_handle();
     load_queue(&app).ok();
     let settings = load_settings(app.clone()).unwrap_or_default();
@@ -1165,7 +1168,7 @@ async fn queue_process(window: Window, retry_failed: Option<bool>) -> Result<(),
 }
 
 /// Continuously process queued jobs in the background.
-fn start_queue_worker(window: Window) {
+fn start_queue_worker(window: WebviewWindow<Wry>) {
     if WORKER_STARTED.swap(true, Ordering::SeqCst) {
         return;
     }
@@ -1218,26 +1221,26 @@ fn start_queue_worker(window: Window) {
 }
 
 #[command]
-fn profile_list(app: tauri::AppHandle) -> Result<Vec<String>, String> {
+fn profile_list(app: AppHandle<Wry>) -> Result<Vec<String>, String> {
     let settings = load_settings(app.clone())?;
     Ok(settings.profiles.keys().cloned().collect())
 }
 
 #[command]
-fn profile_get(app: tauri::AppHandle, name: String) -> Result<Profile, String> {
+fn profile_get(app: AppHandle<Wry>, name: String) -> Result<Profile, String> {
     let settings = load_settings(app.clone())?;
     settings.profiles.get(&name).cloned().ok_or_else(|| "profile not found".into())
 }
 
 #[command]
-fn profile_save(app: tauri::AppHandle, name: String, profile: Profile) -> Result<(), String> {
+fn profile_save(app: AppHandle<Wry>, name: String, profile: Profile) -> Result<(), String> {
     let mut settings = load_settings(app.clone())?;
     settings.profiles.insert(name, profile);
     save_settings(app, settings)
 }
 
 #[command]
-fn profile_delete(app: tauri::AppHandle, name: String) -> Result<(), String> {
+fn profile_delete(app: AppHandle<Wry>, name: String) -> Result<(), String> {
     let mut settings = load_settings(app.clone())?;
     settings.profiles.remove(&name);
     save_settings(app, settings)
@@ -1251,7 +1254,7 @@ struct TranscribeParams {
 }
 
 #[command]
-async fn transcribe_audio(window: Window, params: TranscribeParams) -> Result<String, String> {
+async fn transcribe_audio(window: WebviewWindow<Wry>, params: TranscribeParams) -> Result<String, String> {
     let audio_path = PathBuf::from(&params.file);
     let srt_path = audio_path.with_extension("srt");
 
@@ -1393,21 +1396,26 @@ fn list_fonts_inner() -> Result<Vec<SystemFont>, String> {
 }
 
 #[command]
-fn verify_dependencies(app: tauri::AppHandle) -> Result<(), String> {
+fn verify_dependencies(app: AppHandle<Wry>) -> Result<(), String> {
     if Command::new("ffmpeg").arg("-version").output().is_err() {
-        MessageDialogBuilder::new("Missing FFmpeg", "FFmpeg is required. Please install it and ensure it is in your PATH.")
-            .kind(MessageDialogKind::Error)
-            .show();
+        log(&app, "error", "FFmpeg is required and not found in PATH");
         return Err("ffmpeg not found".into());
     }
 
-    if Command::new("argos-translate").arg("--version").output().is_err() {
-        MessageDialogBuilder::new(
-            "Missing Argos Translate",
-            "Argos Translate is required for subtitle translation. Please install it and ensure it is in your PATH."
-        )
-        .kind(MessageDialogKind::Error)
-        .show();
+    // Accept multiple ways to locate Argos Translate on Windows and other OSes.
+    // Try the CLI first, then fall back to `py -m argostranslate` and
+    // `python -m argostranslate` when the shim is missing but Python is present.
+    let argos_ok = || -> bool {
+        let try_run = |prog: &str, args: &[&str]| -> bool {
+            Command::new(prog).args(args).output().map(|o| o.status.success()).unwrap_or(false)
+        };
+        if try_run("argos-translate", &["--version"]) { return true; }
+        if try_run("py", &["-m", "argostranslate", "--version"]) { return true; }
+        if try_run("python", &["-m", "argostranslate", "--version"]) { return true; }
+        false
+    }();
+    if !argos_ok {
+        log(&app, "error", "Argos Translate is required and not found (tried argos-translate and Python -m)");
         return Err("argos-translate not found".into());
     }
 
@@ -1423,14 +1431,10 @@ fn verify_dependencies(app: tauri::AppHandle) -> Result<(), String> {
     };
     let model = Model::new(size);
     if !model.get_path().exists() {
-        MessageDialogBuilder::new("Downloading Whisper model", "The selected Whisper model is missing and will be downloaded now. This may take a while.")
-            .kind(MessageDialogKind::Info)
-            .show();
+        log(&app, "info", "Whisper model missing: downloading now (this may take a while)...");
         tauri::async_runtime::block_on(async { model.download().await; });
         if !model.get_path().exists() {
-            MessageDialogBuilder::new("Whisper model missing", "Failed to download the Whisper model. Please check your internet connection and restart the app.")
-                .kind(MessageDialogKind::Error)
-                .show();
+            log(&app, "error", "Failed to download Whisper model");
             return Err("model missing".into());
         }
     }
@@ -1478,7 +1482,7 @@ fn install_tauri_deps() -> Result<(), String> {
 
 #[command]
 fn get_logs(
-    app: tauri::AppHandle,
+    app: AppHandle<Wry>,
     max_lines: Option<usize>,
     level: Option<String>,
     search: Option<String>,
@@ -1487,7 +1491,7 @@ fn get_logs(
 }
 
 #[command(rename = "clear_logs")]
-fn clear_logs_cmd(app: tauri::AppHandle) -> Result<(), String> {
+fn clear_logs_cmd(app: AppHandle<Wry>) -> Result<(), String> {
     clear_logs(&app)
 }
 
@@ -1496,8 +1500,9 @@ fn main() {
     ensure_whisper_model(&context.config());
     tauri::Builder::default()
         .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_shell::init())
         .setup(|app| {
-            if let Some(win) = app.get_window("main") {
+            if let Some(win) = app.get_webview_window("main") {
                 start_queue_worker(win);
             }
             Ok(())

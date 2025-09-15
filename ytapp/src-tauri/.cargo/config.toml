@@ -1,0 +1,5 @@
+[build]
+# Force MSVC toolchain on Windows so native C/C++ deps (e.g., whisper-rs-sys)
+# produce .lib artifacts instead of MinGW .a, and to match Visual Studio build tools.
+target = "x86_64-pc-windows-msvc"
+
