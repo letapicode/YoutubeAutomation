@@ -7,13 +7,10 @@ import { initReactI18next } from 'react-i18next';
 import { languages } from './features/languages';
 
 /**
- * Resolve initial language from the browser (renderer) when available.
- * Falls back to English if unsupported.
+ * Interface language is fixed to English in the desktop UI.
  */
 function detectInitialLanguage(): string {
-  const supported = new Set(languages.map(l => l.value));
-  const lang = typeof navigator !== 'undefined' ? navigator.language.split('-')[0] : 'en';
-  return supported.has(lang) ? lang : 'en';
+  return 'en';
 }
 
 /**

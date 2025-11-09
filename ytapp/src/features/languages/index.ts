@@ -14,8 +14,17 @@ const loaded = Object.values(modules).map(m => m.default);
 // Sort alphabetically for predictable dropdown order.
 loaded.sort((a, b) => a.label.localeCompare(b.label));
 
+const PINNED_CODES = ['en', 'hi', 'ne'];
+const pinned = PINNED_CODES
+  .map(code => loaded.find(lang => lang.value === code))
+  .filter((lang): lang is LanguageInfo => Boolean(lang));
+
+const remaining = loaded.filter(lang => !PINNED_CODES.includes(lang.value));
+
 // Insert the automatic detection option at the beginning.
-export const languages = [{ value: 'auto', label: 'Auto', rtl: false }, ...loaded] as const;
+export const languages = [{ value: 'auto', label: 'Auto', rtl: false }, ...pinned, ...remaining] as const;
+
+export const pinnedLanguages = PINNED_CODES as readonly string[];
 
 export type Language = typeof languages[number]['value'];
 
