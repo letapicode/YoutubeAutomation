@@ -26,7 +26,6 @@ const SettingsPage: React.FC = () => {
     const [watermarkPos, setWatermarkPos] = useState<'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'>('top-right');
     const [watermarkOpacity, setWatermarkOpacity] = useState(1);
     const [watermarkScale, setWatermarkScale] = useState(0.2);
-    const [guide, setGuide] = useState(true);
     const [watchDir, setWatchDir] = useState('');
     const [autoUpload, setAutoUpload] = useState(false);
     const [modelSize, setModelSize] = useState('base');
@@ -56,7 +55,6 @@ const SettingsPage: React.FC = () => {
             if (s.watermarkPosition) setWatermarkPos(s.watermarkPosition as any);
             if (typeof s.watermarkOpacity === 'number') setWatermarkOpacity(s.watermarkOpacity);
             if (typeof s.watermarkScale === 'number') setWatermarkScale(s.watermarkScale);
-            setGuide(s.showGuide !== false);
             setWatchDir(s.watchDir || '');
             setAutoUpload(!!s.autoUpload);
             setOutput(s.output || '');
@@ -86,7 +84,6 @@ const SettingsPage: React.FC = () => {
             watermarkPosition: watermarkPos,
             watermarkOpacity,
             watermarkScale,
-            showGuide: guide,
             watchDir: watchDir || undefined,
             autoUpload,
             output: output || undefined,

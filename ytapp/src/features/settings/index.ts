@@ -17,7 +17,6 @@ export interface Settings {
     watermarkPosition?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
     watermarkOpacity?: number;
     watermarkScale?: number;
-    showGuide?: boolean;
     watchDir?: string;
     autoUpload?: boolean;
     output?: string;
@@ -29,7 +28,6 @@ export interface Settings {
     defaultPrivacy?: string;
     defaultPlaylistId?: string;
     theme?: string;
-    language?: string;
 }
 
 export async function loadSettings(): Promise<Settings> {

@@ -17,6 +17,9 @@ import FontSelector from './components/FontSelector';
 import LanguageSelector from './components/LanguageSelector';
 import PlaylistSelector from './components/PlaylistSelector';
 import SizeSlider from './components/SizeSlider';
+import Section from './components/Section';
+import Accordion from './components/Accordion';
+import ActionBar from './components/ActionBar';
 import { languages, Language } from './features/languages';
 import TranscribeButton from './components/TranscribeButton';
 import { loadSettings, saveSettings } from './features/settings';
@@ -25,15 +28,12 @@ import type { Profile } from './schema';
 import Modal from './components/Modal';
 import UploadIcon from './components/UploadIcon';
 import SettingsIcon from './components/SettingsIcon';
-import OnboardingModal from './components/OnboardingModal';
 import WatchStatus from './components/WatchStatus';
 import SubtitleEditor from './components/SubtitleEditor';
 import { notify } from './utils/notify';
 import UpdateModal from './components/UpdateModal';
 import QueuePage from './components/QueuePage';
 import LogsPage from './components/LogsPage';
-import HelpOverlay from './components/HelpOverlay';
-import HelpIcon from './components/HelpIcon';
 import { check } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
 
@@ -49,7 +49,7 @@ const App: React.FC = () => {
     const [watermarkPos, setWatermarkPos] = useState<'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'>('top-right');
     const [watermarkOpacity, setWatermarkOpacity] = useState(1);
     const [watermarkScale, setWatermarkScale] = useState(0.2);
-    const [translations, setTranslations] = useState<string[]>([]);
+    const [translations, setTranslations] = useState<Language[]>([]);
     const [font, setFont] = useState('');
     const [fontPath, setFontPath] = useState('');
     const [fontStyle, setFontStyle] = useState('');
@@ -75,9 +75,6 @@ const App: React.FC = () => {
     const [generating, setGenerating] = useState(false);
     const [outputs, setOutputs] = useState<string[]>([]);
     const [preview, setPreview] = useState('');
-    const [showGuide, setShowGuide] = useState(false);
-    const [showHelp, setShowHelp] = useState(false);
-    const [helpPage, setHelpPage] = useState('main');
     const [showUpdate, setShowUpdate] = useState(false);
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
@@ -108,7 +105,6 @@ const App: React.FC = () => {
             }
             if (s.accentColor) setAccentColor(s.accentColor);
             if (s.theme) setTheme(s.theme as any);
-            if (s.language) i18n.changeLanguage(s.language);
             if (s.watermark) setWatermark(s.watermark);
             if (s.watermarkPosition) setWatermarkPos(s.watermarkPosition as any);
             if (typeof s.watermarkOpacity === 'number') setWatermarkOpacity(s.watermarkOpacity);
@@ -119,7 +115,6 @@ const App: React.FC = () => {
             if (typeof s.defaultFps === 'number') setFps(s.defaultFps);
             if (s.defaultPrivacy) setPrivacy(s.defaultPrivacy);
             if (s.defaultPlaylistId) setPlaylistId(s.defaultPlaylistId);
-            if (s.showGuide !== false) setShowGuide(true);
             if (s.watchDir) {
                 watchDirectory(s.watchDir, { autoUpload: s.autoUpload });
             }
@@ -290,27 +285,6 @@ const App: React.FC = () => {
         setPreview('');
     };
 
-    const dismissGuide = async () => {
-        setShowGuide(false);
-        await saveSettings({
-            intro: intro || undefined,
-            outro: outro || undefined,
-            background: background || undefined,
-            captionFont: font || undefined,
-            captionFontPath: fontPath || undefined,
-            captionStyle: fontStyle || undefined,
-            captionSize: size,
-            captionColor: captionColor,
-            captionBg: captionBg,
-            watermark: watermark || undefined,
-            watermarkPosition: watermarkPos,
-            watermarkOpacity,
-            watermarkScale,
-            output: output || undefined,
-            showGuide: false,
-        });
-    };
-
     const applyProfile = (p: Profile) => {
         setBackground(p.background || '');
         setIntro(p.intro || '');
@@ -385,10 +359,6 @@ const App: React.FC = () => {
                 } else if (e.key === 's') {
                     setPage('settings');
                     e.preventDefault();
-                } else if (e.key === 'h') {
-                    setHelpPage(page);
-                    setShowHelp(true);
-                    e.preventDefault();
                 }
             }
         };
@@ -401,9 +371,6 @@ const App: React.FC = () => {
             <div className="app">
                 <div className="row">
                     <button onClick={() => setPage('single')}>{t('back')}</button>
-                    <button onClick={() => { setHelpPage('batch'); setShowHelp(true); }} aria-label={t('help')}>
-                        <HelpIcon />
-                    </button>
                 </div>
                 <BatchPage />
             </div>
@@ -426,9 +393,6 @@ const App: React.FC = () => {
             <div className="app">
                 <div className="row">
                     <button onClick={() => setPage('single')}>{t('back')}</button>
-                    <button onClick={() => { setHelpPage('settings_page'); setShowHelp(true); }} aria-label={t('help')}>
-                        <HelpIcon />
-                    </button>
                 </div>
                 <SettingsPage />
             </div>
@@ -440,9 +404,6 @@ const App: React.FC = () => {
             <div className="app">
                 <div className="row">
                     <button onClick={() => setPage('single')}>{t('back')}</button>
-                    <button onClick={() => { setHelpPage('queue'); setShowHelp(true); }} aria-label={t('help')}>
-                        <HelpIcon />
-                    </button>
                 </div>
                 <QueuePage />
             </div>
@@ -462,25 +423,17 @@ const App: React.FC = () => {
 
     return (
         <div className="app">
-            <h1>{t('title')}</h1>
-            <div className="row">
-                <LanguageSelector
-                    value={i18n.language as Language}
-                    onChange={async l => {
-                        i18n.changeLanguage(l);
-                        try {
-                            const current = await loadSettings();
-                            await saveSettings({ ...current, language: l });
-                        } catch {
-                            // ignore persistence errors
-                        }
-                    }}
-                />
-                <button onClick={toggleTheme}>{t('toggle_theme')}</button>
-                <button onClick={() => { setHelpPage('main'); setShowHelp(true); }} aria-label={t('help')}>
-                    <HelpIcon />
-                </button>
+            <div className="toolbar">
+                <div className="toolbar__title">
+                    <h1>{t('title')}</h1>
+                </div>
+                <div className="toolbar__controls">
+                    <button onClick={toggleTheme}>{t('toggle_theme')}</button>
+                </div>
             </div>
+            <div className="form-grid">
+                <Section title={t('media_inputs')}>
+                    <div className="stack">
             <div className="row">
                 <FilePicker label={t('select_audio')} useDropZone onSelect={(p) => {
                     if (typeof p === 'string') setFile(p);
@@ -557,6 +510,10 @@ const App: React.FC = () => {
                     </>
                 )}
             </div>
+                    </div>
+                </Section>
+                <Section title={t('video_metadata')}>
+                    <div className="stack">
             <div className="row">
                 <input type="text" placeholder={t('video_title')} value={title} onChange={e => setTitle(e.target.value)} />
             </div>
@@ -592,8 +549,11 @@ const App: React.FC = () => {
                 />
                 {thumbnail && <span>{thumbnail}</span>}
             </div>
-            <details>
-                <summary>{t('advanced_settings')}</summary>
+                    </div>
+                </Section>
+            </div>
+            <Accordion title={t('advanced_settings')}>
+                <div className="stack">
             <div className="row">
                 <FilePicker
                     useDropZone
@@ -666,28 +626,25 @@ const App: React.FC = () => {
                 <label>FPS</label>
                 <input type="number" min="1" value={fps} onChange={e => setFps(parseInt(e.target.value, 10) || 1)} />
             </div>
-            </details>
-            <div className="row">
-                <LanguageSelector value={language} onChange={(l) => setLanguage(l)} />
-            </div>
-            <div className="row">
-                {languages.filter(opt => opt.value !== 'auto').map(opt => (
-                    <label key={opt.value} style={{ marginRight: '0.5em' }}>
-                        <input
-                            type="checkbox"
-                            value={opt.value}
-                            checked={translations.includes(opt.value)}
-                            onChange={() => {
-                                setTranslations(ts => ts.includes(opt.value)
-                                    ? ts.filter(t => t !== opt.value)
-                                    : [...ts, opt.value]);
-                            }}
-                        />
-                        {opt.label}
-                    </label>
-                ))}
-            </div>
-            <div className="row">
+                </div>
+            </Accordion>
+            <Section title={t('transcription_languages')} description={t('transcription_languages_hint')}>
+                <div className="stack">
+                    <LanguageSelector
+                        label={t('primary_language')}
+                        value={language}
+                        onChange={setLanguage}
+                    />
+                    <LanguageSelector
+                        multiple
+                        includeAuto={false}
+                        value={translations}
+                        onChange={setTranslations}
+                        placeholder={t('language_multi_placeholder')}
+                    />
+                </div>
+            </Section>
+            <ActionBar>
                 <YouTubeAuthButton />
                 <button onClick={handleGenerate}>{t('generate')}</button>
                 <button onClick={handleGenerateUpload}>
@@ -703,7 +660,7 @@ const App: React.FC = () => {
                 </button>
                 <button onClick={() => setPage('queue')}>{t('queue')}</button>
                 <button onClick={() => setPage('logs')}>{t('logs')}</button>
-            </div>
+            </ActionBar>
             {generating && (
                 <div className="row">
                     <progress value={progress} max={100} />
@@ -738,9 +695,7 @@ const App: React.FC = () => {
             </Modal>
             <WatchStatus />
             <div aria-live="polite" className="sr-only">{announcement}</div>
-            <HelpOverlay page={helpPage} open={showHelp} onClose={() => setShowHelp(false)} />
             <UpdateModal open={showUpdate} onUpdate={handleUpdateApp} onClose={() => setShowUpdate(false)} />
-            <OnboardingModal open={showGuide} onClose={dismissGuide} />
         </div>
     );
 };
